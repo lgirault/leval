@@ -20,9 +20,6 @@ import scalafx.scene.shape.Rectangle
 
 object GameScene {
 
-
-
-
   def starPanel(star : Star) = new VBox {
     val majestyValueLabel = new Label(star.majesty.toString)
     spacing = 10
@@ -119,7 +116,6 @@ class GameScene(val game : Game) extends Scene {
   var roundSate : RoundState = InfluencePhase
 
   val h1 = game.star1.hand
-
 
   val deck = CardImg.back
 
