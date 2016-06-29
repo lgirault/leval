@@ -1,0 +1,59 @@
+SVG-Z-cards 1.0
+---------------
+Brandon Ardiente <brandon@ardisoft.net>
+http://www.ardisoft.net/svg-z-cards/
+
+This is Brandon Ardiente's fork of David Bellot's SVG-card suite, based on his 2.0.1 release.  Since the majority of this work is originally David's, please refer to his readme notes below for more information about the details of SVG-Z-cards.
+
+I've detailed the modifications I made to the original SVG-card suite in both the NEWS and Changelog files.  The main change is the font face on the cards themselves; all in all, the changes I made to the original SVG-cards suite were entirely cosmetic and relatively minor; you can thank David for the sheer beauty of the cards, I just tweaked them to my liking :)
+
+I made my modifications to David's SVG-cards 2.0.1 release using Adobe Illustrator CS2.  As a result, David's original, slim 900KB SVG file is now a bohemoth 2,265KBs in size.  If size is an issue for your application, I'd strongly recommend you use David's original SVG-cards suite.
+
+To help conserve space in an already-bloated SVG file, I did not embed the font I used (Copperplate Gothic Bold) into the file.  Since SVG-Z-cards is essentially SVG-cards with a font change, I've also offered the cards as a .PNG file and an Adobe Illustrator CS2 file; hopefully these solutions will work if your computer does not have the CGB font.
+
+Special thanks goes out to David for his original SVG-cards suite.  He is the man responsible for these beautiful cards!
+
+This software is provided under the LGPL.  Refer to the 'COPYING' file for more information.
+
+Thanks!
+Brandon
+Golden, CO, USA 04/11/2008
+
+****************************************************************************
+Readme section below is from the original SVG-cards suite by David Bellot.
+****************************************************************************
+
+SVG-cards 2.0.1 
+---------------
+
+This is a set of playing cards made in pure SVG with all kings, queens, jacks, numbers, jokers and backs of cards. This set of SVG files is intended to be used in games, figures, illustrations, web sites as long as you provide the code source and the LGPL license (see the COPYING file). Although this is a free software, the license is the LGPL so you can use this set of cards even in a non-free software.
+
+The kings, queens and jacks are based on the french representation, because I find them beautiful. You can access to each either by rendering the file into a pixmap and clipping each card or by using their name with a DOM interface. All cards are inside a SVG group.
+Example :
+the king of spade is inside this group :
+
+<g id="king_spade">
+...
+</g>
+
+Names are the following :
+
+black_joker
+red_joker
+back
+{king,queen,jack}_{club,diamond,heart,spade}
+{1,2,3,4,5,6,7,8,9,10}_{club,diamond,heart,spade}
+
+Examples :
+- the ace of club is 1_club
+- the queen of diamond is queen_diamond
+
+and so on...
+
+
+These cards have been made with GNOME games in mind and have been succesfully tested with Nautilus, Eye of Gnome (both of them use librsvg) and Inkscape.
+
+Enjoy!
+
+David 
+Berkeley, CA, USA 08/12/2005

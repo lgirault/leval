@@ -1,0 +1,82 @@
+package leval.gui
+
+/**
+  * Created by lorilan on 6/21/16.
+  */
+
+import leval.core.{Joker, _}
+
+
+import scalafx.geometry.Rectangle2D
+import scalafx.scene.image.{Image, ImageView}
+
+class CardImageView(val card : Card, img : Image) extends ImageView(img)
+object CardImg {
+
+  val url = this.getClass.getResource("/svg-z-cards.png").toExternalForm
+  val img = new Image(url)
+  val width : Double = 167.552 //167.552307692
+  val height : Double = 243.238
+
+  val backCoord : (Double, Double) = (width * 2, height * 4)
+
+  def line(suit : Suit) : Int = suit match {
+    case Club => 0
+    case Diamond => 1
+    case Heart => 2
+    case Spade => 3
+  }
+  def column(r : Rank) : Int = r match {
+    case Ace => 0
+    case Numeric(i) => i - 1
+    case Jack => 10
+    case Queen => 11
+    case King => 12
+    case _ => throw new Error()
+  }
+
+  def coord(card : Card) : (Double, Double) = {
+    val (x, y) =  card match {
+      case (Joker, (Club | Spade)) => (0, 4)
+      case (Joker, (Heart | Diamond)) => (1, 4)
+      case (r, s) => (column(r), line(s))
+    }
+    (x * width, y * height)
+  }
+
+  def imageView(card : Card,
+                width : Double, height : Double) = {
+    val cc: (Double, Double) = coord(card)
+
+    new CardImageView(card, img) {
+      preserveRatio = true
+      viewport = new Rectangle2D(cc._1, cc._2, width = width, height = height)
+    }
+  }
+
+  def back : ImageView = new ImageView(img){
+    preserveRatio = true
+    viewport = new Rectangle2D(backCoord._1, backCoord._2, width = width, height = height)
+  }
+  def back(fitHeight : Double): ImageView = {
+    val civ = back
+    civ.fitHeight = fitHeight
+    civ
+  }
+
+  def apply(card : Card): CardImageView = imageView(card, width, height)
+
+  def apply(card : Card, fitHeight : Double): CardImageView = {
+    val civ = imageView(card, width, height)
+    civ.fitHeight = fitHeight
+    civ
+  }
+
+
+
+  def topHalf(card : Card): CardImageView = imageView(card, width, height/2)
+
+  def cutTopHalf(card : Card): CardImageView = imageView(card, width/3, height/2)
+
+
+}
