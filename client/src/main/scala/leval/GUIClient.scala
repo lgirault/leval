@@ -21,6 +21,7 @@ object TestScene extends JFXApp {
     scene = new GameScene(game)
   }
 }
+
 object GUIClient extends JFXApp {
 
   val stageScene =  new Scene{

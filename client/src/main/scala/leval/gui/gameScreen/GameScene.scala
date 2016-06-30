@@ -3,7 +3,7 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
-import leval.core.{Ace, Being, Card, Club, Game, Heart, InfluencePhase, King, PlayerId, RoundState, Star}
+import leval.core.{Ace, Being, Card, Club, Game, Heart, InfluencePhase, King, RoundState, Star}
 import leval.gui.CardImg
 import leval.ignore
 
@@ -32,7 +32,7 @@ object GameScene {
     )
   }
 
-  def handHBox(hand : Seq[Card], pane : Pane) : Pane =
+  def handHBox(hand : Set[Card], pane : Pane) : Pane =
     if(hand.isEmpty) new HBox()
     else {
       val imgs = hand.tail.foldLeft(Seq(CardImg.topHalf(hand.head))){
@@ -85,7 +85,7 @@ object GameScene {
       if(being.power.nonEmpty)
         placeRowCard(bottom_=)
 
-      center = CardImg(being.head, cardHeight)
+      center = CardImg(being.face, cardHeight)
       maxWidth = cardWidth * numCol
       maxHeight = cardHeight * numRow
     }
@@ -115,7 +115,7 @@ class GameScene(val game : Game) extends Scene {
 
   var roundSate : RoundState = InfluencePhase
 
-  val h1 = game.star1.hand
+  val h1 = game.stars(0).hand
 
   val deck = CardImg.back
 
@@ -127,9 +127,9 @@ class GameScene(val game : Game) extends Scene {
     VBox.setVgrow(downSpacer, Priority.Always)
     alignmentInParent = Pos.Center
     children = Seq(upSpacer,
-      starPanel(game.star2),
+      starPanel(game.stars(1)),
       deck,
-      starPanel(game.star1),
+      starPanel(game.stars(0)),
       downSpacer
     )
   }
@@ -155,7 +155,7 @@ class GameScene(val game : Game) extends Scene {
 
     right = createBeeingPane
 
-    playerBeingPane.children add beeingPane(Being((King, Heart),
+    playerBeingPane.children add beeingPane(new Being((King, Heart),
       heart = Some((Ace, Club)),
       weapon = Some((Ace, Club)), /*None*/
       mind = Some((Ace, Club)),
@@ -164,8 +164,6 @@ class GameScene(val game : Game) extends Scene {
 
   root = new BorderPane {
     pane =>
-
-
       val gameAreas: List[Node] = List(oponentArea, riverArea, playerArea(pane))
 
       gameAreas.zipWithIndex.foreach {

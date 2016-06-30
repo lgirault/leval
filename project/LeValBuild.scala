@@ -79,6 +79,8 @@ Seq(*/    "org.scalatest" %% "scalatest" % "2.2.4",
 
   val shared = (project
     settings commonSettings("shared")
+
+    settings (libraryDependencies += "org.typelevel" %% "cats" % "0.6.0")
     )
 
   val client = (project
