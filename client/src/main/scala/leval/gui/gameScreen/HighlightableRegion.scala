@@ -11,22 +11,24 @@ import scalafx.util.Duration
 /**
   * Created by lorilan on 6/29/16.
   */
-class HighlightRegion(decorated : Node) extends StackPane {
+class HighlightableRegion(decorated : Node) extends StackPane {
 
+  val styles =
+    Seq("-fx-border-width: 3; -fx-border-color: dodgerblue; -fx-background-color : rgba(12,56,100, 0.05);",
+      "-fx-border-width: 3; -fx-border-color: green; -fx-background-color : rgba(127,255,0, 0.05);")
   private val highlight = new Region {
     opacity = 0
-    style = "-fx-border-width: 3; -fx-border-color: dodgerblue; -fx-background-color : rgba(12,56,100, 0.05);"
+    style = styles.head
   }
 
   this.children = Seq(decorated, highlight)
 
+  var currentStyle = 0
 
-  //  override val delegate: jfxsl.Region = new jfxsl.Region {
-  //
-  //    protected override def layoutChildren() {
-  //      layoutInArea(highlight, 0, 0, getWidth, getHeight, getBaselineOffset, HPos.Center, VPos.Center)
-  //    }
-  //  }
+  def switchStyle() : Unit = {
+    currentStyle = (currentStyle + 1) % 2
+    highlight.style = styles(currentStyle)
+  }
 
   private val highlightTransition = new FadeTransition {
     node = highlight
@@ -35,14 +37,9 @@ class HighlightRegion(decorated : Node) extends StackPane {
     toValue = 1
   }
 
-  //  style <== when(ReversiModel.legalMove(x, y)) choose
-  //    "-fx-background-color: derive(dodgerblue, -60%)" otherwise
-  //    "-fx-background-color: burlywood"
-
   val defaultEffect = effect
 
-  onMouseEntered = (e: MouseEvent) => {
-    //if (ReversiModel.legalMove(x, y).get) {
+  def activateHighlight() = {
     highlightTransition.rate() = 1
     highlightTransition.play()
 
@@ -52,18 +49,16 @@ class HighlightRegion(decorated : Node) extends StackPane {
         elevation = 30
       }
     }
-    //}
   }
 
-  onMouseExited = (e: MouseEvent) => {
+  def deactivateHightLight() = {
     highlightTransition.rate = -1
     highlightTransition.play()
     effect = null.asInstanceOf[javafx.scene.effect.Lighting]
   }
 
-  //  onMouseClicked = (e: MouseEvent) => {
-  //    ReversiModel.play(x, y)
-  //    highlightTransition.rate() = -1
-  //    highlightTransition.play()
-  //  }
+//  onMouseEntered = (e: MouseEvent) => activateHighlight()
+//
+//  onMouseExited = (e: MouseEvent) => deactivateHightLight()
+
 }

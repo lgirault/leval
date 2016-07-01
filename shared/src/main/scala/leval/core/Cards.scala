@@ -3,6 +3,9 @@ package leval.core
 /**
   * Created by Loïc Girault on 20/06/16.
   */
+object Suit {
+  val list = List(Diamond, Club, Heart, Spade)
+}
 sealed abstract class Suit
 case object Diamond extends Suit//carreau
 case object Club extends Suit//trefle

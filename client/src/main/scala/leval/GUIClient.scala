@@ -3,7 +3,7 @@ package leval
 import akka.actor.{ActorRef, ActorSystem}
 import com.typesafe.config.{Config, ConfigFactory}
 import leval.core.{Game, PlayerId}
-import leval.gui.gameScreen.GameScene
+import leval.gui.gameScreen.{ObservableGame, TwoPlayerGameScene}
 import leval.gui.{SearchingServerScene, ViewController}
 import leval.network.client.{IdentifyingActor, NetWorkController}
 
@@ -16,9 +16,10 @@ object TestScene extends JFXApp {
 
 
 
+
   stage = new JFXApp.PrimaryStage {
     title = "V Box Example"
-    scene = new GameScene(game)
+    scene = new TwoPlayerGameScene(new ObservableGame(game), 0)
   }
 }
 

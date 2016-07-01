@@ -12,8 +12,13 @@ import scalafx.scene.layout.Pane
   * Created by lorilan on 6/25/16.
   */
 
-class CardDragAndDrop(c : Card, p : Pane) extends (MouseEvent => Unit) {
+class CardDragAndDrop
+( scene: TwoPlayerGameScene,
+  numStar : Int,
+  c : Card,
+  p : Pane) extends (MouseEvent => Unit) {
 
+  val oGame = scene.oGame
   var cardImageView : CardImageView = _
 
   var anchorPt: Point2D = null
@@ -24,16 +29,23 @@ class CardDragAndDrop(c : Card, p : Pane) extends (MouseEvent => Unit) {
     cardImageView.y = me.sceneY - (CardImg.height / 5)
   }
 
+  def canDragAndDrop : Boolean =
+    oGame.currentPlayer == numStar &&
+      oGame.roundState == InfluencePhase
+
+
   def apply(me : MouseEvent) : Unit = me.eventType match {
-    case MouseEvent.MousePressed =>
+    case MouseEvent.MousePressed if canDragAndDrop =>
       if(cardImageView == null) {
         cardImageView = CardImg(c)
       }
+      scene.hightlightTargets(Target(oGame.game, c.suit))
       anchorPt = new Point2D(me.sceneX, me.sceneY)
       p.children.add(cardImageView)
       updateCoord(me)
 
     case MouseEvent.MouseReleased =>
+      scene.unHightlightTargets()
       ignore(p.children.remove(cardImageView))
 
     case MouseEvent.MouseDragged =>

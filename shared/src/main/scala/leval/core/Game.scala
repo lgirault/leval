@@ -9,6 +9,7 @@ case class Game
   currentPlayer : Int,
   roundState: RoundState,
   beingsState : Map[FaceCard, Being.State], //reset each round
+  lookedCards : Set[(FaceCard, Suit)],
   source : Deck,
   deathRiver: Seq[Card],
   values : Card => Int) {
@@ -60,15 +61,17 @@ case class Game
     else g
   }
 
-  def collect : Game = {
+  def collect : (Game, Card) = {
     val newHand = currentHand + source.head
-    setCurrentHand(newHand).copy(source = source.tail)
+    (setCurrentHand(newHand).copy(source = source.tail),
+      source.head)
   }
 
-  def collectFromRiver : Game = {
+  def collectFromRiver : (Game, Card)= {
     val newHand = currentHand + deathRiver.head
-    setCurrentHand(newHand)
-      .copy(deathRiver = deathRiver.tail)
+    (setCurrentHand(newHand)
+      .copy(deathRiver = deathRiver.tail),
+      deathRiver.head)
   }
 
   def placeBeing(being : Being) : Game = {
@@ -124,18 +127,25 @@ case class Game
       case _ => leval.error()
     }
     val newStars =
-      if(cardRemoved) {
-        val removedSuit : Suit = suit match {
+      if(cardRemoved)
+        removeCardFromBeing(stars, targetB, owner,
+          suit match {
           case Spade => Heart case Diamond => Club
           case _ => leval.error()
-        }
-        val newBeing = targetB.copy(resources = targetB.resources - removedSuit)
-        val ownerStar = stars(owner)
-        stars.set(owner, ownerStar.copy(beings = ownerStar.beings + (target  -> newBeing)))
-      } else stars
+        })
+       else stars
 
     (copy(stars = newStars, beingsState = newState), cardRemoved)
 
+  }
+
+  private def removeCardFromBeing(stars : Seq[Star],
+                                  target : Being, owner : Int,
+                                  removedSuit : Suit) : Seq[Star] = {
+
+    val newBeing = target.copy(resources = target.resources - removedSuit)
+    val ownerStar = stars(owner)
+    stars.set(owner, ownerStar.copy(beings = ownerStar.beings + (target.face  -> newBeing)))
   }
 
   def educate(cards : Seq[Card],
@@ -161,13 +171,26 @@ case class Game
     setCurrentPlayerBeing(b)
   }
 
+  def lookCard (target : (FaceCard, Suit)) : (Game, Boolean) = {
+    val (targetfc, s) = target
+    val (targetB, owner) = findBeing(targetfc)
+    val looked = targetB resources s
+    val (cardRemoved, newStars) = looked match {
+      case (Queen | King, _)  if owner != currentPlayer  =>
+        (true, removeCardFromBeing(stars, targetB, owner, Heart))
+      case _ => (false, stars)
+    }
+    (copy(stars = newStars, lookedCards = lookedCards + target), cardRemoved)
+  }
+
   def endPhase : Game = roundState match {
     case InfluencePhase => copy(roundState = ActPhase(Set()))
     case ActPhase(_) => copy(roundState = SourcePhase)
     case SourcePhase =>
       copy(currentPlayer = nextPlayer,
         roundState = InfluencePhase,
-        beingsState = Map())
+        beingsState = Map(),
+        lookedCards = Set())
   }
 }
 
@@ -176,7 +199,7 @@ import cats.{Id, ~>}
 object Game {
 
   def apply(s1 : Star, s2 : Star, src : Deck) =
-    new Game(Seq(s1, s2), 0, InfluencePhase, Map(), src, Seq(), Card.value)
+    new Game(Seq(s1, s2), 0, InfluencePhase, Map(), Set(), src, Seq(), Card.value)
 
   def apply(pid1 : PlayerId, pid2 : PlayerId) : Game = {
     val deck = deck54()
@@ -222,27 +245,36 @@ object Game {
     case _ => true
   }
 
+}
 
-  def apply(g: Game) : Move ~> Id =
-    new (Move ~> Id) {
-      var game = g
-      def apply[A](ma : Move[A]) : Id[A] = ma match {
-        case DirectEffect(card) => game = game.directEffect(card)
-        case AttackBeing(attack, target) =>
-          val (g, killed) = game.attackBeing(attack, target)
-          game = g
-          killed
-        case RemoveFromHand(card) => game = game.removeFromHand(card)
-        case ActivateBeing(card) => game = game.activateBeing(card)
-        case Collect => game = game.collect
-        case CollectFromRiver => game = game.collectFromRiver
-        case LookCard(_) => ()
-        case PlaceBeing(being) => game = game.placeBeing(being)
-        case RemoveBeing(card) => game = game.removeBeing(card)
-        case PlaceCardsToRiver(cards) => game = game.placeCardsToRiver(cards)
-        case Educate(cards, target) => game = game.educate(cards, target)
-        case EndPhase => game = game.endPhase
-      }
-    }
+class MutableGame(var game : Game) extends (Move ~> Id) {
+
+  def apply[A](ma: Move[A]): Id[A] = ma match {
+    case MajestyEffect(card) => game = game.directEffect(card)
+    case AttackBeing(attack, target) =>
+      val (g, cardRemoved) = game.attackBeing(attack, target)
+      game = g
+      cardRemoved
+    case RemoveFromHand(card) => game = game.removeFromHand(card)
+    case ActivateBeing(card) => game = game.activateBeing(card)
+    case CollectFromSource =>
+      val (g, collected) = game.collect
+      game = g
+      collected
+    case CollectFromRiver =>
+      val (g, collected) = game.collectFromRiver
+      game = g
+      collected
+    case LookCard(target) =>
+      val (g, cardRemoved) = game.lookCard(target)
+      game = g
+      cardRemoved
+    case PlaceBeing(being) => game = game.placeBeing(being)
+    case RemoveBeing(card) => game = game.removeBeing(card)
+    case PlaceCardsToRiver(cards) => game = game.placeCardsToRiver(cards)
+    case Educate(cards, target) => game = game.educate(cards, target)
+    case EndPhase => game = game.endPhase
+  }
+
 
 }

@@ -3,9 +3,8 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
-import leval.core.{Ace, Being, Card, Club, Diamond, Game, Heart, InfluencePhase, King, RoundState, Spade, Star, Suit}
+import leval.core.{Ace, Being, Card, Club, Diamond, Game, Heart, InfluencePhase, King, MajestyEffect, Move, OpponentStar, RoundState, SelfStar, Spade, Star, Suit, Target}
 import leval.gui.CardImg
-import leval.ignore
 
 import scalafx.Includes._
 import scalafx.geometry.Pos
@@ -18,9 +17,15 @@ import scalafx.scene.paint.{Color, Paint}
 import scalafx.scene.shape.Rectangle
 
 
-object GameScene {
 
-  def starPanel(star : Star) = new VBox {
+object TwoPlayerGameScene {
+
+  def starPanel(ogame : ObservableGame, numStar : Int) =
+    new HighlightableRegion(new VBox with GameObserver {
+
+    ogame.observers += this
+
+    def star : Star = ogame.stars(numStar)
     val majestyValueLabel = new Label(star.majesty.toString)
     spacing = 10
     alignment = Pos.Center
@@ -30,11 +35,17 @@ object GameScene {
       majestyValueLabel
 
     )
-  }
 
-  def handHBox(hand : Set[Card], pane : Pane) : Pane =
-    if(hand.isEmpty) new HBox()
-    else {
+    def notify[A](m: Move[A], res: A): Unit = m match {
+      case MajestyEffect((value, Heart)) if ogame.currentPlayer == numStar =>
+        majestyValueLabel.text = star.majesty.toString
+      case _ => ()
+    }
+  })
+
+  def handHBox(scene : TwoPlayerGameScene, numStar : Int, pane : Pane) : Pane = {
+      val hand = scene.oGame.stars(numStar).hand
+
       val imgs = hand.tail.foldLeft(Seq(CardImg.topHalf(hand.head))){
         case (acc, c) => CardImg.cutTopHalf(c) +: acc
       }
@@ -42,7 +53,7 @@ object GameScene {
       imgs.foreach {
         img =>
           img.handleEvent(MouseEvent.Any) {
-            new CardDragAndDrop(img.card, pane)
+            new CardDragAndDrop(scene, numStar, img.card, pane)
           }
       }
       new FlowPane {
@@ -61,7 +72,7 @@ object GameScene {
 
       var alignment = Pos.Center
       if(being.heart.nonEmpty) {
-        left = new HighlightRegion(CardImg.back(cardHeight))
+        left = new HighlightableRegion(CardImg.back(cardHeight))
 
         numCol += 1
       } else {
@@ -92,6 +103,10 @@ object GameScene {
 
 
   val screenHeight = Screen.primary.visualBounds.getHeight
+//  {
+//    val screens = Screen.screensForRectangle(0,0,10,10)
+//    screens.map(_.visualBounds.getHeight).min
+//  }
 
   val cardHeight = screenHeight / 10
   val cardResizeRatio = CardImg.height / cardHeight
@@ -107,16 +122,39 @@ object GameScene {
     maxHeight = screenHeight * 0.425)
 }
 
-import GameScene._
+import TwoPlayerGameScene._
 
 
 
-class GameScene(val game : Game) extends Scene {
+class TwoPlayerGameScene(val oGame : ObservableGame, val playerGameId : Int) extends Scene {
+  self =>
+  import oGame._
 
-  var roundSate : RoundState = InfluencePhase
+  val activeRound = currentPlayer == playerGameId
+  val opponentId = (playerGameId + 1) % 2
+  def player = stars(playerGameId)
+  def opponent = stars(opponentId)
 
-  val h1 = game.stars(0).hand
+  private [this] var highlightedTargets = Seq[HighlightableRegion]()
+  def hightlightTargets(tgts : Seq[Target] ): Unit = {
+    val highlighteds = tgts flatMap {
+      case SelfStar => Seq(playerStarPanel)
+      case OpponentStar => Seq(opponentStarPanel)
+      case _ => Seq()
+    }
+    highlighteds foreach (_.activateHighlight())
+    highlightedTargets = highlighteds
+  }
 
+
+  def unHightlightTargets(): Unit ={
+    val hed = highlightedTargets
+    highlightedTargets = Seq()
+    hed.foreach(_.deactivateHightLight())
+  }
+
+  val opponentStarPanel = starPanel(oGame, opponentId)
+  val playerStarPanel = starPanel(oGame, playerGameId)
   val deck = CardImg.back
 
   val leftColumn = new VBox(){
@@ -127,9 +165,9 @@ class GameScene(val game : Game) extends Scene {
     VBox.setVgrow(downSpacer, Priority.Always)
     alignmentInParent = Pos.Center
     children = Seq(upSpacer,
-      starPanel(game.stars(1)),
+      opponentStarPanel,
       deck,
-      starPanel(game.stars(0)),
+      playerStarPanel,
       downSpacer
     )
   }
@@ -142,7 +180,7 @@ class GameScene(val game : Game) extends Scene {
   def playerArea(pane : Pane) = new BorderPane {
     val playerBeingPane = new FlowPane()
     center = playerBeingPane
-    bottom = handHBox(h1, pane)
+    bottom = handHBox(self, playerGameId, pane)
 
     val createBeeingPane =
       new StackPane {
@@ -155,11 +193,8 @@ class GameScene(val game : Game) extends Scene {
 
     right = createBeeingPane
 
-    playerBeingPane.children add beeingPane(new Being((King, Heart),
-      Map[Suit, Card] (Heart -> ((Ace, Club)),
-      Spade -> ((Ace, Club)), /*None*/
-      Diamond  -> ((Ace, Club))
-      /*Power -> ((Ace, Club))*/)))
+    player.beings.values foreach  (b => playerBeingPane.children add beeingPane(b))
+
   }
 
   root = new BorderPane {
@@ -170,13 +205,13 @@ class GameScene(val game : Game) extends Scene {
         case (area, index) => GridPane.setConstraints(area, 0, index)
       }
 
-
       val gameArea = new GridPane {
         rowConstraints.add(playerAreaInfo)
         rowConstraints.add(riverSepInfo)
         rowConstraints.add(playerAreaInfo)
         children = gameAreas
       }
+
       HBox.setHgrow(gameArea, Priority.Always)
       left = leftColumn
       center = gameArea

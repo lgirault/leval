@@ -8,34 +8,23 @@ case object InfluencePhase extends RoundState
 case class ActPhase(activatedBeings : Set[FaceCard]) extends RoundState
 case object SourcePhase extends RoundState
 
-sealed abstract class RoundOwner
-case object Self extends RoundOwner
-case object Opponent extends RoundOwner
+
 
 sealed abstract class Move[A]
 
 //heart or diamond
-case class DirectEffect( effect : (Int, Suit)) extends Move[Unit]
+case class MajestyEffect(effect : (Int, Suit)) extends Move[Unit]
 //diamond or spades
 case class AttackBeing
 ( attack : (Int, Suit),
   target : FaceCard
 ) extends Move[Boolean]
 
-
-//because club has several effect of different intensity
-// its effects are modeled as a combination of smaller moves
-//case class PowerEffect
-//( collectFromRiver  : Boolean,
-//  lookedCard : (FaceCard, Suit),
-//  emitter : Option[FaceCard] //none if played from hand
-//) extends Move[Unit]
-
 case class RemoveFromHand(card : Card) extends Move[Unit]
 case class ActivateBeing(card : FaceCard) extends Move[Unit]
-case object Collect extends Move[Unit]
-case object CollectFromRiver extends Move[Unit]
-case class LookCard ( target : (FaceCard, Suit) ) extends Move[Unit]
+case object CollectFromSource extends Move[Card]
+case object CollectFromRiver extends Move[Card]
+case class LookCard ( target : (FaceCard, Suit) ) extends Move[Boolean]
 
 case class PlaceBeing(being: Being) extends Move[Unit]
 case class RemoveBeing(card : FaceCard) extends Move[Unit]
