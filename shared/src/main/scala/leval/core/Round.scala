@@ -38,6 +38,7 @@ case object CollectFromRiver extends Move[Unit]
 case class LookCard ( target : (FaceCard, Suit) ) extends Move[Unit]
 
 case class PlaceBeing(being: Being) extends Move[Unit]
+case class RemoveBeing(card : FaceCard) extends Move[Unit]
 case class PlaceCardsToRiver(cards : Seq[Card]) extends Move[Unit]
 
 case class Educate( cards : Seq[Card],

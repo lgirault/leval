@@ -3,7 +3,7 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
-import leval.core.{Ace, Being, Card, Club, Game, Heart, InfluencePhase, King, RoundState, Star}
+import leval.core.{Ace, Being, Card, Club, Diamond, Game, Heart, InfluencePhase, King, RoundState, Spade, Star, Suit}
 import leval.gui.CardImg
 import leval.ignore
 
@@ -156,10 +156,10 @@ class GameScene(val game : Game) extends Scene {
     right = createBeeingPane
 
     playerBeingPane.children add beeingPane(new Being((King, Heart),
-      heart = Some((Ace, Club)),
-      weapon = Some((Ace, Club)), /*None*/
-      mind = Some((Ace, Club)),
-      power = None/*Some((Ace, Club))*/))
+      Map[Suit, Card] (Heart -> ((Ace, Club)),
+      Spade -> ((Ace, Club)), /*None*/
+      Diamond  -> ((Ace, Club))
+      /*Power -> ((Ace, Club))*/)))
   }
 
   root = new BorderPane {

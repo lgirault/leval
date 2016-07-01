@@ -8,9 +8,10 @@ case class Game
 ( stars : Seq[Star], // for 4 or 3 players ??
   currentPlayer : Int,
   roundState: RoundState,
-  beingsState : Map[Being, Being.State], //reset each round
+  beingsState : Map[FaceCard, Being.State], //reset each round
   source : Deck,
-  deathRiver: Seq[Card]) {
+  deathRiver: Seq[Card],
+  values : Card => Int) {
 
   def nextPlayer = (currentPlayer + 1) % stars.length
   def currentStar : Star = stars(currentPlayer)
@@ -25,7 +26,7 @@ case class Game
   def currentHand : Set[Card] = currentStar.hand
   def setCurrentHand(newHand : Set[Card]) : Game = setHand(currentPlayer, newHand)
   def setCurrentPlayerBeing(being : Being) : Game = {
-    val newPlayer = currentStar.copy(beeings = currentStar.beeings + (being.face -> being))
+    val newPlayer = currentStar.copy(beings = currentStar.beings + (being.face -> being))
     copy(stars = stars.set(currentPlayer, newPlayer))
   }
 
@@ -76,13 +77,20 @@ case class Game
     g.setCurrentPlayerBeing(being)
   }
 
+  def removeBeing(target : FaceCard) : Game = {
+    val (targetB, owner) = findBeing(target)
+    val ownerStar = stars(owner)
+    val newStars = stars.set(owner, ownerStar.copy(beings = ownerStar.beings - target))
+    copy(stars = newStars)
+  }
+
   def placeCardsToRiver(cards : Seq[Card])  : Game =
     copy(deathRiver = deathRiver ++ cards)
 
   def findBeing(face : FaceCard) : (Being, Int) = {
     var i = nextPlayer
     do{
-      val sb = stars(i).being(face)
+      val sb = stars(i).beings get face
       if(sb.nonEmpty)
         return (sb.get, i)
 
@@ -91,16 +99,49 @@ case class Game
     leval.error()
   }
 
+
+
   def attackBeing(attack : (Int, Suit),
                   target : FaceCard ) : (Game, Boolean) = {
     val (targetB, owner) = findBeing(target)
-    ???
+    val (amplitude, suit) = attack
+
+    val (heartCasualty, powerCasualty) = beingsState getOrElse   (target, (0, 0))
+
+    val (cardRemoved, newState) = suit match {
+      case Spade =>
+        val hp  = targetB.value(Heart, values).get
+        val dmgs = heartCasualty + amplitude
+        val s = beingsState + (target -> ((dmgs, powerCasualty)))
+        (dmgs >= hp, s)
+
+      case Diamond =>
+        val hp  = targetB.value(Club, values).get
+        val dmgs = powerCasualty + amplitude
+        val s = beingsState + (target -> ((heartCasualty, dmgs)))
+        (dmgs >= hp, s)
+
+      case _ => leval.error()
+    }
+    val newStars =
+      if(cardRemoved) {
+        val removedSuit : Suit = suit match {
+          case Spade => Heart case Diamond => Club
+          case _ => leval.error()
+        }
+        val newBeing = targetB.copy(resources = targetB.resources - removedSuit)
+        val ownerStar = stars(owner)
+        stars.set(owner, ownerStar.copy(beings = ownerStar.beings + (target  -> newBeing)))
+      } else stars
+
+    (copy(stars = newStars, beingsState = newState), cardRemoved)
+
   }
 
   def educate(cards : Seq[Card],
               target : FaceCard) : Game = {
 
-    val b = currentStar.being(target).get
+    val b = currentStar.beings(target)
     /*getOrElse stars(nextPlayer).being(target).get*/
     // in antares there is a mirror's power that allow to educated once on the opposite side
 
@@ -135,7 +176,7 @@ import cats.{Id, ~>}
 object Game {
 
   def apply(s1 : Star, s2 : Star, src : Deck) =
-    new Game(Seq(s1, s2), 0, InfluencePhase, Map(), src, Seq())
+    new Game(Seq(s1, s2), 0, InfluencePhase, Map(), src, Seq(), Card.value)
 
   def apply(pid1 : PlayerId, pid2 : PlayerId) : Game = {
     val deck = deck54()
@@ -182,7 +223,6 @@ object Game {
   }
 
 
-
   def apply(g: Game) : Move ~> Id =
     new (Move ~> Id) {
       var game = g
@@ -197,7 +237,8 @@ object Game {
         case Collect => game = game.collect
         case CollectFromRiver => game = game.collectFromRiver
         case LookCard(_) => ()
-        case PlaceBeing(being : Being) => game = game.placeBeing(being)
+        case PlaceBeing(being) => game = game.placeBeing(being)
+        case RemoveBeing(card) => game = game.removeBeing(card)
         case PlaceCardsToRiver(cards) => game = game.placeCardsToRiver(cards)
         case Educate(cards, target) => game = game.educate(cards, target)
         case EndPhase => game = game.endPhase
