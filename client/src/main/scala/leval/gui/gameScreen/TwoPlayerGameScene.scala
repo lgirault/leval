@@ -3,68 +3,79 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
-import leval.core.{Ace, Being, Card, Club, Diamond, Game, Heart, InfluencePhase, King, MajestyEffect, Move, OpponentStar, RoundState, SelfStar, Spade, Star, Suit, Target}
+import leval.core.{Ace, Being, Card, Club, DeathRiver, Diamond, Game, Heart, InfluencePhase, King, MajestyEffect, Move, OpponentStar, Rank, RoundState, SelfStar, Source, Spade, Star, Suit, Target}
 import leval.gui.CardImg
 
 import scalafx.Includes._
-import scalafx.geometry.Pos
+import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.control.Label
 import scalafx.scene.{Node, Scene}
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout._
-import scalafx.stage.Screen
 import scalafx.scene.paint.{Color, Paint}
 import scalafx.scene.shape.Rectangle
+import scalafx.scene.text.{Text, TextAlignment, TextFlow}
+import scalafx.stage.Screen
+
+
+abstract class CardDropTarget(decorated : Node)
+  extends HighlightableRegion(decorated){
+  def onDrop(c : Card, origin : Origin)
+}
+
 
 
 
 object TwoPlayerGameScene {
 
   def starPanel(ogame : ObservableGame, numStar : Int) =
-    new HighlightableRegion(new VBox with GameObserver {
+    new CardDropTarget(new VBox with GameObserver {
 
-    ogame.observers += this
+      ogame.observers += this
 
-    def star : Star = ogame.stars(numStar)
-    val majestyValueLabel = new Label(star.majesty.toString)
-    spacing = 10
-    alignment = Pos.Center
-    children = Seq(
-      new Label(star.id.name),
-      new Label("Majesty"),
-      majestyValueLabel
+      def star : Star = ogame.stars(numStar)
+      val majestyValueLabel = new Label(star.majesty.toString)
+      spacing = 10
+      alignment = Pos.Center
+      children = Seq(
+        new Label(star.id.name),
+        new Label("Majesty"),
+        majestyValueLabel
 
-    )
+      )
 
-    def notify[A](m: Move[A], res: A): Unit = m match {
-      case MajestyEffect((value, Heart)) if ogame.currentPlayer == numStar =>
-        majestyValueLabel.text = star.majesty.toString
-      case _ => ()
+      def notify[A](m: Move[A], res: A): Unit = m match {
+        case MajestyEffect((value, Heart)) if ogame.currentPlayer == numStar =>
+          majestyValueLabel.text = star.majesty.toString
+        case _ => ()
+      }
+    }){
+      def onDrop(c: (Rank, Suit), origin: Origin): Unit = ()
     }
-  })
 
   def handHBox(scene : TwoPlayerGameScene, numStar : Int, pane : Pane) : Pane = {
-      val hand = scene.oGame.stars(numStar).hand
+    val hand = scene.oGame.stars(numStar).hand
 
-      val imgs = hand.tail.foldLeft(Seq(CardImg.topHalf(hand.head))){
-        case (acc, c) => CardImg.cutTopHalf(c) +: acc
-      }
-
-      imgs.foreach {
-        img =>
-          img.handleEvent(MouseEvent.Any) {
-            new CardDragAndDrop(scene, numStar, img.card, pane)
-          }
-      }
-      new FlowPane {
-        children = new HBox(imgs: _*) {
-          alignmentInParent = Pos.Center
-
-        }
-      }
+    val imgs = hand.tail.foldLeft(Seq(CardImg.topHalf(hand.head))){
+      case (acc, c) =>
+        val ci = CardImg.cutTopHalf(c)
+        ci.alignmentInParent = Pos.BottomCenter
+        ci +: acc
     }
 
-  def beeingPane(being: Being) : BorderPane =
+    imgs.foreach {
+      img =>
+        img.handleEvent(MouseEvent.Any) {
+          new CardDragAndDrop(scene, numStar, img.card, Hand, pane)
+        }
+    }
+    new FlowPane {
+      children = new HBox(imgs: _*)
+      alignmentInParent = Pos.BottomCenter
+    }
+  }
+
+  def beeingPane( being: Being) : BorderPane =
     new BorderPane{
 
       var numRow = 1
@@ -102,25 +113,60 @@ object TwoPlayerGameScene {
     }
 
 
+  //val screenHeight = Screen.primary.visualBounds.getHeight
+
+  //  {
+  //    val screens = Screen.screensForRectangle(0,0,10,10)
+  //    screens.map(_.visualBounds.getHeight).min
+  //  }
+
+
   val screenHeight = Screen.primary.visualBounds.getHeight
-//  {
-//    val screens = Screen.screensForRectangle(0,0,10,10)
-//    screens.map(_.visualBounds.getHeight).min
-//  }
+  println(screenHeight)
+  //  {
+  //    val screens = Screen.screensForRectangle(0,0,10,10)
+  //    screens.map(_.visualBounds.getHeight).min
+  //  }
 
   val cardHeight = screenHeight / 10
-  val cardResizeRatio = CardImg.height / cardHeight
+  val cardResizeRatio = cardHeight / CardImg.height
+
   val cardWidth = CardImg.width * cardResizeRatio
 
   val riverSepInfo = new RowConstraints(
     minHeight = screenHeight * 0.15,
     prefHeight = screenHeight * 0.15 ,
     maxHeight = screenHeight * 0.15)
+
   val playerAreaInfo = new RowConstraints(
-    minHeight = screenHeight * 0.425,
-    prefHeight = screenHeight * 0.425 ,
-    maxHeight = screenHeight * 0.425)
+    minHeight = screenHeight * 0.325,
+    prefHeight = screenHeight * 0.325 ,
+    maxHeight = screenHeight * 0.325)
+
+  val handAreaInfo = new RowConstraints(
+    minHeight = screenHeight * 0.1,
+    prefHeight = screenHeight * 0.1 ,
+    maxHeight = screenHeight * 0.1
+  )
+
+  //  def riverSepInfo = new RowConstraints {
+  //    percentHeight = 15
+  //  }
+  //
+  //  def playerAreaInfo = new RowConstraints {
+  //    percentHeight = 27.5
+  //  }
+  //
+  //  def handAreaInfo = new RowConstraints {
+  //    percentHeight = 15
+  //  }
+  //
+  //  def leftColumnInfo = new ColumnConstraints {
+  //    percentWidth = 15
+  //  }
 }
+
+
 
 import TwoPlayerGameScene._
 
@@ -135,27 +181,43 @@ class TwoPlayerGameScene(val oGame : ObservableGame, val playerGameId : Int) ext
   def player = stars(playerGameId)
   def opponent = stars(opponentId)
 
-  private [this] var highlightedTargets = Seq[HighlightableRegion]()
-  def hightlightTargets(tgts : Seq[Target] ): Unit = {
-    val highlighteds = tgts flatMap {
+  private [this] var highlightableRegions = Seq[CardDropTarget]()
+  def highlightedTargets = highlightableRegions
+  def doHightlightTargets(origin : Origin, tgts : Seq[Target] ): Unit = {
+    val highlighteds0 = tgts flatMap {
       case SelfStar => Seq(playerStarPanel)
       case OpponentStar => Seq(opponentStarPanel)
+      case Source => Seq(deck)
+      case DeathRiver => Seq(riverArea)
       case _ => Seq()
     }
+
+    val highlighteds = origin match{
+      case Hand => createBeeingPane.createBeingLabel +: highlighteds0
+      case _ => highlighteds0
+    }
     highlighteds foreach (_.activateHighlight())
-    highlightedTargets = highlighteds
+    highlightableRegions = highlighteds
   }
 
 
   def unHightlightTargets(): Unit ={
-    val hed = highlightedTargets
-    highlightedTargets = Seq()
+    val hed = highlightableRegions
+    highlightableRegions = Seq()
     hed.foreach(_.deactivateHightLight())
   }
 
+  //Hightable areas
   val opponentStarPanel = starPanel(oGame, opponentId)
   val playerStarPanel = starPanel(oGame, playerGameId)
-  val deck = CardImg.back
+  val deck = new CardDropTarget(CardImg.back){
+    def onDrop(c: (Rank, Suit), origin: Origin): Unit = ()
+  }
+  val riverArea = new CardDropTarget(new FlowPane()){
+    def onDrop(c: (Rank, Suit), origin: Origin): Unit = ()
+  }
+  val createBeeingPane = new CreateBeingPane(cardWidth, cardHeight)
+
 
   val leftColumn = new VBox(){
     val upSpacer = new Region()
@@ -172,49 +234,71 @@ class TwoPlayerGameScene(val oGame : ObservableGame, val playerGameId : Int) ext
     )
   }
 
+  val openentHandPane = new BorderPane { }
   val oponentArea = new BorderPane { }
 
-  val riverArea = new FlowPane()
 
 
-  def playerArea(pane : Pane) = new BorderPane {
+  def playerArea() = new FlowPane {
     val playerBeingPane = new FlowPane()
-    center = playerBeingPane
-    bottom = handHBox(self, playerGameId, pane)
 
-    val createBeeingPane =
-      new StackPane {
-        val rect = Rectangle(100, 100, Color.White)
-        rect.setStroke(Color.Green)
-        rect.setArcWidth(20)
-        rect.setArcHeight(20)
-        children = Seq(rect, new Label("Create Beeing"))
-      }
-
-    right = createBeeingPane
+    //        val createBeingColumn =  new VBox() {
+    //          val upSpacer = new Region()
+    //          val downSpacer = new Region()
+    //
+    //          VBox.setVgrow(upSpacer, Priority.Always)
+    //          VBox.setVgrow(downSpacer, Priority.Always)
+    //          children = Seq(upSpacer, createBeeingPane, downSpacer)
+    //
+    //        }
 
     player.beings.values foreach  (b => playerBeingPane.children add beeingPane(b))
+
+
+    createBeeingPane.alignmentInParent = Pos.CenterRight
+    children = Seq( playerBeingPane,
+      createBeeingPane)
+    //    val spacer = new Region()
+    //    HBox.setHgrow(spacer, Priority.Always)
+    //    children add spacer
+    //
 
   }
 
   root = new BorderPane {
     pane =>
-      val gameAreas: List[Node] = List(oponentArea, riverArea, playerArea(pane))
+    padding = Insets.Empty
 
-      gameAreas.zipWithIndex.foreach {
-        case (area, index) => GridPane.setConstraints(area, 0, index)
-      }
+    val gameAreas: List[Node] =
+      List(openentHandPane, oponentArea, riverArea,
+        playerArea(), handHBox(self, playerGameId, pane))
 
-      val gameArea = new GridPane {
-        rowConstraints.add(playerAreaInfo)
-        rowConstraints.add(riverSepInfo)
-        rowConstraints.add(playerAreaInfo)
-        children = gameAreas
-      }
+    gameAreas.zipWithIndex.foreach {
+      case (area, index) => GridPane.setConstraints(area, 0, index)
+    }
 
-      HBox.setHgrow(gameArea, Priority.Always)
-      left = leftColumn
-      center = gameArea
+
+    def printCts(rc : RowConstraints) = {
+      println("height = " + rc.minHeight)
+    }
+    printCts(handAreaInfo)
+    printCts(playerAreaInfo)
+    printCts(riverSepInfo)
+
+    val gameArea = new GridPane {
+      rowConstraints.add(handAreaInfo)
+      rowConstraints.add(playerAreaInfo)
+      rowConstraints.add(riverSepInfo)
+      rowConstraints.add(playerAreaInfo)
+      rowConstraints.add(handAreaInfo)
+      children = gameAreas
+    }
+
+    left = leftColumn
+    center = gameArea
+    bottom = null
+    top = null
+    right = null
 
   }
 

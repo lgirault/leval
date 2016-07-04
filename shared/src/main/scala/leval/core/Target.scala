@@ -50,3 +50,4 @@ case class TargetBeingResource(suit : Suit, sides : Seq[Int]) extends Target
 case object OpponentSpectrePower extends Target
 case object Source extends Target
 case object DeathRiver extends Target
+
