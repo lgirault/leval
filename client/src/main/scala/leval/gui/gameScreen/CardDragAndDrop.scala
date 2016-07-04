@@ -31,14 +31,15 @@ import CardDragAndDrop.NodeOps
 class CardDragAndDrop
 (scene: TwoPlayerGameScene,
  numStar : Int,
- c : Card, origin : Origin,
- p : Pane) extends (MouseEvent => Unit) {
+ c : Card, origin : Origin) extends (MouseEvent => Unit) {
 
+  def pane = scene.bpRoot
   val oGame = scene.oGame
   var cardImageView : CardImageView = _
 
   var anchorPt: Point2D = null
   var previousLocation: Point2D = null
+
 
   def updateCoord(me : MouseEvent) : Unit = {
     cardImageView.x = me.sceneX - (CardImg.width / 2)
@@ -55,25 +56,25 @@ class CardDragAndDrop
       if(cardImageView == null) {
         cardImageView = CardImg(c)
       }
-      scene.doHightlightTargets(origin, Target(oGame.game, c.suit))
+      scene.doHightlightTargets(origin, c)
       anchorPt = new Point2D(me.sceneX, me.sceneY)
-      p.children.add(cardImageView)
+      pane.children.add(cardImageView)
       updateCoord(me)
 
     case MouseEvent.MouseReleased =>
 
       val cardBounds = cardImageView.boundsInScene
 
-
-      println("[CARD] " + cardImageView.boundsInScene)
+      //println("[CARD] " + cardImageView.boundsInScene)
       scene.highlightedTargets.find {
         tgt =>
-          println("[TARGET] " + tgt.boundsInScene)
+        //  println("[TARGET] " + tgt.boundsInScene)
           tgt.boundsInScene intersects cardBounds
       } foreach { _.onDrop(c, origin)}
-      println()
+      //println()
+
       scene.unHightlightTargets()
-      ignore(p.children.remove(cardImageView))
+      ignore(pane.children.remove(cardImageView))
 
 
     case MouseEvent.MouseDragged =>

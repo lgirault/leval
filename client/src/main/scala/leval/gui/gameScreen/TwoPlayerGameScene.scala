@@ -12,15 +12,12 @@ import scalafx.scene.control.Label
 import scalafx.scene.{Node, Scene}
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout._
-import scalafx.scene.paint.{Color, Paint}
-import scalafx.scene.shape.Rectangle
-import scalafx.scene.text.{Text, TextAlignment, TextFlow}
 import scalafx.stage.Screen
 
 
 abstract class CardDropTarget(decorated : Node)
   extends HighlightableRegion(decorated){
-  def onDrop(c : Card, origin : Origin)
+  def onDrop(c : Card, origin : Origin) : Unit
 }
 
 
@@ -66,7 +63,7 @@ object TwoPlayerGameScene {
     imgs.foreach {
       img =>
         img.handleEvent(MouseEvent.Any) {
-          new CardDragAndDrop(scene, numStar, img.card, Hand, pane)
+          new CardDragAndDrop(scene, numStar, img.card, Hand)
         }
     }
     new FlowPane {
@@ -183,19 +180,27 @@ class TwoPlayerGameScene(val oGame : ObservableGame, val playerGameId : Int) ext
 
   private [this] var highlightableRegions = Seq[CardDropTarget]()
   def highlightedTargets = highlightableRegions
-  def doHightlightTargets(origin : Origin, tgts : Seq[Target] ): Unit = {
-    val highlighteds0 = tgts flatMap {
-      case SelfStar => Seq(playerStarPanel)
-      case OpponentStar => Seq(opponentStarPanel)
-      case Source => Seq(deck)
-      case DeathRiver => Seq(riverArea)
-      case _ => Seq()
-    }
+  def doHightlightTargets(origin : Origin, c : Card ): Unit = {
 
-    val highlighteds = origin match{
-      case Hand => createBeeingPane.createBeingLabel +: highlighteds0
-      case _ => highlighteds0
-    }
+    val highlighteds =
+      if(createBeeingPane.isOpen)
+        createBeeingPane.targets(c)
+      else {
+        val highlighteds0 : Seq[CardDropTarget] =
+          Target(oGame.game, c.suit) flatMap {
+            case SelfStar => Seq(playerStarPanel)
+            case OpponentStar => Seq(opponentStarPanel)
+            case Source => Seq(deck)
+            case DeathRiver => Seq(riverArea)
+            case _ => Seq()
+          }
+        origin match{
+          case Hand => createBeeingPane.createBeingLabel +: highlighteds0
+          case _ => highlighteds0
+        }
+      }
+
+
     highlighteds foreach (_.activateHighlight())
     highlightableRegions = highlighteds
   }
@@ -216,7 +221,8 @@ class TwoPlayerGameScene(val oGame : ObservableGame, val playerGameId : Int) ext
   val riverArea = new CardDropTarget(new FlowPane()){
     def onDrop(c: (Rank, Suit), origin: Origin): Unit = ()
   }
-  val createBeeingPane = new CreateBeingPane(cardWidth, cardHeight)
+  val createBeeingPane = new CreateBeingPane(cardWidth, cardHeight,
+    new CardDragAndDrop(self, playerGameId, _, _))
 
 
   val leftColumn = new VBox(){
@@ -241,31 +247,13 @@ class TwoPlayerGameScene(val oGame : ObservableGame, val playerGameId : Int) ext
 
   def playerArea() = new FlowPane {
     val playerBeingPane = new FlowPane()
-
-    //        val createBeingColumn =  new VBox() {
-    //          val upSpacer = new Region()
-    //          val downSpacer = new Region()
-    //
-    //          VBox.setVgrow(upSpacer, Priority.Always)
-    //          VBox.setVgrow(downSpacer, Priority.Always)
-    //          children = Seq(upSpacer, createBeeingPane, downSpacer)
-    //
-    //        }
-
     player.beings.values foreach  (b => playerBeingPane.children add beeingPane(b))
 
-
     createBeeingPane.alignmentInParent = Pos.CenterRight
-    children = Seq( playerBeingPane,
-      createBeeingPane)
-    //    val spacer = new Region()
-    //    HBox.setHgrow(spacer, Priority.Always)
-    //    children add spacer
-    //
-
+    children = Seq( playerBeingPane, createBeeingPane)
   }
 
-  root = new BorderPane {
+  val bpRoot = new BorderPane {
     pane =>
     padding = Insets.Empty
 
@@ -276,14 +264,6 @@ class TwoPlayerGameScene(val oGame : ObservableGame, val playerGameId : Int) ext
     gameAreas.zipWithIndex.foreach {
       case (area, index) => GridPane.setConstraints(area, 0, index)
     }
-
-
-    def printCts(rc : RowConstraints) = {
-      println("height = " + rc.minHeight)
-    }
-    printCts(handAreaInfo)
-    printCts(playerAreaInfo)
-    printCts(riverSepInfo)
 
     val gameArea = new GridPane {
       rowConstraints.add(handAreaInfo)
@@ -302,5 +282,6 @@ class TwoPlayerGameScene(val oGame : ObservableGame, val playerGameId : Int) ext
 
   }
 
+  root = bpRoot
 }
 

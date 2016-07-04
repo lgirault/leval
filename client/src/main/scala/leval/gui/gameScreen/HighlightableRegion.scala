@@ -16,12 +16,15 @@ class HighlightableRegion(decorated : Node) extends StackPane {
   val styles =
     Seq("-fx-border-width: 3; -fx-border-color: dodgerblue; -fx-background-color : rgba(12,56,100, 0.05);",
       "-fx-border-width: 3; -fx-border-color: green; -fx-background-color : rgba(127,255,0, 0.05);")
-  private val highlight = new Region {
+  protected val highlight = new Region {
     opacity = 0
     style = styles.head
   }
 
+
   this.children = Seq(decorated, highlight)
+
+
 
   var currentStyle = 0
 

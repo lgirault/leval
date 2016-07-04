@@ -25,13 +25,6 @@ abstract class WaitingRoom
   val players = ListBuffer[PlayerId]()
   val playersLabel = new VBox()
 
-//  val plopper =  new Button("Plopper"){
-//    handleEvent(MouseEvent.MouseClicked) {
-//      () => println("plop")
-//        val _ = playersLabel.children += new Label("- Plop !!")
-//    }
-//  }
-
   center = new FlowPane(){
     children = List(label, playersLabel)
   }
@@ -60,32 +53,3 @@ abstract class WaitingRoom
   }
 
 }
-
-/*
- val label = new Label(s"$partyName - Waiting for players ...")
-  val players = new VBox()
-
-  val plopper =  new Button("Plopper"){
-    handleEvent(MouseEvent.MouseClicked) {
-      () => println("plop")
-       val _ = players.children += new Label("- Plop !!")
-    }
-  }
-
-  center = new FlowPane(){
-    children = List(label, plopper, players)
-  }
-
-
-  //val players = ListBuffer[PlayerId]()
-
-
-
-  def addPlayer : PlayerId => Unit = {
-    case pid @ PlayerId(_, name) =>
-      //players += pid
-    //  updateCurrentNumPlayer(players.size)
-      players.children += new Label("- " + pid.name)
-
-  }
- */
