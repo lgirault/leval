@@ -97,8 +97,9 @@ class BeingPane
   private [this] var resourcePanes0 = Seq[BeingResourcePane]()
   def resourcePanes = resourcePanes0
 
-  def resourcePane(s : Suit) : Option[BeingResourcePane] =
+  def resourcePane(s : Suit) : Option[BeingResourcePane] = {
     resourcePanes0 find (_.position == s)
+  }
 
   def reveal(s : Suit) : Unit =
     resourcePane(s) foreach (_.reveal())

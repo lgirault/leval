@@ -1,8 +1,8 @@
 package leval.network.client
 
-import akka.actor.{Actor, ActorContext, ActorRef, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import leval.core.{Game, Move, PlayerId}
-import leval.gui.ViewController
+import leval.gui.{GameListPane, ViewController, WaitingRoom}
 import leval.gui.gameScreen.ObservableGame
 import leval.network.client.GameListView.JoinAction
 import leval.network.protocol._
@@ -11,12 +11,7 @@ import scala.collection.mutable.ListBuffer
 
 case object Disconnect
 
-trait GameLauncher {
-  def startGame() : Unit
-}
-
-trait NetWorkController
-  extends GameLauncher {
+trait NetWorkController  {
   val view : ViewController
 
 
@@ -40,10 +35,11 @@ trait NetWorkController
 }
 
 
-object Scheduler {
+trait Scheduler {
+  this : Actor =>
 
-  def apply(players : Seq[NetPlayerId], observableGame: ObservableGame)
-           (implicit context: ActorContext) : Actor.Receive = {
+  def scheduler(players : Seq[NetPlayerId],
+                observableGame: ObservableGame) : Actor.Receive = {
     case m : Move[_] =>
       println(m + " received from " + context.sender())
 
@@ -60,46 +56,12 @@ object Scheduler {
       }
   }
 }
-object MenuActor {
 
-  def props(serverEntryPoint : ActorRef,
-            networkHandle : NetWorkController) =
-    Props(new MenuActor(serverEntryPoint,
-      networkHandle))
-
-}
-class MenuActor private
-( serverEntryPoint : ActorRef,
-  networkHandle : NetWorkController) extends Actor {
-
-  import networkHandle.view
-
-  view.displayConnectScreen()
-  
-  def thisPlayer = networkHandle.netId//NetPlayerId(self, networkHandle.thisPlayer)
-
-  def listing( gameListScreen : GameListView ) : Actor.Receive = {
-    case WaitingPlayersGameInfo(desc, currentNumPlayer) =>
-      println(s"client receive game info from ${sender()}")
-      //sender() ! Join(thisPlayer)
-
-      val answer : JoinAction = {
-        val s = sender()
-        () => s ! Join(thisPlayer)
-      }
-
-      gameListScreen.appendGameToList(desc, currentNumPlayer, answer)
-
-    case AckJoin(desc) =>
-      val waitingScreen = view.waitingOtherPlayerScreen(desc.owner.id, desc.maxPlayer)
-      context.become( waitingPlayers( sender(), waitingScreen, desc.owner.actor ) )
-
-    case NackJoin => println("Cannot join game")
-    case msg => println(s"Listing state : msg $msg unhandled")
-  }
-
-  def waitingPlayers( gameMaker : ActorRef,
-                      waitingScreen : WaitingOtherPlayerView,
+trait WaitinPlayers extends Scheduler {
+  this : Actor =>
+  def waitingPlayers( networkHandle: NetWorkController,
+                      gameMaker : ActorRef,
+                      waitingScreen : WaitingRoom,
                       owner : ActorRef) : Actor.Receive = {
     val players = ListBuffer[NetPlayerId]()
 
@@ -122,13 +84,56 @@ class MenuActor private
         println("launching game !")
         val og = new ObservableGame(g)
         waitingScreen.gameScreen(og)
-        context.become(Scheduler(players, og))
+        context.become(scheduler(players, og))
 
 
 
       case msg => println(s"Waiting players state : msg $msg unhandled")
     }
   }
+}
+
+object MenuActor {
+
+  def props(serverEntryPoint : ActorRef,
+            networkHandle : NetWorkController) =
+    Props(new MenuActor(serverEntryPoint,
+      networkHandle))
+
+}
+class MenuActor private
+( serverEntryPoint : ActorRef,
+  networkHandle : NetWorkController)
+  extends Actor
+    with WaitinPlayers {
+
+  import networkHandle.view
+
+  view.displayConnectScreen()
+  
+  def thisPlayer = networkHandle.netId//NetPlayerId(self, networkHandle.thisPlayer)
+
+  def listing( gameListScreen : GameListPane ) : Actor.Receive = {
+    case WaitingPlayersGameInfo(desc, currentNumPlayer) =>
+      println(s"client receive game info from ${sender()}")
+      //sender() ! Join(thisPlayer)
+
+      val answer : JoinAction = {
+        val s = sender()
+        () => s ! Join(thisPlayer)
+      }
+
+      gameListScreen.appendGameToList(desc, currentNumPlayer, answer)
+
+    case AckJoin(desc) =>
+      val waitingScreen = view.waitingOtherPlayerScreen(desc.owner.id, desc.maxPlayer)
+      context.become( waitingPlayers( networkHandle, sender(), waitingScreen, desc.owner.actor ) )
+
+    case NackJoin => println("Cannot join game")
+    case msg => println(s"Listing state : msg $msg unhandled")
+  }
+
+
 
   def receive : Actor.Receive = {
 
@@ -150,7 +155,7 @@ class MenuActor private
 
     case GameCreated(GameDescription(creator, maxPlayer)) =>
       val waitingScreen = view.waitingOtherPlayerScreen(creator.id, maxPlayer)
-      context.become(waitingPlayers( sender(), waitingScreen, creator.actor ) )
+      context.become(waitingPlayers( networkHandle, sender(), waitingScreen, creator.actor ) )
 
     case req : EntryPointRequest => serverEntryPoint ! req
 

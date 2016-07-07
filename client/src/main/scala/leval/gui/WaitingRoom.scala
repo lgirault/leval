@@ -2,6 +2,7 @@ package leval
 package gui
 
 import leval.core.PlayerId
+import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
 import leval.network.client._
 
 import scala.collection.mutable.ListBuffer
@@ -11,12 +12,18 @@ import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.{BorderPane, FlowPane, VBox}
 
 
-abstract class WaitingRoom
+class WaitingRoom
 ( network : NetWorkController,
   partyName : String,
-  maxPlayer : Int) extends BorderPane
-  with WaitingOtherPlayerView {
+  maxPlayer : Int) extends BorderPane {
 
+  def gameScreen(game : ObservableGame) : Unit ={
+    val pidx =game.stars.indexWhere(_.id == network.thisPlayer)
+    val control =
+      new GameScreenControl(game, pidx, network.actor)
+
+    network.view.scene.root = control.pane
+  }
   val label = new Label(s"$partyName - Waiting for players ...")
 
   val players = ListBuffer[PlayerId]()
@@ -37,7 +44,7 @@ abstract class WaitingRoom
   private def updateCurrentNumPlayer(n : Int) =
     label.text = s"$partyName - Waiting for players ... $n / $maxPlayer"
 
-  def gameReady(launcher : GameLauncher, usr : UserMapRelationship) : Unit = {
+  def gameReady(launcher : NetWorkController, usr : UserMapRelationship) : Unit = {
     val newLine = usr match {
       case Joiner => new Label("Game Ready ! Waiting to start ...")
       case Owner => new Button("Start !"){
