@@ -1,30 +1,27 @@
 package leval.core
 
 /**
-  * Created by lorilan on 6/25/16.
+  * Created by Loïc Girault on 06/07/16.
   */
-sealed abstract class RoundState
-case object InfluencePhase extends RoundState
-case class ActPhase(activatedBeings : Set[FaceCard]) extends RoundState
-case object SourcePhase extends RoundState
-
-
-
 sealed abstract class Move[A]
-
 //heart or diamond
-case class MajestyEffect(effect : (Int, Suit)) extends Move[Unit]
+case class MajestyEffect(value : Int, playedSuit : Suit) extends Move[Unit]
 //diamond or spades
 case class AttackBeing
-( attack : (Int, Suit),
-  target : FaceCard
+(attack : Int,
+ target : FaceCard,
+ targetedSuit : Suit
 ) extends Move[Boolean]
 
 case class RemoveFromHand(card : Card) extends Move[Unit]
 case class ActivateBeing(card : FaceCard) extends Move[Unit]
 case object CollectFromSource extends Move[Card]
 case object CollectFromRiver extends Move[Card]
-case class LookCard ( target : (FaceCard, Suit) ) extends Move[Boolean]
+//look card is a club effect and only the user see the card
+//reveal a card is an after effect of using a being resource
+//both player can see the card until the sourcePhase
+case class Reveal(target : FaceCard, resource : Suit) extends Move[Boolean]
+case class LookCard ( target : FaceCard, resource : Suit) extends Move[Boolean]
 
 case class PlaceBeing(being: Being) extends Move[Unit]
 case class RemoveBeing(card : FaceCard) extends Move[Unit]

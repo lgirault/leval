@@ -2,8 +2,6 @@ package leval
 
 import akka.actor.{ActorRef, ActorSystem}
 import com.typesafe.config.{Config, ConfigFactory}
-import leval.core.{Game, PlayerId}
-import leval.gui.gameScreen.{ObservableGame, TwoPlayerGameScene}
 import leval.gui.{SearchingServerScene, ViewController}
 import leval.network.client.{IdentifyingActor, NetWorkController}
 
@@ -11,17 +9,7 @@ import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.Scene
 
-object TestScene extends JFXApp {
-  val game = Game(PlayerId(69, "Betelgeuse"), PlayerId(42, "AlphaCentauri"))
 
-
-
-
-  stage = new JFXApp.PrimaryStage {
-    title = "V Box Example"
-    scene = new TwoPlayerGameScene(new ObservableGame(game), 0)
-  }
-}
 
 object GUIClient extends JFXApp {
 

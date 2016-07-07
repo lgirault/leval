@@ -66,6 +66,11 @@ object CardImg {
 
   def apply(card : Card): CardImageView = imageView(card, width, height)
 
+  def cut(card : Card, fitHeight : Double, cut : Double): CardImageView = {
+    val civ = imageView(card, width/ cut, height)
+    civ.fitHeight = fitHeight
+    civ
+  }
   def apply(card : Card, fitHeight : Double): CardImageView = {
     val civ = imageView(card, width, height)
     civ.fitHeight = fitHeight
@@ -77,6 +82,7 @@ object CardImg {
   def topHalf(card : Card): CardImageView = imageView(card, width, height/2)
 
   def cutTopHalf(card : Card): CardImageView = imageView(card, width/3, height/2)
+
 
 
 }

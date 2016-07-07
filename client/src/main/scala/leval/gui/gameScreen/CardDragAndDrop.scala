@@ -4,10 +4,11 @@ import javafx.geometry.Bounds
 
 import leval._
 import leval.core._
-import leval.gui.{CardImageView, CardImg}
+import leval.gui.CardImg
 
 import scalafx.geometry.Point2D
 import scalafx.scene.Node
+import scalafx.scene.image.ImageView
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.Pane
 
@@ -15,10 +16,13 @@ import scalafx.scene.layout.Pane
   * Created by lorilan on 6/25/16.
   */
 
+object Origin {
+  case object Hand extends Origin
+  case class BeingPane(b : Being, suit : Suit) extends Origin
+  case object CreateBeingPane extends Origin
+}
 sealed abstract class Origin
-case object Hand extends Origin
-case object BeingPanel extends Origin
-case object CreateBeingPanel extends Origin
+
 
 object CardDragAndDrop {
 
@@ -27,15 +31,16 @@ object CardDragAndDrop {
       n.localToScene(n.boundsInLocal.value)
   }
 }
-import CardDragAndDrop.NodeOps
+import leval.gui.gameScreen.CardDragAndDrop.NodeOps
 class CardDragAndDrop
-(scene: TwoPlayerGameScene,
- numStar : Int,
- c : Card, origin : Origin) extends (MouseEvent => Unit) {
+( control: GameScreenControl,
+  canDragAndDrop : () => Boolean,
+  c : Card, origin : Origin)
+( val cardImageView : ImageView = CardImg(c))
+extends (MouseEvent => Unit) {
 
-  def pane = scene.bpRoot
-  val oGame = scene.oGame
-  var cardImageView : CardImageView = _
+  import control.scene
+  def pane : Pane = scene.bpRoot
 
   var anchorPt: Point2D = null
   var previousLocation: Point2D = null
@@ -46,22 +51,18 @@ class CardDragAndDrop
     cardImageView.y = me.sceneY - (CardImg.height / 5)
   }
 
-  def canDragAndDrop : Boolean =
-    oGame.currentPlayer == numStar &&
-      oGame.roundState == InfluencePhase
+
 
 
   def apply(me : MouseEvent) : Unit = me.eventType match {
-    case MouseEvent.MousePressed if canDragAndDrop =>
-      if(cardImageView == null) {
-        cardImageView = CardImg(c)
-      }
+    case MouseEvent.MousePressed if canDragAndDrop() =>
       scene.doHightlightTargets(origin, c)
       anchorPt = new Point2D(me.sceneX, me.sceneY)
       pane.children.add(cardImageView)
       updateCoord(me)
 
-    case MouseEvent.MouseReleased =>
+    case MouseEvent.MouseReleased
+      if cardImageView != null=>
 
       val cardBounds = cardImageView.boundsInScene
 
@@ -77,7 +78,8 @@ class CardDragAndDrop
       ignore(pane.children.remove(cardImageView))
 
 
-    case MouseEvent.MouseDragged =>
+    case MouseEvent.MouseDragged
+      if cardImageView != null=>
       if (anchorPt != null) {
         previousLocation = anchorPt
         anchorPt = new Point2D(me.sceneX, me.sceneY)

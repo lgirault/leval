@@ -4,7 +4,6 @@ import scalafx.Includes._
 import scalafx.animation.FadeTransition
 import scalafx.scene.Node
 import scalafx.scene.effect.{Light, Lighting}
-import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.{Region, StackPane}
 import scalafx.util.Duration
 

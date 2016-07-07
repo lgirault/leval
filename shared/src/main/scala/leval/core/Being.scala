@@ -9,6 +9,22 @@ import scala.collection.immutable.SortedSet
 object Being {
   type State = (Int, Int) // (Heart casualty, Power Casualty)
 
+  implicit class StateOps(val state : State) extends AnyVal {
+    def get(s : Suit) : Int = s match {
+      case Heart => state._1
+      case Club => state._2
+      case _ => leval.error()
+    }
+
+    def add(s : Suit, i : Int) = {
+      val (h, p) = state
+      s match {
+        case Heart => (h + i, p)
+        case Club => (h, p + i)
+        case _ => leval.error()
+      }
+    }
+  }
 
 }
 
@@ -28,6 +44,12 @@ case class Being
   def weapon : Option[Card] = resources get Spade
   def mind : Option[Card] = resources get Diamond
   def power : Option[Card] = resources get Club
+
+  def find(c : Card) : Option[Suit] =
+    resources.toList find {
+      case (_, `c`) => true
+      case _ => false } map (_._1)
+
 
   //a being cannot be educated to become messianic or possessed so no ambiguity here
   def educateWith(card : Card) : (Being, Option[Card]) = card match {
@@ -66,7 +88,7 @@ case class Being
     if(lover) loverSpectreBonus(resource)
     else regularFormationBonus(resource)
 
-  def value(resource : Suit, v : Card => Int) = {
+  def value(resource : Suit, v : Card => Int)  : Option[Int] = {
     resources get resource map {
       c =>
         val faceBonus =
@@ -82,7 +104,9 @@ object Formation {
   def explodedView(arg: Being): (Option[Card], Option[Card], Option[Card], Option[Card]) =
     (arg.heart, arg.weapon, arg.mind, arg.power)
 
-  def unapply(being: Being) : Option[Formation] = explodedView(being) match {
+  def unapply(being: Being) : Option[Formation] = unapply(explodedView(being))
+
+  def unapply(arg: (Option[Card], Option[Card], Option[Card], Option[Card])): Option[Formation] = arg match {
     case (Some(_), None, None, None) => Some(Child)
     case (Some(_), Some(_), Some(_), Some(_)) => Some(Accomplished)
     case (Some(_), Some(_), None, Some(_)) => Some(Fool)
@@ -113,7 +137,5 @@ case class Star
 (id : PlayerId,
  majesty : Int,
  hand : Set[Card],
- beings : Map[FaceCard, Being]) {
-
-}
+ beings : Map[FaceCard, Being])
 
