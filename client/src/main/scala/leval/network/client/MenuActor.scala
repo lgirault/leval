@@ -1,8 +1,9 @@
 package leval.network.client
 
-import akka.actor.{Props, Actor, ActorRef}
-import leval.core.PlayerId
+import akka.actor.{Actor, ActorContext, ActorRef, Props}
+import leval.core.{Game, Move, PlayerId}
 import leval.gui.ViewController
+import leval.gui.gameScreen.ObservableGame
 import leval.network.client.GameListView.JoinAction
 import leval.network.protocol._
 
@@ -39,16 +40,34 @@ trait NetWorkController
 }
 
 
+object Scheduler {
 
+  def apply(players : Seq[NetPlayerId], observableGame: ObservableGame)
+           (implicit context: ActorContext) : Actor.Receive = {
+    case m : Move[_] =>
+      println(m + " received from " + context.sender())
+
+      observableGame(m)
+
+      if(context.sender() == context.system.deadLetters)
+        players foreach {
+          pid =>
+            println("sending " + m + " to " + pid.actor)
+          pid.actor ! m
+        }
+      else {
+        println(context.sender() + " != " + Actor.noSender)
+      }
+  }
+}
 object MenuActor {
 
   def props(serverEntryPoint : ActorRef,
             networkHandle : NetWorkController) =
     Props(new MenuActor(serverEntryPoint,
-                        networkHandle))
+      networkHandle))
 
 }
-
 class MenuActor private
 ( serverEntryPoint : ActorRef,
   networkHandle : NetWorkController) extends Actor {
@@ -60,7 +79,7 @@ class MenuActor private
   def thisPlayer = networkHandle.netId//NetPlayerId(self, networkHandle.thisPlayer)
 
   def listing( gameListScreen : GameListView ) : Actor.Receive = {
-    case GameInfo(desc, currentNumPlayer) =>
+    case WaitingPlayersGameInfo(desc, currentNumPlayer) =>
       println(s"client receive game info from ${sender()}")
       //sender() ! Join(thisPlayer)
 
@@ -77,14 +96,6 @@ class MenuActor private
 
     case NackJoin => println("Cannot join game")
     case msg => println(s"Listing state : msg $msg unhandled")
-  }
-
-  def waitingScheduler(battleMapActor : ActorRef)  : Actor.Receive = {
-    case sr @ SchedulerRef(ref) =>
-      ref ! BattleMapActorRef(battleMapActor)
-      battleMapActor ! sr
-      context stop self
-
   }
 
   def waitingPlayers( gameMaker : ActorRef,
@@ -107,27 +118,11 @@ class MenuActor private
 
       case GameStart => gameMaker ! GameStart
 
-      /*case md : MapDescription =>
-        val controller = waitingScreen.gameScreen(md)
-        val bmaProps = BattleMapActor.props(controller)
-                          //.withDispatcher("javafx-dispatcher")
-
-        val battleMapActor = context.system.actorOf(bmaProps, "BattleMapActor")
-
-        controller.battleMapActor = Some(battleMapActor)
-
-        if(owner == self) {
-          val schedulerProps = GameScheduler.props(players.size + 1)
-
-          val schedulerActor = context.system.actorOf(schedulerProps, "Scheduler")
-
-          (thisPlayer +: players).toList foreach {
-            _.actor ! SchedulerRef
-          }
-
-        }
-
-        context.become(waitingScheduler(battleMapActor))*/
+      case g : Game =>
+        println("launching game !")
+        val og = new ObservableGame(g)
+        waitingScreen.gameScreen(og)
+        context.become(Scheduler(players, og))
 
 
 

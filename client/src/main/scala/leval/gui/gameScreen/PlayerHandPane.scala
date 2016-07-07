@@ -11,6 +11,7 @@ import scalafx.scene.layout.{FlowPane, HBox}
 /**
   * Created by lorilan on 7/5/16.
   */
+
 class PlayerHandPane
 ( controller : GameScreenControl) extends FlowPane {
 
@@ -50,5 +51,30 @@ class PlayerHandPane
   }
   children = wrapper
   alignmentInParent = Pos.BottomCenter
+
+}
+
+class OpponnentHandPane
+( controller : GameScreenControl) extends FlowPane {
+
+  def hand = controller.oGame.stars(controller.opponentId).hand
+
+  private def images : Seq[CardImageView]=
+      if(hand.isEmpty) Seq[CardImageView]()
+      else hand.tail.foldLeft(Seq(CardImg.bottomHalf(hand.head, front = false))) {
+        case (acc, c) =>
+          val ci = CardImg.cutBottomHalf(c, front = false)
+          ci.alignmentInParent = Pos.BottomCenter
+          ci +: acc
+      }
+
+  val wrapper = new HBox(images: _*)
+  def update() : Unit = {
+    wrapper.children.clear()
+    wrapper.children = images
+
+  }
+  children = wrapper
+  alignmentInParent = Pos.TopCenter
 
 }

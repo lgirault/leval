@@ -3,8 +3,8 @@ package network
 package server
 
 import protocol._
-
 import akka.actor.Actor
+import leval.core.Game
 
 import scala.collection.mutable.ListBuffer
 
@@ -31,7 +31,7 @@ class GameMaker
       }
     case ListGame =>
       println("GameMaker receives ListGame request")
-      sender() ! GameInfo(GameDescription(gameOwner, maxNumPlayer), currentNumPlayer)
+      sender() ! WaitingPlayersGameInfo(GameDescription(gameOwner, maxNumPlayer), currentNumPlayer)
 
     case Join(npid) =>
       //println(s"$npid wants to join")
@@ -53,8 +53,9 @@ class GameMaker
       }
 
     case GameStart =>
+      val g = Game(players map (_.id))
       players.foreach {
-        _.actor ! ???
+        _.actor ! g
       }
       println("Gamestart : GameMaker stopping")
       context stop self

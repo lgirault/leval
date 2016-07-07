@@ -1,9 +1,8 @@
 package leval
 package gui
 
-import core.PlayerId
+import leval.core.PlayerId
 import leval.network.client._
-import leval.network.protocol.GameDescription
 
 import scala.collection.mutable.ListBuffer
 import scalafx.Includes._
@@ -17,8 +16,6 @@ abstract class WaitingRoom
   partyName : String,
   maxPlayer : Int) extends BorderPane
   with WaitingOtherPlayerView {
-
-  def gameScreen(desc : GameDescription) : Unit /* BattleMapController*/
 
   val label = new Label(s"$partyName - Waiting for players ...")
 

@@ -6,7 +6,6 @@ package leval.gui
 
 import leval.core.{Joker, _}
 
-
 import scalafx.geometry.Rectangle2D
 import scalafx.scene.image.{Image, ImageView}
 
@@ -45,14 +44,19 @@ object CardImg {
   }
 
   def imageView(card : Card,
-                width : Double, height : Double) = {
-    val cc: (Double, Double) = coord(card)
+                width : Double,
+                height : Double,
+                front : Boolean) = {
+    val cc: (Double, Double) =
+      if(front) coord(card)
+      else backCoord
 
     new CardImageView(card, img) {
       preserveRatio = true
       viewport = new Rectangle2D(cc._1, cc._2, width = width, height = height)
     }
   }
+
 
   def back : ImageView = new ImageView(img){
     preserveRatio = true
@@ -64,24 +68,50 @@ object CardImg {
     civ
   }
 
-  def apply(card : Card): CardImageView = imageView(card, width, height)
+  def apply(card : Card,
+            front : Boolean = true): CardImageView = imageView(card, width, height, front)
 
-  def cut(card : Card, fitHeight : Double, cut : Double): CardImageView = {
-    val civ = imageView(card, width/ cut, height)
+  def cut(card : Card, fitHeight : Double, cut : Double,
+          front : Boolean = true): CardImageView = {
+    val civ = imageView(card, width/ cut, height, front)
     civ.fitHeight = fitHeight
     civ
   }
   def apply(card : Card, fitHeight : Double): CardImageView = {
-    val civ = imageView(card, width, height)
+    val civ = imageView(card, width, height, front = true)
     civ.fitHeight = fitHeight
     civ
   }
 
 
+  private def bottomHalfView(card : Card,
+                          width : Double,
+                          front : Boolean) = {
+    val cc: (Double, Double) =
+      if(front) coord(card)
+      else backCoord
 
-  def topHalf(card : Card): CardImageView = imageView(card, width, height/2)
+    new CardImageView(card, img) {
+      preserveRatio = true
+      viewport = new Rectangle2D(cc._1, cc._2 + height/2, width = width, height = height/2)
+    }
+  }
 
-  def cutTopHalf(card : Card): CardImageView = imageView(card, width/3, height/2)
+  def bottomHalf(card : Card,
+                 front : Boolean = true): CardImageView =
+    bottomHalfView(card, width, front)
+
+  def cutBottomHalf(card : Card,
+                 front : Boolean = true): CardImageView =
+    bottomHalfView(card, width/3, front)
+
+  def topHalf(card : Card,
+              front : Boolean = true): CardImageView =
+    imageView(card, width, height/2, front)
+
+  def cutTopHalf(card : Card,
+                 front : Boolean = true): CardImageView =
+    imageView(card, width/3, height/2, front)
 
 
 

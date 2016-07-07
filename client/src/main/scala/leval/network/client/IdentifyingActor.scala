@@ -26,14 +26,6 @@ class IdentifyingActor private
 
   def receive = identifying
 
-  /*def inactive : Actor.Receive = {
-    case Connect =>
-      context.become(identifying)
-      sendIdentifyRequest()
-    case _ => println("Inactive ... ")
-  }*/
-
-
   def identifying: Actor.Receive = {
     case ActorIdentity(`path`, Some(server)) =>
       println("In liaison with server")

@@ -36,8 +36,11 @@ class GameScreenControl
   val actor : ActorRef)
   extends  GameObserver {
 
-  val scene : TwoPlayerGameScene =
-    new TwoPlayerGameScene(oGame, playerGameId, this)
+  val opponentId = (playerGameId + 1) % 2
+
+  val pane : TwoPlayerGamePane =
+    new TwoPlayerGamePane(oGame, playerGameId, this)
+
 
   oGame.observers += this
 
@@ -96,6 +99,7 @@ class GameScreenControl
           case Formation(Fool) => (2, 1)
           case _ => (1, 1)
         }
+      case (Origin.CreateBeingPane, _) => leval.error()
     }
 
 
@@ -124,7 +128,7 @@ class GameScreenControl
     moves foreach (actor ! _)
   }
 
-  import scene._
+  import pane._
   import oGame._
   def notify[A](m: Move[A], res: A): Unit = m match {
     case MajestyEffect(_, _) =>
@@ -137,10 +141,11 @@ class GameScreenControl
     case PlaceBeing(b) =>
       if(oGame.currentPlayer == playerGameId) {
         addPlayerBeingPane(b)
-        handPane.update()
         createBeeingPane.menuMode()
+      } else {
+        addOpponentBeingPane(b)
+        opponentHandPane.update()
       }
-      else addOpponentBeingPane(b)
 
 
     case CollectFromRiver | RemoveFromHand(_) =>
@@ -162,25 +167,25 @@ class GameScreenControl
         case ap : ActPhase =>
           if(ap.activatedBeings.size == playerBeingsPane.children.size()){
             new Alert(AlertType.Information){
-              delegate.initOwner(scene.window())
+              delegate.initOwner(pane.scene().getWindow)
               title = "End of act phase"
               headerText = "Every being has acted"
               //contentText = "Every being has acted"
             }.showAndWait()
             controller.endPhase()
           }
-
+        case _ => leval.error()
       }
     case EndPhase =>
       new Alert(AlertType.Information){
-        delegate.initOwner(scene.window())
+        delegate.initOwner(pane.scene().getWindow)
         title = "New phase"
         headerText = oGame.currentStar.id.name + " : " + oGame.roundState.toString
         //contentText = "Every being has acted"
       }.showAndWait()
 
       oGame.roundState match {
-        case SourcePhase =>
+        case SourcePhase if oGame.currentPlayer == playerGameId =>
           new DrawAndLookAction(this, 1, 0, canCollectFromRiver).apply()
           actor ! EndPhase
         case ActPhase(_) if oGame.currentPlayer == playerGameId =>

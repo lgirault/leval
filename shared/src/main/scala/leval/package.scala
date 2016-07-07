@@ -6,7 +6,8 @@ package object leval {
   def ignore[A](a : A) : Unit = {
     val _ = a
   }
-  def error() : Nothing = sys.error("Should not happen")
+  def error(msg : String = "Should not happen") : Nothing = sys.error(msg)
+
 
 
 }

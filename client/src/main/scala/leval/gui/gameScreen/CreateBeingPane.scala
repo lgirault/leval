@@ -4,7 +4,6 @@ import leval.core._
 import leval.gui.{CardImageView, CardImg}
 
 import scalafx.Includes._
-import scalafx.geometry.Pos
 import scalafx.scene.Node
 import scalafx.scene.canvas.Canvas
 import scalafx.scene.input.MouseEvent
@@ -107,7 +106,8 @@ class CreateBeingPane
   }
 
   def editMode(c : Card, origin: Origin) : Unit = {
-    children = Seq(face, mind, power, heart, weapon, okButton, closeButton)
+    children = Seq(face, mind, power, heart, weapon,
+      okButton, closeButton/*buttonWrapper*/)
     defaultPos(c).onDrop(c, origin)
     open0 = true
   }
@@ -115,10 +115,8 @@ class CreateBeingPane
   def menuMode() : Unit = {
     children = createBeingLabel
     open0 = false
-    tiles.foreach {
-      _.cardImg = None
-    }
-    hand.update(Seq())
+    tiles.foreach (_.cardImg = None)
+    hand.update()
   }
 
   val createBeingLabel =
@@ -196,20 +194,29 @@ class CreateBeingPane
     cv.onMouseClicked = {
       me : MouseEvent =>
         menuMode()
-
     }
 
     cv
   }
 
-  GridPane.setConstraints(okButton, 2, 2)
-  okButton.alignmentInParent = Pos.BottomCenter
+  GridPane.setConstraints(okButton, 0, 2)
+  //okButton.alignmentInParent = Pos.BottomLeft
 
   GridPane.setConstraints(closeButton, 2, 2)
-  closeButton.alignmentInParent = Pos.BottomRight
+  //  closeButton.alignmentInParent = Pos.BottomRight
 
-
-
+//  val buttonWrapper = new VBox {
+//    val vspacer = new Region()
+//    VBox.setVgrow(vspacer, Priority.Always)
+//
+//    val hspacer = new Region()
+//    HBox.setHgrow(hspacer, Priority.Always)
+//
+//
+//    children = Seq(vspacer,
+//      new HBox(okButton, hspacer, closeButton))
+//  }
+//  GridPane.setConstraints(buttonWrapper, 2, 2)
   def defaultPos(c : Card) : CardDropTarget =
     c match {
       case (_ : Face, _) => face
@@ -231,12 +238,6 @@ class CreateBeingPane
             case _ => Seq()
           }
       } getOrElse Seq())
-
-
-
-
-
-
 
   def legalFormation : Boolean =
     face.card.nonEmpty && (

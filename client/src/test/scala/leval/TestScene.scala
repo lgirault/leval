@@ -6,6 +6,7 @@ import leval.core.{Game, Move, PlayerId}
 import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
 
 import scalafx.application.JFXApp
+import scalafx.scene.Scene
 
 /**
   * Created by lorilan on 7/4/16.
@@ -19,9 +20,7 @@ class ControllerMockup
 ) extends Actor {
 
   override def receive: Receive = {
-    case m : Move[_] =>
-      println(s"ControllerMockup receives $m")
-      oGame(m)
+    case m : Move[_] => leval.ignore(oGame(m))
   }
 }
 
@@ -40,7 +39,10 @@ object TestScene extends JFXApp  {
     val control =
       new GameScreenControl(game, 0, TestActorRef(ControllerMockup.props(game)))
 
-    scene = control.scene
+    scene = new Scene {
+      root = control.pane
+    }
+
 
     println("creating scene")
   }

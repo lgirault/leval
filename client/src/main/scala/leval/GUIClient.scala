@@ -17,7 +17,7 @@ object GUIClient extends JFXApp {
     root = new SearchingServerScene()
   }
   stage = new PrimaryStage {
-    title = "SimpleTactic"
+    title = "Le Val des Étoiles"
     scene = stageScene
   }
 

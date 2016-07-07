@@ -34,7 +34,7 @@ case object GameStart extends GameMakerRequest
 trait GameMakerAnswer
 case object GameReady extends GameMakerAnswer
 
-case class GameInfo
+case class WaitingPlayersGameInfo
 ( //makerRef : ActorRef,
   desc : GameDescription,
   currentNumPlayer : Int)

@@ -1,6 +1,7 @@
 package leval.gui
 
 import leval.core.PlayerId
+import leval.gui.gameScreen.ObservableGame
 import leval.network.client.BeforeWaitingRoom._
 import leval.network.client.GameListView._
 import leval.network.client._
@@ -27,7 +28,7 @@ class ClientViewMockController(override val network: NetWorkController)
 
   def addPlayer(pid : PlayerId) : Unit = ()
   def gameReady(launcher : GameLauncher, umr : UserMapRelationship) : Unit = ()
-  def gameScreen(desc : GameDescription ) = ()
+  def gameScreen(desc : ObservableGame ) = ()
 
   override def gameListScreen() : GameListView = this
 

@@ -2,7 +2,7 @@ package leval.gui.gameScreen
 
 import javafx.geometry.Bounds
 
-import leval._
+import leval.ignore
 import leval.core._
 import leval.gui.CardImg
 
@@ -10,7 +10,6 @@ import scalafx.geometry.Point2D
 import scalafx.scene.Node
 import scalafx.scene.image.ImageView
 import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout.Pane
 
 /**
   * Created by lorilan on 6/25/16.
@@ -31,16 +30,16 @@ object CardDragAndDrop {
       n.localToScene(n.boundsInLocal.value)
   }
 }
+
 import leval.gui.gameScreen.CardDragAndDrop.NodeOps
 class CardDragAndDrop
 ( control: GameScreenControl,
   canDragAndDrop : () => Boolean,
   c : Card, origin : Origin)
 ( val cardImageView : ImageView = CardImg(c))
-extends (MouseEvent => Unit) {
+  extends (MouseEvent => Unit) {
 
-  import control.scene
-  def pane : Pane = scene.bpRoot
+  import control.pane
 
   var anchorPt: Point2D = null
   var previousLocation: Point2D = null
@@ -52,12 +51,11 @@ extends (MouseEvent => Unit) {
   }
 
 
-
-
   def apply(me : MouseEvent) : Unit = me.eventType match {
     case MouseEvent.MousePressed if canDragAndDrop() =>
-      scene.doHightlightTargets(origin, c)
+      pane.doHightlightTargets(origin, c)
       anchorPt = new Point2D(me.sceneX, me.sceneY)
+      cardImageView.managed = false
       pane.children.add(cardImageView)
       updateCoord(me)
 
@@ -67,14 +65,14 @@ extends (MouseEvent => Unit) {
       val cardBounds = cardImageView.boundsInScene
 
       //println("[CARD] " + cardImageView.boundsInScene)
-      scene.highlightedTargets.find {
+      pane.highlightedTargets.find {
         tgt =>
-        //  println("[TARGET] " + tgt.boundsInScene)
+          //  println("[TARGET] " + tgt.boundsInScene)
           tgt.boundsInScene intersects cardBounds
       } foreach { _.onDrop(c, origin)}
       //println()
 
-      scene.unHightlightTargets()
+      pane.unHightlightTargets()
       ignore(pane.children.remove(cardImageView))
 
 

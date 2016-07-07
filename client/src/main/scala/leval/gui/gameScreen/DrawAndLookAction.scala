@@ -31,7 +31,7 @@ class DrawAndLookAction
   var look : Int = 1,
   canCollectFromRiver : Boolean) {
 
-  import controller.scene
+  import controller.pane
 
   val collectFromSource = new ButtonType("Collect from source")
   val collectFromRiver = new ButtonType("Collect from river")
@@ -55,7 +55,7 @@ class DrawAndLookAction
   val subscriptions: Iterable[Subscription] =
     if (look == 0) Iterable.empty
     else
-      scene.beingPanes flatMap {
+      pane.beingPanes flatMap {
         bp =>
           bp.resourcePanes map {
             brp =>
@@ -64,7 +64,7 @@ class DrawAndLookAction
                 me: MouseEvent =>
                   if (!(controller.oGame.lookedCards contains ((bp.being.face, brp.position))) ) {
                     val dialog = new LookedCardDialog(brp.card) {
-                      delegate.initOwner(scene.window())
+                      delegate.initOwner(pane.scene().getWindow)
                     }
                     dialog.showAndWait() match {
                       case Some(_) =>
@@ -80,11 +80,11 @@ class DrawAndLookAction
   def apply() : Unit =
     if (remainingEffect.isEmpty) {
       subscriptions foreach (_.cancel)
-      scene.beingPanes foreach (
+      pane.beingPanes foreach (
         _.resourcePanes foreach ( _.setCardDragAndDrap() )
         )
       new Alert(AlertType.Information){
-        delegate.initOwner(scene.window())
+        delegate.initOwner(pane.scene().getWindow)
         title = "Draw or look Action"
         headerText = "End of action"
         //contentText = "Every being has acted"
@@ -94,7 +94,7 @@ class DrawAndLookAction
     else
     {
       val alert = new Alert(AlertType.Confirmation) {
-        delegate.initOwner(scene.window())
+        delegate.initOwner(pane.scene().getWindow)
         title = "Draw or look Action"
         headerText = "Choose next effect of action"
         // contentText = "Choose your option."
@@ -115,7 +115,7 @@ class DrawAndLookAction
           this.apply()
         case Some(`lookCard`) =>
           new Alert(AlertType.Information){
-            delegate.initOwner(scene.window())
+            delegate.initOwner(pane.scene().getWindow)
             title = "Look Action"
             headerText = "Click on a card to look at it"
             //contentText = "Every being has acted"

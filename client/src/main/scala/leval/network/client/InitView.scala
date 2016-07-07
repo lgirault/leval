@@ -3,10 +3,11 @@ package network
 package client
 
 
-import leval.network.client.BeforeWaitingRoom.CurrentNumPlayer
-import leval.network.protocol.GameDescription
-import GameListView._
 import leval.core.PlayerId
+import leval.gui.gameScreen.ObservableGame
+import leval.network.client.BeforeWaitingRoom.CurrentNumPlayer
+import leval.network.client.GameListView._
+import leval.network.protocol.GameDescription
 
 
 trait InitView {
@@ -43,5 +44,5 @@ case object Joiner extends UserMapRelationship
 trait WaitingOtherPlayerView {
   def addPlayer(pid : PlayerId) :Unit
   def gameReady(launcher : GameLauncher, umr : UserMapRelationship) : Unit
-  def gameScreen(desc : GameDescription ) /*BattleMapController*/
+  def gameScreen(desc : ObservableGame ) /*BattleMapController*/
 }

@@ -1,9 +1,9 @@
 package leval.gui
 
 import leval.core.PlayerId
+import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
 import leval.network.client.BeforeWaitingRoom.MaxPlayer
 import leval.network.client._
-import leval.network.protocol.GameDescription
 
 //import scalafx.Includes._
 import scalafx.scene.Scene
@@ -29,13 +29,13 @@ trait ViewController
   ( maker, maxNumPlayer ) => {
     println("Displaying waiting room ...")
     val wr = new WaitingRoom(network, maker.name, maxNumPlayer){
-      def gameScreen(desc : GameDescription) = ???
-      /*{
-        case MapDescription(w, h, c) =>
-          val bms = BattleMapScene(BattleMap(w,h).set(c))
-          scene.root = bms
-          bms.controller
-      }*/
+      def gameScreen(game : ObservableGame) = {
+          val pidx =game.stars.indexWhere(_.id == network.thisPlayer)
+          val control =
+            new GameScreenControl(game, pidx, network.actor)
+
+        ViewController.this.scene.root = control.pane
+      }
     }
     wr addPlayer maker
     scene.root = wr
