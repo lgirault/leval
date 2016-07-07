@@ -8,29 +8,30 @@ import leval.network.client._
 import scalafx.scene.Scene
 
 trait ViewController  {
+  this : NetWorkController =>
 
-  val network : NetWorkController
   val scene : Scene
 
   def displayConnectScreen() : Unit = {
-    scene.root = new ConnectScene(network)
+    scene.root = new ConnectScene(this)
   }
 
   def displayStartScreen() : Unit = {
-    scene.root = new StartScene(network)
+    scene.root = new StartScene(this)
+    actor ! StartScreen
   }
 
   def waitingOtherPlayerScreen
   ( maker : PlayerId, maxNumPlayer :MaxPlayer ) : WaitingRoom = {
     println("Displaying waiting room ...")
-    val wr =  new WaitingRoom(network, maker.name, maxNumPlayer)
+    val wr =  new WaitingRoom(this, maker.name, maxNumPlayer)
     wr.addPlayer(maker)
     scene.root = wr
     wr
   }
 
   def gameListScreen() : GameListPane  = {
-    val glp = new GameListPane(network)
+    val glp = new GameListPane(this)
     scene.root = glp
     glp
   }

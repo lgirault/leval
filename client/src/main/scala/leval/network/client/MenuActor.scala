@@ -9,11 +9,10 @@ import leval.network.protocol._
 
 import scala.collection.mutable.ListBuffer
 
+case object StartScreen
 case object Disconnect
 
-trait NetWorkController  {
-  val view : ViewController
-
+trait NetWorkController extends ViewController {
 
   var thisPlayer : PlayerId = _
   var actor : ActorRef = _
@@ -94,24 +93,21 @@ trait WaitinPlayers extends Scheduler {
 }
 
 object MenuActor {
-
   def props(serverEntryPoint : ActorRef,
             networkHandle : NetWorkController) =
     Props(new MenuActor(serverEntryPoint,
       networkHandle))
-
 }
+
 class MenuActor private
-( serverEntryPoint : ActorRef,
-  networkHandle : NetWorkController)
+(serverEntryPoint : ActorRef,
+ control : NetWorkController)
   extends Actor
     with WaitinPlayers {
 
-  import networkHandle.view
+  control.displayConnectScreen()
 
-  view.displayConnectScreen()
-  
-  def thisPlayer = networkHandle.netId//NetPlayerId(self, networkHandle.thisPlayer)
+  def thisPlayer = control.netId//NetPlayerId(self, networkHandle.thisPlayer)
 
   def listing( gameListScreen : GameListPane ) : Actor.Receive = {
     case WaitingPlayersGameInfo(desc, currentNumPlayer) =>
@@ -126,10 +122,13 @@ class MenuActor private
       gameListScreen.appendGameToList(desc, currentNumPlayer, answer)
 
     case AckJoin(desc) =>
-      val waitingScreen = view.waitingOtherPlayerScreen(desc.owner.id, desc.maxPlayer)
-      context.become( waitingPlayers( networkHandle, sender(), waitingScreen, desc.owner.actor ) )
+      val waitingScreen = control.waitingOtherPlayerScreen(desc.owner.id, desc.maxPlayer)
+      context.become( waitingPlayers( control, sender(), waitingScreen, desc.owner.actor ) )
 
     case NackJoin => println("Cannot join game")
+
+    case StartScreen => context.unbecome()
+
     case msg => println(s"Listing state : msg $msg unhandled")
   }
 
@@ -141,21 +140,23 @@ class MenuActor private
       serverEntryPoint ! ct
 
     case ConnectAck(pid) =>
-      networkHandle.thisPlayer = pid
-      val _ = view.displayStartScreen()
+      control.thisPlayer = pid
+      val _ = control.displayStartScreen()
 
     case ConnectNack(msg) =>
       println(msg)
 
     case ListGame =>
-      context.become( listing( view.gameListScreen() ) )
+      context.become( listing( control.gameListScreen() ) )
       serverEntryPoint ! ListGame
-      
+
     case cg : CreateGame => serverEntryPoint ! cg
 
     case GameCreated(GameDescription(creator, maxPlayer)) =>
-      val waitingScreen = view.waitingOtherPlayerScreen(creator.id, maxPlayer)
-      context.become(waitingPlayers( networkHandle, sender(), waitingScreen, creator.actor ) )
+      val waitingScreen = control.waitingOtherPlayerScreen(creator.id, maxPlayer)
+      context.become(waitingPlayers( control, sender(), waitingScreen, creator.actor ) )
+
+    case StartScreen => ()
 
     case req : EntryPointRequest => serverEntryPoint ! req
 

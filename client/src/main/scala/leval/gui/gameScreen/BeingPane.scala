@@ -13,22 +13,27 @@ import scalafx.scene.layout.{ColumnConstraints, GridPane, RowConstraints}
   * Created by Loïc Girault on 05/07/16.
   */
 sealed abstract class Orientation{
-  def top(b : Being) : Option[Card]
-  def left(b : Being) : Option[Card]
-  def right(b : Being) : Option[Card]
-  def bottom(b : Being) : Option[Card]
+
+  val leftResource : Suit
+  val rightResource : Suit
+  val topResource : Suit
+  val bottomResource : Suit
 }
 case object Player extends Orientation{
-  def top(b : Being) : Option[Card] = b.mind
-  def left(b : Being) : Option[Card] = b.heart
-  def right(b : Being) : Option[Card] = b.weapon
-  def bottom(b : Being) : Option[Card] = b.power
+
+
+  val leftResource : Suit = Heart
+  val rightResource : Suit = Spade
+  val topResource : Suit = Diamond
+  val bottomResource : Suit = Club
 }
 case object Opponent extends Orientation {
-  def top(b : Being) : Option[Card] = b.power
-  def left(b : Being) : Option[Card] = b.weapon
-  def right(b : Being) : Option[Card] = b.heart
-  def bottom(b : Being) : Option[Card] = b.mind
+
+
+  val leftResource : Suit = Spade
+  val rightResource : Suit = Heart
+  val topResource : Suit = Club
+  val bottomResource : Suit = Diamond
 }
 
 class BeingResourcePane
@@ -53,15 +58,16 @@ class BeingResourcePane
 
   setCardDragAndDrap()
 
-  def reveal() : Unit = {
+  def reveal() : BeingResourcePane = {
     children = Seq(frontImg, highlight)
+    this
   }
   def hide() : Unit = {
     children = Seq(backImg, highlight)
   }
 
   def onDrop(c : Card, origin : Origin) : Unit =
-      bp.control.playOnBeing(c, origin, bp.being, position)
+    bp.control.playOnBeing(c, origin, bp.being, position)
 
 }
 
@@ -89,10 +95,7 @@ class BeingPane
     columnConstraints.add(colCts)
   }
 
-  def topCard  = orientation.top(being)
-  def leftCard = orientation.left(being)
-  def rightCard = orientation.right(being)
-  def bottomCard  = orientation.bottom(being)
+
 
   private [this] var resourcePanes0 = Seq[BeingResourcePane]()
   def resourcePanes = resourcePanes0
@@ -101,12 +104,13 @@ class BeingPane
     resourcePanes0 find (_.position == s)
   }
 
-  def reveal(s : Suit) : Unit =
-    resourcePane(s) foreach (_.reveal())
+  def reveal(s : Suit) : Option[BeingResourcePane] =
+    resourcePane(s) map (_.reveal())
 
   def placeResourcePane( c : Card, pos : Suit, place : Node => Unit) : Node ={
     val cardDragAndDrop =
-      new CardDragAndDrop(control, control.canDragAndDropOnActPhase(being.face), c,
+      new CardDragAndDrop(control,
+        control.canDragAndDropOnActPhase(being.face), c,
         Origin.BeingPane(being, pos))(CardImg(c, front = false))
 
     val bpr = new BeingResourcePane(this, c, pos, cardDragAndDrop)()
@@ -115,24 +119,31 @@ class BeingPane
     bpr
   }
 
-  if(leftCard.nonEmpty) {
-    placeResourcePane(leftCard.get, Heart,
+  import orientation._
+  def topCard  = being.resources get topResource
+  def leftCard = being.resources get leftResource
+  def rightCard = being.resources get rightResource
+  def bottomCard  = being.resources get bottomResource
+
+  leftCard foreach { c =>
+    placeResourcePane(c, leftResource,
       GridPane.setConstraints(_, 0, 1))
   }
 
-  if(rightCard.nonEmpty){
-    placeResourcePane(rightCard.get, Spade,
+  rightCard foreach { c =>
+    placeResourcePane(c, rightResource,
       GridPane.setConstraints(_, 2, 1))
-
   }
 
-  if(topCard.nonEmpty)
-    placeResourcePane(topCard.get, Diamond,
+  topCard foreach { c =>
+    placeResourcePane(c, topResource,
       GridPane.setConstraints(_, 1, 0))
+  }
 
-  if(bottomCard.nonEmpty)
-    placeResourcePane(bottomCard.get, Club,
+  bottomCard foreach { c =>
+    placeResourcePane(c, bottomResource,
       GridPane.setConstraints(_, 1, 2))
+  }
 
   val faceImage = CardImg(being.face, cardHeight)
   GridPane.setConstraints(faceImage, 1, 1)

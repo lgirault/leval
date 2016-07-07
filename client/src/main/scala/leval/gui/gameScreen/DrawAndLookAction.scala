@@ -44,7 +44,7 @@ class DrawAndLookAction
       else Seq()
 
     if (collect > 0) {
-      if (canCollectFromRiver)
+      if (canCollectFromRiver && controller.game.deathRiver.nonEmpty)
         collectFromSource +: collectFromRiver +: s0
       else
         collectFromSource +: s0
@@ -62,7 +62,7 @@ class DrawAndLookAction
               brp.unsetCardDragAndDrop()
               brp.handleEvent(MouseEvent.MouseClicked) {
                 me: MouseEvent =>
-                  if (!(controller.oGame.lookedCards contains ((bp.being.face, brp.position))) ) {
+                  if (!(controller.game.lookedCards contains ((bp.being.face, brp.position))) ) {
                     val dialog = new LookedCardDialog(brp.card) {
                       delegate.initOwner(pane.scene().getWindow)
                     }

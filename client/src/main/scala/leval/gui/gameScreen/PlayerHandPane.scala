@@ -15,7 +15,7 @@ import scalafx.scene.layout.{FlowPane, HBox}
 class PlayerHandPane
 ( controller : GameScreenControl) extends FlowPane {
 
-  def hand = controller.oGame.stars(controller.playerGameId).hand
+  def hand = controller.game.stars(controller.playerGameId).hand
 
 
 
@@ -57,7 +57,7 @@ class PlayerHandPane
 class OpponnentHandPane
 ( controller : GameScreenControl) extends FlowPane {
 
-  def hand = controller.oGame.stars(controller.opponentId).hand
+  def hand = controller.game.stars(controller.opponentId).hand
 
   private def images : Seq[CardImageView]=
       if(hand.isEmpty) Seq[CardImageView]()

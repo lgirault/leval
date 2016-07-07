@@ -2,7 +2,7 @@ package leval
 
 import akka.actor.{ActorRef, ActorSystem}
 import com.typesafe.config.{Config, ConfigFactory}
-import leval.gui.{SearchingServerScene, ViewController}
+import leval.gui.SearchingServerScene
 import leval.network.client.{IdentifyingActor, NetWorkController}
 
 import scalafx.application.JFXApp
@@ -17,7 +17,7 @@ object GUIClient extends JFXApp {
     root = new SearchingServerScene()
   }
   stage = new PrimaryStage {
-    title = "Le Val des Étoiles"
+    title = "Le Vl"
     scene = stageScene
   }
 
@@ -58,19 +58,15 @@ object GUIClient extends JFXApp {
     system.actorOf(IdentifyingActor.props(netControl), actorName)
   }
 
-  val switcher = new ViewController {
-    self =>
-    //a bit entangled
-    val network = new NetWorkController {
-      val view = self
-
+  val control = new NetWorkController {
+      val scene = stageScene
       clientActor(this)
-    }
-    val scene = stageScene
   }
 
+
+
   override def stopApp() : Unit = {
-    switcher.network.disconnect()
+    control.disconnect()
     println("Shutting down !!")
     system.terminate()
     println("Bye bye !!")

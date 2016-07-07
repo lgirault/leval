@@ -13,16 +13,16 @@ import scalafx.scene.layout.{BorderPane, FlowPane, VBox}
 
 
 class WaitingRoom
-( network : NetWorkController,
-  partyName : String,
-  maxPlayer : Int) extends BorderPane {
+(control : NetWorkController,
+ partyName : String,
+ maxPlayer : Int) extends BorderPane {
 
   def gameScreen(game : ObservableGame) : Unit ={
-    val pidx =game.stars.indexWhere(_.id == network.thisPlayer)
-    val control =
-      new GameScreenControl(game, pidx, network.actor)
+    val pidx =game.stars.indexWhere(_.id == control.thisPlayer)
+    val gcontrol =
+      new GameScreenControl(game, pidx, control.actor)
 
-    network.view.scene.root = control.pane
+    control.scene.root = gcontrol.pane
   }
   val label = new Label(s"$partyName - Waiting for players ...")
 
