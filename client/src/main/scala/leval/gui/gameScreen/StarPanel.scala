@@ -1,6 +1,5 @@
 package leval.gui.gameScreen
 
-import leval.core._
 import leval.gui.text.ValText
 
 import scalafx.geometry.Pos
@@ -41,8 +40,8 @@ class StarPanel
   )
 }){
 
-  def onDrop(c: Card, origin: Origin): Unit = {
-    controller.directEffect(c, origin)
+  def onDrop(origin: Origin): Unit = {
+    controller.directEffect(origin)
   }
 
 }

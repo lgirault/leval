@@ -36,9 +36,9 @@ object CardImg {
 
   def coord(card : Card) : (Double, Double) = {
     val (x, y) =  card match {
-      case (Joker, (Club | Spade)) => (0, 4)
-      case (Joker, (Heart | Diamond)) => (1, 4)
-      case (r, s) => (column(r), line(s))
+      case Joker(Joker.Black) => (0, 4)
+      case Joker(Joker.Red) => (1, 4)
+      case C(r, s) => (column(r), line(s))
     }
     (x * width, y * height)
   }

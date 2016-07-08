@@ -29,16 +29,16 @@ object Being {
 }
 
 case class Being
-(face : FaceCard,
+(face : Card,
  resources : Map[Suit, Card],
  lover : Boolean = false){
 
-  def this( face : FaceCard,
-            resources : Seq[Card],
-            lover : Boolean) =
-    this(face, resources.foldLeft(Map[Suit, Card]()){
-      case (m, c @ (r, s)) => m + (s -> c)
-    }, lover)
+//  def this( face : Card,
+//            resources : Seq[Card],
+//            lover : Boolean) =
+//    this(face, resources.foldLeft(Map[Suit, Card]()){
+//      case (m, c @ (r, s)) => m + (s -> c)
+//    }, lover)
 
   def heart : Option[Card] = resources get Heart
   def weapon : Option[Card] = resources get Spade
@@ -52,10 +52,10 @@ case class Being
 
 
   //a being cannot be educated to become messianic or possessed so no ambiguity here
-  def educateWith(card : Card) : (Being, Option[Card]) = card match {
-    case (King | Queen , _) => (copy(face, resources + (Heart -> card), lover = true), heart)
-    case (_ , Heart) => (copy(face, resources + (Heart -> card), lover = false), heart)
-    case (_, suit) => (copy(face, resources + (suit -> card)), resources get suit)
+  def educateWith(card : C) : (Being, Option[Card]) = card match {
+    case C(King | Queen , _) => (copy(face, resources + (Heart -> card), lover = true), heart)
+    case C(_ , Heart) => (copy(face, resources + (Heart -> card), lover = false), heart)
+    case C(_, suit) => (copy(face, resources + (suit -> card)), resources get suit)
   }
 
   def cards : Seq[Card] = face +: resources.values.toSeq
@@ -74,11 +74,11 @@ case class Being
     }
 
     if(isSpectre)
-      (face.rank, resource) match {
-        case (King | Queen, Diamond) => 1
-        case (King, Club) => 3
-        case (Queen, Club) => 2
-        case (King, Spade) => 1
+      (face, resource) match {
+        case (C(King | Queen,_), Diamond) => 1
+        case (C(King,_), Club) => 3
+        case (C(Queen,_), Club) => 2
+        case (C(King,_), Spade) => 1
         case _ => 0
       }
     else 0
@@ -91,9 +91,11 @@ case class Being
   def value(resource : Suit, v : Card => Int)  : Option[Int] = {
     resources get resource map {
       c =>
-        val faceBonus =
-          if( face.suit == resource ) v(face)
-          else 0
+        val faceBonus = face match {
+          case Joker(_) => v(face)
+          case C(_, suit) if suit == resource => v(face)
+          case _ => 0
+        }
         v(c) + faceBonus + formationBonus(resource)
     }
   }
@@ -137,7 +139,7 @@ case class Star
 (id : PlayerId,
  majesty : Int,
  hand : Set[Card],
- beings : Map[FaceCard, Being]){
+ beings : Map[Card, Being]){
   def name = id.name
 }
 

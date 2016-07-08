@@ -12,39 +12,65 @@ case object Club extends Suit//trefle
 case object Heart extends Suit
 case object Spade extends Suit //pique
 
+
+
 sealed abstract class Rank
 sealed abstract class Face extends Rank
 case object Jack extends Face
 case object Queen extends Face
 case object King extends Face
-case object Joker extends Face
 case object Ace extends Rank
 case class Numeric(value: Int) extends Rank
 
-object Card {
+sealed abstract class Card
+case class C(rank: Rank, suit: Suit) extends Card
 
-  def value(c : Card) : Int = c.rank match {
-    case Numeric(v) => v
-    case Jack | Ace | Joker => 1
-    case Queen => 2
-    case King => 3
+sealed abstract class Joker extends Card
+object Joker {
+  case object Red extends Joker
+  case object Black extends Joker
+
+  def unapply(c: Card): Option[Joker] = c match {
+    case j : Joker => Some(j)
+    case _ => None
   }
 
+}
+
+
+
+object Card {
+
+  def value(c : Card) : Int =
+    c match {
+      case Joker(_) => 1
+      case C(rank, _) => rank match {
+        case Numeric(v) => v
+        case Jack | Ace => 1
+        case Queen => 2
+        case King => 3
+      }
+    }
+
+
+  private def orderingValue(c : Joker) : Int = c match {
+    case Joker.Red => 0
+    case Joker.Black  => 1
+  }
   private def orderingValue(s : Suit) : Int = s match {
     case Diamond => 0
     case Club  => 1
     case Heart => 2
     case Spade => 3
   }
-
   private def orderingValue(r : Rank) : Int = r match {
     case Numeric(v) => v
     case Ace  => 1
     case Jack => 11
     case Queen => 12
     case King => 13
-    case Joker => 14
   }
+
 
   implicit val suitOrdering = new Ordering[Suit] {
     def compare(x: Suit, y: Suit): Int =
@@ -58,19 +84,13 @@ object Card {
 
   implicit val cardOrdering = new Ordering[Card] {
 
-    def suitBiasedCompare(x: (Rank, Suit), y: (Rank, Suit)): Int = {
-      val c = suitOrdering.compare(x.suit, y.suit)
-      if(c != 0) c
-      else rankOrdering.compare(x.rank, y.rank)
-    }
-
-    def compare(x: (Rank, Suit), y: (Rank, Suit)): Int =
+    def compare(x: Card, y: Card): Int =
       (x,y) match {
-        case ((Joker,_), (Joker, _)) =>
-            suitOrdering.compare(x.suit, y.suit)
-        case ((Joker,_), _) => 1
-        case (_, (Joker, _)) => -1
-        case _ => suitBiasedCompare(x,y)
+        case (Joker(cx), Joker(cy)) =>
+          Ordering.Int.compare(orderingValue(cx), orderingValue(cy))
+        case (Joker(_), _) => 1
+        case (_, Joker(_)) => -1
+        case (C(_, sx), C(_, sy)) => suitOrdering.compare(sx,sy)
       }
   }
 }

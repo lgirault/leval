@@ -82,8 +82,8 @@ class BeingResourcePane
     eyeImg.visible = b
   }
 
-  def onDrop(c : Card, origin : Origin) : Unit =
-    bp.control.playOnBeing(c, origin, bp.being, position)
+  def onDrop(origin : Origin) : Unit =
+    bp.control.playOnBeing(origin, bp.being, position)
 
 }
 
@@ -124,7 +124,7 @@ class BeingPane
   def placeResourcePane( c : Card, pos : Suit, place : Node => Unit) : Node ={
     val cardDragAndDrop =
       new CardDragAndDrop(control,
-        control.canDragAndDropOnActPhase(being.face), c,
+        control.canDragAndDropOnActPhase(being.face),
         Origin.BeingPane(being, pos))(CardImg(c, front = false))
 
     val bpr = new BeingResourcePane(this, c, pos, cardDragAndDrop)()

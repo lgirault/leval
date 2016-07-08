@@ -16,11 +16,15 @@ import scalafx.scene.input.MouseEvent
   */
 
 object Origin {
-  case object Hand extends Origin
-  case class BeingPane(b : Being, suit : Suit) extends Origin
-  case object CreateBeingPane extends Origin
+  case class Hand(card : Card) extends Origin
+  case class BeingPane(b : Being, suit : Suit) extends Origin {
+    def card = b resources suit
+  }
+  case class CreateBeingPane(card : Card) extends Origin
 }
-sealed abstract class Origin
+sealed abstract class Origin {
+  def card : Card
+}
 
 
 object CardDragAndDrop {
@@ -35,8 +39,8 @@ import leval.gui.gameScreen.CardDragAndDrop.NodeOps
 class CardDragAndDrop
 ( control: GameScreenControl,
   canDragAndDrop : () => Boolean,
-  c : Card, origin : Origin)
-( val cardImageView : ImageView = CardImg(c))
+  origin : Origin)
+( val cardImageView : ImageView = CardImg(origin.card))
   extends (MouseEvent => Unit) {
 
   import control.pane
@@ -53,7 +57,7 @@ class CardDragAndDrop
 
   def apply(me : MouseEvent) : Unit = me.eventType match {
     case MouseEvent.MousePressed if canDragAndDrop() =>
-      pane.doHightlightTargets(origin, c)
+      pane.doHightlightTargets(origin)
       anchorPt = new Point2D(me.sceneX, me.sceneY)
       cardImageView.managed = false
       pane.children.add(cardImageView)
@@ -69,7 +73,7 @@ class CardDragAndDrop
         tgt =>
           //  println("[TARGET] " + tgt.boundsInScene)
           tgt.boundsInScene intersects cardBounds
-      } foreach { _.onDrop(c, origin)}
+      } foreach { _.onDrop(origin)}
       //println()
 
       pane.unHightlightTargets()

@@ -20,7 +20,7 @@ class CreateBeingTile
 (val pane : CreateBeingPane,
  val tile : Pane,
  val hand : PlayerHandPane,
- doCardDragAndDrop: (Card, Origin) => CardDragAndDrop )
+ doCardDragAndDrop: Origin => CardDragAndDrop )
   extends CardDropTarget(tile) {
 
   var cardImg0 : Option[(CardImageView, CardDragAndDrop)] = None
@@ -38,7 +38,7 @@ class CreateBeingTile
   def card = cardImg0 map (_._1.card)
   def card_=(c : Card) = {
     val ci = CardImg(c, tile.prefHeight.value)
-    cardImg = Some((ci, doCardDragAndDrop(c, Origin.CreateBeingPane)))
+    cardImg = Some((ci, doCardDragAndDrop(Origin.CreateBeingPane(c))))
   }
 
   highlight.handleEvent(MouseEvent.Any){
@@ -48,8 +48,8 @@ class CreateBeingTile
       }
   }
 
-  def onDrop(c : Card, origin : Origin) : Unit = {
-    card = c
+  def onDrop(origin : Origin) : Unit = {
+    card = origin.card
     if(pane.legalFormation)
       pane.okButton.visible = true
     else
@@ -63,7 +63,7 @@ class CreateBeingPane
 (controller : GameScreenControl,
  hand : PlayerHandPane,
  cardWidth : Double, cardHeight : Double,
- doCardDragAndDrop: (Card, Origin) => CardDragAndDrop) extends GridPane {
+ doCardDragAndDrop: Origin => CardDragAndDrop) extends GridPane {
 
   def cardRectangle(txt: String): Pane = new StackPane {
     val rect = Rectangle(cardWidth, cardHeight, Color.White)
@@ -105,10 +105,10 @@ class CreateBeingPane
     cv
   }
 
-  def editMode(c : Card, origin: Origin) : Unit = {
+  def editMode(origin: Origin) : Unit = {
     children = Seq(face, mind, power, heart, weapon,
       okButton, closeButton/*buttonWrapper*/)
-    defaultPos(c).onDrop(c, origin)
+    defaultPos(origin.card).onDrop(origin)
     open0 = true
   }
 
@@ -121,8 +121,8 @@ class CreateBeingPane
 
   val createBeingLabel =
     new CardDropTarget(cardRectangle("Create Beeing")) {
-      def onDrop(c: Card, origin: Origin) =
-        editMode(c, origin)
+      def onDrop(origin: Origin) =
+        editMode(origin)
     }
 
 
@@ -164,13 +164,18 @@ class CreateBeingPane
   def cards : Seq[Card] = tiles flatMap (_.card)
 
   def being : Option[Being] = {
+    val m0 = Map[Suit, Card]()
+    val m1 = mind.card map (c => m0 + (Diamond -> c)) getOrElse m0
+    val m2 = power.card map (c => m1 + (Club -> c)) getOrElse m1
+    val m3 = heart.card map (c => m2 + (Heart -> c)) getOrElse m2
+    val m =  weapon.card map (c => m3 + (Spade -> c)) getOrElse m3
+
     face.card map {
-      case fc : FaceCard => new Being(fc,
-        cards.tail,
-        heart.card exists (_.rank match {
-          case King | Queen => true
+      case fc : Card => new Being(fc, m,
+        heart.card exists {
+          case C(King | Queen, _) => true
           case _ => false
-        })
+        }
       )
       case _ => leval.error()
     }
@@ -219,11 +224,11 @@ class CreateBeingPane
 //  GridPane.setConstraints(buttonWrapper, 2, 2)
   def defaultPos(c : Card) : CardDropTarget =
     c match {
-      case (_ : Face, _) => face
-      case (_, Heart) => heart
-      case (_, Club) => power
-      case (_, Diamond) => mind
-      case (_, Spade) => weapon
+      case C(_ : Face, _) | Joker(_) => face
+      case C(_, Heart) => heart
+      case C(_, Club) => power
+      case C(_, Diamond) => mind
+      case C(_, Spade) => weapon
     }
 
   def targets(c : Card ): Seq[CardDropTarget] =
@@ -231,9 +236,9 @@ class CreateBeingPane
       face.card map {
         fc =>
           (fc, c) match {
-            case ((Queen, fsuit), (King, suit)) if fsuit == suit =>
+            case (C(Queen, fsuit), C(King, suit)) if fsuit == suit =>
               Seq(heart)
-            case ((King, fsuit), (Queen, suit)) if fsuit == suit =>
+            case (C(King, fsuit), C(Queen, suit)) if fsuit == suit =>
               Seq(heart)
             case _ => Seq()
           }

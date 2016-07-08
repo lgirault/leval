@@ -20,14 +20,19 @@ object MoveSeq {
       ActivateBeing(b.face))
   }
 
-  def placeBeing(b: Being): Seq[Move[_]] = {
-    Seq(PlaceBeing(b), EndPhase)
+  def placeBeing(b: Being, side : Int): Seq[Move[_]] = {
+    val s = Seq(PlaceBeing(b, side), EndPhase)
+    b match {
+      case Formation(Spectre) => MajestyEffect(-5, side) +: s
+      case _ => s
+    }
+
   }
 
-  def end(c : Card, origin: Origin) : Seq[Move[_]] = origin match {
-    case Origin.Hand => fromHand(c)
+  def end(origin: Origin) : Seq[Move[_]] = origin match {
+    case Origin.Hand(c) => fromHand(c)
     case Origin.BeingPane(b, s) => fromBeing(b, s)
-    case Origin.CreateBeingPane => Seq()
+    case Origin.CreateBeingPane(_) => Seq()
   }
 }
 
@@ -58,10 +63,10 @@ class GameScreenControl
     (game.stars map aux).sum
   }
 
-  def forbiddenOnFirstRound( c : Card, origin: Origin) : Boolean =
-    (origin, c.suit) match {
-      case (Origin.Hand, Diamond | Spade)
-      | (Origin.BeingPane(_, Diamond | Spade), _) => true
+  def forbiddenOnFirstRound(origin: Origin) : Boolean =
+    origin match {
+      case Origin.Hand(C(_, Diamond | Spade))
+      | Origin.BeingPane(_, Diamond | Spade) => true
       case _ => false
     }
 
@@ -72,23 +77,31 @@ class GameScreenControl
       headerText = "You cannot attack during the first round"
     }.showAndWait()
 
-  def directEffect( c : Card, origin: Origin) : Unit =
-  if(game.currentRound == 1 && forbiddenOnFirstRound(c,origin))
+  def directEffect(origin: Origin) : Unit =
+  if(game.currentRound == 1 && forbiddenOnFirstRound(origin))
     cannotAttackAlert()
   else {
+
+    def effect(v : Int, playedSuit : Suit) =
+      playedSuit match {
+        case Heart => MajestyEffect(v, playerGameId)
+        case Diamond | Spade => MajestyEffect(-1 * v, opponentId)
+        case _ => leval.error()
+      }
+
     origin match {
-      case Origin.Hand if c.rank == Joker =>
-        jokerEffectFromHand(c.suit)
-      case Origin.Hand =>
-        actor ! MajestyEffect(Card.value(c), c.suit)
-      case Origin.BeingPane(b, s) =>
-        actor ! MajestyEffect(b.value(s, Card.value).get, s)
+      case Origin.Hand(Joker(j)) =>
+        jokerEffectFromHand(j)
+      case Origin.Hand(c @ C(_, suit)) =>
+        actor ! effect(Card.value(c), suit)
+      case Origin.BeingPane(b, s)=>
+        actor ! effect(b.value(s, Card.value).get, s)
     }
 
-    MoveSeq.end(c, origin) foreach (actor ! _)
+    MoveSeq.end(origin) foreach (actor ! _)
   }
   def placeBeing(b: Being): Unit = {
-    MoveSeq.placeBeing(b) foreach (actor ! _)
+    MoveSeq.placeBeing(b, playerGameId) foreach (actor ! _)
   }
 
   def endPhase() : Unit =
@@ -100,60 +113,62 @@ class GameScreenControl
     case _ => false
   }
 
-  def drawAndLook(c: Card, origin: Origin) : Unit = {
+  def drawAndLook(origin: Origin) : Unit = {
 
-    val (numDraw, numLook) = drawAndLookValues(c, origin)
+    val (numDraw, numLook) = drawAndLookValues(origin)
     new DrawAndLookAction(this, numDraw, numLook, canCollectFromRiver,
-      () => MoveSeq.end(c, origin) foreach (actor ! _)
+      () => MoveSeq.end(origin) foreach (actor ! _)
     ).apply()
 
   }
 
-  def jokerEffectFromHand(jokerSuit : Suit) : Unit =
-    new Alert(AlertType.Information){
+  def jokerEffectFromHand(jokerSuit : Joker) : Unit = {
+    // /!\ premier tour que effet du trèfle ou que effet du cœur
+    new Alert(AlertType.Information) {
       delegate.initOwner(pane.scene().getWindow)
       title = "ALERT !"
       headerText = "Joker effect from hand not implemented"
       //contentText = "Every being has acted"
     }.showAndWait()
+  }
 
   //(num draw, num look)
-  def drawAndLookValues(c : Card, origin : Origin) : (Int, Int) =
-    (origin, c.rank) match {
-      case (Origin.Hand, King) => (1, 3)
-      case (Origin.Hand, Queen) => (1, 2)
-      case (Origin.Hand, _) => (1, 1)
-      case (Origin.BeingPane(b, _), _) =>
+  def drawAndLookValues(origin : Origin) : (Int, Int) =
+    origin match {
+      case Origin.Hand(C(King, _)) => (1, 3)
+      case Origin.Hand(C(Queen, _)) => (1, 2)
+      case Origin.Hand(_) => (1, 1)
+      case Origin.BeingPane(b, _)=>
         b match {
           case Formation(Fool) => (2, 1)
           case _ => (1, 1)
         }
-      case (Origin.CreateBeingPane, _) => leval.error()
+      case Origin.CreateBeingPane(_) => leval.error()
     }
 
 
-  def playOnBeing(c : Card,
-                  origin : Origin,
+  def playOnBeing(origin : Origin,
                   target : Being,
                   targetSuit : Suit) = {
     //targetSuit needed if club played from hand
     //heart are not played on being
-    val moves : Seq[Move[_]] = (origin, c) match {
-      case (Origin.Hand, (Joker, _)) =>
-        jokerEffectFromHand(c.suit)
-        MoveSeq.fromHand(c)
-      case (Origin.Hand, (_, Diamond | Spade)) =>
+    val moves : Seq[Move[_]] = origin match {
+      case Origin.Hand(Joker(clr)) =>
+        jokerEffectFromHand(clr)
+        MoveSeq.fromHand(clr)
+      case Origin.Hand(c @ C(_, Diamond | Spade)) =>
         AttackBeing(Card.value(c),
           target.face, targetSuit) +:
           Reveal(target.face, targetSuit) +:
           MoveSeq.fromHand(c)
-      case (Origin.BeingPane(b, s), (_, Diamond | Spade)) =>
+      case Origin.BeingPane(b, s @ (Diamond | Spade)) =>
         AttackBeing(b.value(s, Card.value).get,
           target.face, targetSuit) +:
           Reveal(target.face, targetSuit) +:
           MoveSeq.fromBeing(b,s)
-      case (_, (_ , Club)) =>
-        drawAndLook(c, origin)
+      case Origin.Hand( C(_, Club) )|
+        Origin.BeingPane(_, Club) =>
+        drawAndLook(origin)
         Seq()
       case _ => leval.error()
     }
@@ -175,8 +190,8 @@ class GameScreenControl
       opponentStarPanel.majestyValueLabel.text =
         stars(opponentId).majesty.toString
 
-    case PlaceBeing(b) =>
-      if(isCurrentPlayer) {
+    case PlaceBeing(b, side) =>
+      if(playerGameId == side) {
         addPlayerBeingPane(b)
         createBeeingPane.menuMode()
       } else {
@@ -187,16 +202,18 @@ class GameScreenControl
     case RemoveFromHand(_) =>
       riverPane.update()
       handPane.update()
+      opponentHandPane.update()
 
-    case CollectFromRiver =>
-      if(isCurrentPlayer)
+    case CollectFromRiver(side) =>
+      if(playerGameId == side)
         new CardDialog(res, pane).showAndWait()
 
       riverPane.update()
       handPane.update()
+      opponentHandPane.update()
 
-    case CollectFromSource =>
-      if(isCurrentPlayer)
+    case CollectFromSource(side) =>
+      if(playerGameId == side)
         new CardDialog(res, pane).showAndWait()
 
       handPane.update()
@@ -237,8 +254,8 @@ class GameScreenControl
 
 
       game.currentPhase match {
-        case InfluencePhase if isCurrentPlayer=>
-          statusPane.star = game.currentStar.name
+        case InfluencePhase =>
+          statusPane.star = game.stars(game.currentPlayer).name
           statusPane.round = game.currentRound
         case SourcePhase  =>
           if(isCurrentPlayer) {
@@ -274,7 +291,7 @@ class GameScreenControl
     game.currentPlayer == playerGameId &&
       game.currentPhase == InfluencePhase
 
-  def canDragAndDropOnActPhase(fc : FaceCard)() : Boolean =
+  def canDragAndDropOnActPhase(fc : Card)() : Boolean =
     game.currentPlayer == playerGameId && (game.currentPhase match {
       case ActPhase(activatedBeings) if ! (activatedBeings contains fc)=> true
       case _ => false

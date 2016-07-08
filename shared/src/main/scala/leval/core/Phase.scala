@@ -5,5 +5,5 @@ package leval.core
   */
 sealed abstract class Phase
 case object InfluencePhase extends Phase
-case class ActPhase(activatedBeings : Set[FaceCard]) extends Phase
+case class ActPhase(activatedBeings : Set[Card]) extends Phase
 case object SourcePhase extends Phase

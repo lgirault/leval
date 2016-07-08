@@ -37,7 +37,7 @@ class PlayerHandPane
         img.handleEvent(MouseEvent.Any) {
           new CardDragAndDrop(controller,
             controller.canDragAndDropOnInfluencePhase,
-            img.card, Origin.Hand)()
+            Origin.Hand(img.card))()
         }
     }
     imgs

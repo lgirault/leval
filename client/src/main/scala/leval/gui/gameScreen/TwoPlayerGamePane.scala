@@ -3,7 +3,7 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
-import leval.core.{Being, Card, DeathRiver, Diamond, FaceCard, Formation, OpponentSpectrePower, OpponentStar, SelfStar, Source, Spectre, Target, TargetBeingResource}
+import leval.core.{Being, Card, DeathRiver, Diamond, Formation, OpponentSpectrePower, OpponentStar, SelfStar, Source, Spectre, Target, TargetBeingResource}
 import leval.gui.{CardImageView, CardImg}
 import leval.gui.text
 import scala.collection.mutable
@@ -17,7 +17,7 @@ import scalafx.stage.Screen
 
 abstract class CardDropTarget(decorated : Node)
   extends HighlightableRegion(decorated){
-  def onDrop(c : Card, origin : Origin) : Unit
+  def onDrop(origin : Origin) : Unit
 }
 
 class RiverPane
@@ -92,12 +92,12 @@ class TwoPlayerGamePane
 
   private [this] var highlightableRegions = Seq[CardDropTarget]()
   def highlightedTargets = highlightableRegions
-  def doHightlightTargets(origin : Origin, c : Card ): Unit = {
+  def doHightlightTargets(origin : Origin): Unit = {
     val highlighteds =
-      if(createBeeingPane.isOpen) createBeeingPane.targets(c)
+      if(createBeeingPane.isOpen) createBeeingPane.targets(origin.card)
       else {
         val highlighteds0 : Seq[CardDropTarget] =
-          Target(oGame.game, c.suit) flatMap {
+          Target(oGame.game, origin.card) flatMap {
             case SelfStar => Seq(playerStarPanel)
             case OpponentStar => Seq(opponentStarPanel)
             case Source => Seq(deck)
@@ -118,7 +118,7 @@ class TwoPlayerGamePane
             case _ => Seq()
           }
         origin match{
-          case Origin.Hand => createBeeingPane.createBeingLabel +: highlighteds0
+          case Origin.Hand(_) => createBeeingPane.createBeingLabel +: highlighteds0
           case _ => highlighteds0
         }
       }
@@ -145,14 +145,14 @@ class TwoPlayerGamePane
   playerStarPanel.alignmentInParent = Pos.TopCenter
 
   val deck = new CardDropTarget(CardImg.back){
-    def onDrop(c: Card, origin: Origin): Unit =
-      controller.drawAndLook(c, origin)
+    def onDrop(origin: Origin): Unit =
+      controller.drawAndLook(origin)
   }
 
   val riverPane = new RiverPane(controller, cardHeight)
   val riverWrapper = new CardDropTarget(riverPane){
-    def onDrop(c: Card, origin: Origin): Unit =
-      controller.drawAndLook(c, origin)
+    def onDrop(origin: Origin): Unit =
+      controller.drawAndLook(origin)
   }
 
   val handPane = new PlayerHandPane(controller)
@@ -172,7 +172,7 @@ class TwoPlayerGamePane
   val createBeeingPane =
     new CreateBeingPane(controller, handPane,
       cardWidth, cardHeight,
-      new CardDragAndDrop(controller, controller.canDragAndDropOnInfluencePhase, _, _)())
+      new CardDragAndDrop(controller, controller.canDragAndDropOnInfluencePhase, _)())
 
 
   val opponentHandPane = new OpponnentHandPane(controller)
@@ -183,7 +183,7 @@ class TwoPlayerGamePane
     style = "-fx-border-width: 1; -fx-border-color: black;"
   }*/
 
-  private [gameScreen] val beingPanesMap = mutable.Map[FaceCard, BeingPane]()
+  private [gameScreen] val beingPanesMap = mutable.Map[Card, BeingPane]()
 
   def beingPanes : Iterable[BeingPane] = beingPanesMap.values
 
@@ -218,7 +218,7 @@ class TwoPlayerGamePane
 
   val statusPane = new StatusPane()
 
-  statusPane.star = game.currentStar.name
+  statusPane.star = game.stars(game.currentPlayer).name
 
   val leftColumn = Seq(
     statusPane,
