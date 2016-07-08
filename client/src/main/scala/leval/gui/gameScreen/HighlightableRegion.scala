@@ -12,25 +12,15 @@ import scalafx.util.Duration
   */
 class HighlightableRegion(decorated : Node) extends StackPane {
 
-  val styles =
-    Seq("-fx-border-width: 3; -fx-border-color: dodgerblue; -fx-background-color : rgba(12,56,100, 0.05);",
-      "-fx-border-width: 3; -fx-border-color: green; -fx-background-color : rgba(127,255,0, 0.05);")
   protected val highlight = new Region {
     opacity = 0
-    style = styles.head
+    style = "-fx-border-width: 3; -fx-border-color: dodgerblue; -fx-background-color : rgba(12,56,100, 0.05);"
   }
 
 
   this.children = Seq(decorated, highlight)
 
 
-
-  var currentStyle = 0
-
-  def switchStyle() : Unit = {
-    currentStyle = (currentStyle + 1) % 2
-    highlight.style = styles(currentStyle)
-  }
 
   private val highlightTransition = new FadeTransition {
     node = highlight
@@ -58,9 +48,5 @@ class HighlightableRegion(decorated : Node) extends StackPane {
     highlightTransition.play()
     effect = null.asInstanceOf[javafx.scene.effect.Lighting]
   }
-
-//  onMouseEntered = (e: MouseEvent) => activateHighlight()
-//
-//  onMouseExited = (e: MouseEvent) => deactivateHightLight()
 
 }

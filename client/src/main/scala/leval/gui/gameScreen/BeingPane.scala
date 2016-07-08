@@ -6,6 +6,7 @@ import leval.gui.CardImg
 import scalafx.Includes._
 import scalafx.event.subscriptions.Subscription
 import scalafx.scene.Node
+import scalafx.scene.image.{Image, ImageView}
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.{ColumnConstraints, GridPane, RowConstraints}
 
@@ -13,27 +14,33 @@ import scalafx.scene.layout.{ColumnConstraints, GridPane, RowConstraints}
   * Created by Loïc Girault on 05/07/16.
   */
 sealed abstract class Orientation{
-
   val leftResource : Suit
   val rightResource : Suit
   val topResource : Suit
   val bottomResource : Suit
 }
 case object Player extends Orientation{
-
-
   val leftResource : Suit = Heart
   val rightResource : Suit = Spade
   val topResource : Suit = Diamond
   val bottomResource : Suit = Club
 }
 case object Opponent extends Orientation {
-
-
   val leftResource : Suit = Spade
   val rightResource : Suit = Heart
   val topResource : Suit = Club
   val bottomResource : Suit = Diamond
+}
+
+
+object BeingResourcePane {
+  val eyeUrl = this.getClass.getResource("/eye-icon.png").toExternalForm
+  val eye = new Image(eyeUrl)
+  def eyeImage(width : Double) =
+    new ImageView(eye) {
+      preserveRatio = true
+      fitWidth = width
+    }
 }
 
 class BeingResourcePane
@@ -44,6 +51,8 @@ class BeingResourcePane
 (val backImg : Node = CardImg.back(bp.cardHeight))
   extends CardDropTarget(backImg) {
 
+  val eyeImg : Node = BeingResourcePane.eyeImage(bp.cardWidth)
+  eyeImg.visible = false
   val frontImg : Node = CardImg(card, bp.cardHeight)
 
   private [this] var subscription  : Option[Subscription] = None
@@ -58,12 +67,19 @@ class BeingResourcePane
 
   setCardDragAndDrap()
 
-  def reveal() : BeingResourcePane = {
-    children = Seq(frontImg, highlight)
-    this
+  private [this] var reveal0 = false
+  def reveal : Boolean = reveal0
+  def reveal_=(b : Boolean) : Unit = {
+    reveal0 = b
+    children =
+      if(b) Seq(frontImg, highlight)
+      else
+        Seq(backImg, eyeImg, highlight)
   }
-  def hide() : Unit = {
-    children = Seq(backImg, highlight)
+
+  def looked : Boolean = eyeImg.visible()
+  def looked_=(b : Boolean) : Unit = {
+    eyeImg.visible = b
   }
 
   def onDrop(c : Card, origin : Origin) : Unit =
@@ -75,7 +91,7 @@ class BeingPane
 ( val control: GameScreenControl,
   var being : Being,
   val cardHeight : Double,
-  cardWidth : Double,
+  val cardWidth : Double,
   val orientation: Orientation) extends GridPane {
 
 
@@ -104,8 +120,6 @@ class BeingPane
     resourcePanes0 find (_.position == s)
   }
 
-  def reveal(s : Suit) : Option[BeingResourcePane] =
-    resourcePane(s) map (_.reveal())
 
   def placeResourcePane( c : Card, pos : Suit, place : Node => Unit) : Node ={
     val cardDragAndDrop =

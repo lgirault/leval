@@ -12,8 +12,8 @@ import scalafx.scene.control.Alert.AlertType
 
 object MoveSeq {
   def fromHand(c: Card): Seq[Move[_]] =
-      Seq(RemoveFromHand(c),
-        EndPhase)
+    Seq(RemoveFromHand(c),
+      EndPhase)
 
   def fromBeing(b: Being, suit: Suit): Seq[Move[_]] = {
     Seq(Reveal(b.face, suit),
@@ -39,6 +39,9 @@ class GameScreenControl
 
   val opponentId = (playerGameId + 1) % 2
 
+  def isCurrentPlayer =
+    game.currentPlayer == playerGameId
+
   val pane : TwoPlayerGamePane =
     new TwoPlayerGamePane(game, playerGameId, this)
 
@@ -55,7 +58,24 @@ class GameScreenControl
     (game.stars map aux).sum
   }
 
-  def directEffect( c : Card, origin: Origin) : Unit = {
+  def forbiddenOnFirstRound( c : Card, origin: Origin) : Boolean =
+    (origin, c.suit) match {
+      case (Origin.Hand, Diamond | Spade)
+      | (Origin.BeingPane(_, Diamond | Spade), _) => true
+      case _ => false
+    }
+
+  def cannotAttackAlert() : Unit =
+    new Alert(AlertType.Information){
+      delegate.initOwner(pane.scene().getWindow)
+      title = "Forbidden"
+      headerText = "You cannot attack during the first round"
+    }.showAndWait()
+
+  def directEffect( c : Card, origin: Origin) : Unit =
+  if(game.currentRound == 1 && forbiddenOnFirstRound(c,origin))
+    cannotAttackAlert()
+  else {
     origin match {
       case Origin.Hand if c.rank == Joker =>
         jokerEffectFromHand(c.suit)
@@ -83,8 +103,10 @@ class GameScreenControl
   def drawAndLook(c: Card, origin: Origin) : Unit = {
 
     val (numDraw, numLook) = drawAndLookValues(c, origin)
-    new DrawAndLookAction(this, numDraw, numLook, canCollectFromRiver).apply()
-    MoveSeq.end(c, origin) foreach (actor ! _)
+    new DrawAndLookAction(this, numDraw, numLook, canCollectFromRiver,
+      () => MoveSeq.end(c, origin) foreach (actor ! _)
+    ).apply()
+
   }
 
   def jokerEffectFromHand(jokerSuit : Suit) : Unit =
@@ -143,6 +165,7 @@ class GameScreenControl
   import game._
 
   var revealedCards : Seq[BeingResourcePane] = Seq()
+  var lookedCards : Seq[BeingResourcePane] = Seq()
 
   def notify[A](m: Move[A], res: A): Unit = m match {
     case MajestyEffect(_, _) =>
@@ -153,7 +176,7 @@ class GameScreenControl
         stars(opponentId).majesty.toString
 
     case PlaceBeing(b) =>
-      if(game.currentPlayer == playerGameId) {
+      if(isCurrentPlayer) {
         addPlayerBeingPane(b)
         createBeeingPane.menuMode()
       } else {
@@ -161,25 +184,43 @@ class GameScreenControl
         opponentHandPane.update()
       }
 
+    case RemoveFromHand(_) =>
+      riverPane.update()
+      handPane.update()
 
-    case CollectFromRiver | RemoveFromHand(_) =>
+    case CollectFromRiver =>
+      if(isCurrentPlayer)
+        new CardDialog(res, pane).showAndWait()
+
       riverPane.update()
       handPane.update()
 
     case CollectFromSource =>
+      if(isCurrentPlayer)
+        new CardDialog(res, pane).showAndWait()
+
       handPane.update()
+
     case PlaceCardsToRiver(_) =>
       riverPane.update()
 
+    case LookCard(fc, s) =>
+      beingPanesMap get fc flatMap ( _ resourcePane s) foreach {
+        brp =>
+          brp.looked = true
+          lookedCards +:= brp
+      }
+
 
     case Reveal(fc, s) =>
-      beingPanesMap get fc foreach {
-        bp =>
-          bp reveal s foreach (brp => revealedCards +:= brp)
-
+      beingPanesMap get fc flatMap ( _ resourcePane s) foreach {
+        brp =>
+          brp.reveal = true
+          revealedCards +:= brp
       }
+
     case ActivateBeing(fc) =>
-      game.roundState match {
+      game.currentPhase match {
         case ap : ActPhase =>
           if(ap.activatedBeings.size == playerBeingsPane.children.size()){
             new Alert(AlertType.Information){
@@ -193,37 +234,48 @@ class GameScreenControl
         case _ => leval.error()
       }
     case EndPhase =>
-      new Alert(AlertType.Information){
-        delegate.initOwner(pane.scene().getWindow)
-        title = "New phase"
-        headerText = game.currentStar.id.name + " : " + game.roundState.toString
-        //contentText = "Every being has acted"
-      }.showAndWait()
 
-      game.roundState match {
+
+      game.currentPhase match {
+        case InfluencePhase if isCurrentPlayer=>
+          statusPane.star = game.currentStar.name
+          statusPane.round = game.currentRound
         case SourcePhase  =>
-          if(game.currentPlayer == playerGameId) {
-            new DrawAndLookAction(this, 1, 0, canCollectFromRiver).apply()
-            actor ! EndPhase
+          if(isCurrentPlayer) {
+            new DrawAndLookAction(this, 1, 0, canCollectFromRiver,
+              () => actor ! EndPhase
+            ).apply()
           }
-          revealedCards foreach (_.hide())
+          else{
+            new Alert(AlertType.Information){
+              delegate.initOwner(pane.scene().getWindow)
+              title = "New phase"
+              headerText = "End of Act Phase"
+              //contentText = "Every being has acted"
+            }.showAndWait()
+          }
+          revealedCards foreach (_.reveal = false)
           revealedCards = Seq()
+          lookedCards foreach (_.looked = false)
+          lookedCards = Seq()
           endPhaseButton.visible = false
-        case ActPhase(_) if game.currentPlayer == playerGameId =>
+        case ActPhase(_) if isCurrentPlayer =>
           endPhaseButton.visible = true
         case _ =>
-          endPhaseButton.visible = false
       }
+
+      statusPane.phase = game.currentPhase
+
 
     case _ => ()
   }
 
   def canDragAndDropOnInfluencePhase() : Boolean =
     game.currentPlayer == playerGameId &&
-      game.roundState == InfluencePhase
+      game.currentPhase == InfluencePhase
 
   def canDragAndDropOnActPhase(fc : FaceCard)() : Boolean =
-    game.currentPlayer == playerGameId && (game.roundState match {
+    game.currentPlayer == playerGameId && (game.currentPhase match {
       case ActPhase(activatedBeings) if ! (activatedBeings contains fc)=> true
       case _ => false
     })

@@ -8,19 +8,20 @@ import scalafx.event.subscriptions.Subscription
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.control.{Alert, ButtonType, Dialog}
 import scalafx.scene.input.MouseEvent
+import scalafx.scene.layout.Pane
 
 /**
   * Created by lorilan on 7/6/16.
   */
-class LookedCardDialog
-( c : Card) extends Dialog[Card] {
+class CardDialog( c : Card, p : Pane) extends Dialog[Card] {
   //initOwner(window)
-  title = "Looked Card"
+  title = "Card"
   dialogPane().content = CardImg(c)
-
+  delegate.initOwner(p.scene().getWindow)
   resultConverter = {
     _ => c
   }
+
 
   dialogPane().buttonTypes = Seq(ButtonType.OK)
 }
@@ -29,18 +30,22 @@ class DrawAndLookAction
 ( controller : GameScreenControl,
   var collect : Int = 1,
   var look : Int = 1,
-  canCollectFromRiver : Boolean) {
+  canCollectFromRiver : Boolean,
+  onFinish : () => Unit) {
 
   import controller.pane
+
+  import controller.{numLookedCards, numResourcesCardinal}
+  def canLook = look > 0 && numLookedCards < numResourcesCardinal
 
   val collectFromSource = new ButtonType("Collect from source")
   val collectFromRiver = new ButtonType("Collect from river")
   val lookCard = new ButtonType("Look card")
 
   def remainingEffect: Seq[ButtonType] = {
-    import controller.{numLookedCards, numResourcesCardinal}
+
     val s0 =
-      if (look > 0 && numLookedCards < numResourcesCardinal ) Seq(lookCard)
+      if (canLook) Seq(lookCard)
       else Seq()
 
     if (collect > 0) {
@@ -63,13 +68,11 @@ class DrawAndLookAction
               brp.handleEvent(MouseEvent.MouseClicked) {
                 me: MouseEvent =>
                   if (!(controller.game.lookedCards contains ((bp.being.face, brp.position))) ) {
-                    val dialog = new LookedCardDialog(brp.card) {
-                      delegate.initOwner(pane.scene().getWindow)
-                    }
-                    dialog.showAndWait() match {
+                    new CardDialog(brp.card, pane).showAndWait() match {
                       case Some(_) =>
                         look -= 1
                         controller.actor ! LookCard(bp.being.face, brp.position)
+                      case None => leval.error()
                     }
                     this.apply()
                   }
@@ -83,26 +86,19 @@ class DrawAndLookAction
       pane.beingPanes foreach (
         _.resourcePanes foreach ( _.setCardDragAndDrap() )
         )
-      new Alert(AlertType.Information){
-        delegate.initOwner(pane.scene().getWindow)
-        title = "Draw or look Action"
-        headerText = "End of action"
-        //contentText = "Every being has acted"
-      }.showAndWait()
-
+      onFinish()
     }
-    else
-    {
-      val alert = new Alert(AlertType.Confirmation) {
+    else {
+
+      val result =
+      if( ! canLook && ! canCollectFromRiver)  Some(collectFromSource)
+      else
+        new Alert(AlertType.Confirmation) {
         delegate.initOwner(pane.scene().getWindow)
         title = "Draw or look Action"
-        headerText = "Choose next effect of action"
-        // contentText = "Choose your option."
-        // Note that we override here default dialog buttons, OK and Cancel, with new ones.
+        headerText = s"Choose next effect of action\n(Draw $collect card(s), look $look card(s)"
         buttonTypes = remainingEffect
-      }
-
-      val result = alert.showAndWait()
+      }.showAndWait()
 
       result match {
         case Some(`collectFromSource`) =>

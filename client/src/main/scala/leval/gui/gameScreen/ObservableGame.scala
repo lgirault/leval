@@ -14,12 +14,13 @@ trait GameObserver {
 }
 
 class ObservableGame(g : Game) extends MutableGame(g){
-
   def currentStar : Star = game.currentStar
   def stars : Seq[Star] = game.stars
   def currentPlayer : Int = game.currentPlayer
-  def roundState : Phase = game.roundState
+  def currentPhase : Phase = game.currentPhase
   def deathRiver: Seq[Card] = game.deathRiver
+  def currentRound : Int = game.currentRound
+
 
   def lookedCards = game.lookedCards
   val observers : mutable.ListBuffer[GameObserver] = new mutable.ListBuffer[GameObserver]

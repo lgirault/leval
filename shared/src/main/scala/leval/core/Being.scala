@@ -137,5 +137,7 @@ case class Star
 (id : PlayerId,
  majesty : Int,
  hand : Set[Card],
- beings : Map[FaceCard, Being])
+ beings : Map[FaceCard, Being]){
+  def name = id.name
+}
 

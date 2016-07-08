@@ -7,11 +7,11 @@ import Game.{SeqOps, goesToRiver}
 case class Game
 (stars : Seq[Star], // for 4 or 3 players ??
  currentPlayer : Int,
- roundState: Phase,
+ currentPhase: Phase,
  source : Deck,
  values : Card => Int,
  deathRiver: Seq[Card] = Seq(),
- //three below should be move into ActPhase
+ currentRound : Int = 1,
  beingsState : Map[FaceCard, Being.State] = Map(), //reset each round
  lookedCards : Set[(FaceCard, Suit)] = Set(),
  revealedCard : Set[(FaceCard, Suit)] = Set()
@@ -52,8 +52,8 @@ case class Game
   }
 
   def activateBeing(face : FaceCard) : Game = {
-    val ActPhase(activated) = roundState
-    copy(roundState = ActPhase(activated + face))
+    val ActPhase(activated) = currentPhase
+    copy(currentPhase = ActPhase(activated + face))
   }
 
   def removeFromHand(card : Card) : Game = {
@@ -188,12 +188,13 @@ case class Game
   }
 
 
-  def endPhase : Game = roundState match {
-    case InfluencePhase => copy(roundState = ActPhase(Set()))
-    case ActPhase(_) => copy(roundState = SourcePhase)
+  def endPhase : Game = currentPhase match {
+    case InfluencePhase => copy(currentPhase = ActPhase(Set()))
+    case ActPhase(_) => copy(currentPhase = SourcePhase)
     case SourcePhase =>
       copy(currentPlayer = nextPlayer,
-        roundState = InfluencePhase,
+        currentPhase = InfluencePhase,
+        currentRound = currentRound + 1,
         beingsState = Map(),
         lookedCards = Set(),
         revealedCard = Set())

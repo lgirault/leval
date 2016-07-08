@@ -5,7 +5,7 @@ package leval.gui.gameScreen
   */
 import leval.core.{Being, Card, DeathRiver, Diamond, FaceCard, Formation, OpponentSpectrePower, OpponentStar, SelfStar, Source, Spectre, Target, TargetBeingResource}
 import leval.gui.{CardImageView, CardImg}
-
+import leval.gui.text
 import scala.collection.mutable
 import scalafx.Includes._
 import scalafx.geometry.{Insets, Pos}
@@ -85,6 +85,8 @@ class TwoPlayerGamePane
 
   import oGame._
   import controller.opponentId
+
+  implicit val txt = text.Fr
 
   def player = stars(playerGameId)
 
@@ -174,12 +176,12 @@ class TwoPlayerGamePane
 
 
   val opponentHandPane = new OpponnentHandPane(controller)
-  val opponentBeingsPane = new FlowPane() {
+  val opponentBeingsPane = new FlowPane() /*{
     style = "-fx-border-width: 1; -fx-border-color: black;"
-  }
-  val playerBeingsPane = new FlowPane() {
+  }*/
+  val playerBeingsPane = new FlowPane() /*{
     style = "-fx-border-width: 1; -fx-border-color: black;"
-  }
+  }*/
 
   private [gameScreen] val beingPanesMap = mutable.Map[FaceCard, BeingPane]()
 
@@ -197,7 +199,7 @@ class TwoPlayerGamePane
   def addOpponentBeingPane(b : Being) : Unit = {
     val bp = new BeingPane(controller, b, cardHeight, cardWidth, Opponent)
     beingPanesMap += (b.face -> bp)
-    opponentBeingsPane.children add bp
+    leval.ignore(opponentBeingsPane.children add bp)
   }
 
   def addPlayerBeingPane(b : Being) : Unit = {
@@ -207,14 +209,19 @@ class TwoPlayerGamePane
   }
 
   val playerArea = new BorderPane() {
-    style = "-fx-border-width: 1; -fx-border-color: black;"
+//    style = "-fx-border-width: 1; -fx-border-color: black;"
     center = playerBeingsPane
     right = createBeeingPane
   }
 
   padding = Insets.Empty
 
+  val statusPane = new StatusPane()
+
+  statusPane.star = game.currentStar.name
+
   val leftColumn = Seq(
+    statusPane,
     opponentStarPanel,
     deck,
     playerStarPanel
@@ -222,7 +229,7 @@ class TwoPlayerGamePane
 
   leftColumn.zipWithIndex.foreach {
     case (area, index) =>
-      GridPane.setConstraints(area, 0, index + 1)
+      GridPane.setConstraints(area, 0, index)
 
   }
 
