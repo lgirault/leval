@@ -16,7 +16,7 @@ class StatusPane(implicit txt : ValText) extends VBox {
   private [this] val phaseTxt = new Text(txt.influence_phase)
   def phase_=(p : Phase) : Unit =
     phaseTxt.text = p match {
-    case InfluencePhase => txt.influence_phase
+    case InfluencePhase(_) => txt.influence_phase
     case ActPhase(_) => txt.act_phase
     case SourcePhase => txt.source_phase
   }

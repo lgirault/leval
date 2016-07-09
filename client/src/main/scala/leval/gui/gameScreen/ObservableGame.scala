@@ -15,13 +15,18 @@ trait GameObserver {
 
 class ObservableGame(g : Game) extends MutableGame(g){
   def stars : Seq[Star] = game.stars
-  def currentPlayer : Int = game.currentPlayer
+  def currentStarId : Int = game.currentStarId
   def currentPhase : Phase = game.currentPhase
   def deathRiver: Seq[Card] = game.deathRiver
   def currentRound : Int = game.currentRound
+  def currentStar : Star = game.currentStar
 
+  def nextPhase = game.nextPhase
 
+  def beingsState = game.beingsState
   def lookedCards = game.lookedCards
+  def revealedCard = game.revealedCard
+
   val observers : mutable.ListBuffer[GameObserver] = new mutable.ListBuffer[GameObserver]
 
   def notifyAll[A](ma: Move[A], res : A) : Unit =

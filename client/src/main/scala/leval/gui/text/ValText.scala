@@ -11,6 +11,11 @@ trait ValText {
 
   val round : String
   val majesty : String
+
+  val end_of_act_phase : String
+  val every_being_has_acted : String
+
+  val twilight_ceremony : String
 }
 
 object Fr extends ValText {
@@ -22,6 +27,11 @@ object Fr extends ValText {
 
   val round : String = "Tour"
   val majesty : String = "Majesté"
+
+  val twilight_ceremony : String = "Cérémonie du crépuscule"
+
+  val end_of_act_phase : String = "Fin de la phase des actes"
+  val every_being_has_acted : String = "Tous les êtres ont agits"
 }
 
 object Eng extends ValText {
@@ -33,4 +43,9 @@ object Eng extends ValText {
 
   val round : String = "Round"
   val majesty : String = "Majesty"
+
+  val twilight_ceremony : String = "Twilight ceremony"
+
+  val end_of_act_phase : String = "Fin de la phase des actes"
+  val every_being_has_acted : String = "Tous les êtres ont agi"
 }

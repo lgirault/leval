@@ -6,7 +6,7 @@ package leval.core
 import Game.{SeqOps, goesToRiver}
 case class Game
 (stars : Seq[Star], // for 4 or 3 players ??
- currentPlayer : Int,
+ currentStarId : Int,
  currentPhase: Phase,
  source : Deck,
  values : Card => Int,
@@ -17,7 +17,15 @@ case class Game
  revealedCard : Set[(Card, Suit)] = Set()
 ) {
 
-  def nextPlayer = (currentPlayer + 1) % stars.length
+  def nextPlayer = (currentStarId + 1) % stars.length
+
+  def currentStar = stars(currentStarId)
+  def nextPhase : Phase = currentPhase match {
+    case InfluencePhase(_)=> ActPhase(Set())
+    case ActPhase(_) => SourcePhase
+    case SourcePhase => InfluencePhase(nextPlayer)
+  }
+
   //def currentStar : Star = stars(currentPlayer)
   def setHand(numStar : Int, newHand : Set[Card]) : Game = {
     val star = stars(numStar)
@@ -27,7 +35,7 @@ case class Game
 
   def setPlayerBeing(numStar : Int, being : Being) : Game = {
     val newPlayer = stars(numStar).copy(beings = stars(numStar).beings + (being.face -> being))
-    copy(stars = stars.set(currentPlayer, newPlayer))
+    copy(stars = stars.set(currentStarId, newPlayer))
   }
 
   def directEffect(value : Int, target : Int) : Game = {
@@ -154,9 +162,10 @@ case class Game
 
   def revealAndLookLoverCheck(targetfc : Card, s : Suit) : (Seq[Star], Boolean) = {
     val (targetB, owner) = findBeing(targetfc)
+    println(targetB)
     val looked = targetB resources s
     looked match {
-      case C(Queen | King, _)  if owner != currentPlayer  =>
+      case C(Queen | King, _)  if owner != currentStarId  =>
         (removeCardFromBeing(stars, targetB, owner, Heart), true)
       case _ => (stars, false)
     }
@@ -174,13 +183,15 @@ case class Game
   }
 
 
-  def endPhase : Game = currentPhase match {
-    case InfluencePhase => copy(currentPhase = ActPhase(Set()))
-    case ActPhase(_) => copy(currentPhase = SourcePhase)
+  def beginPhase(newPhase : Phase) : Game = newPhase match {
+    case InfluencePhase(newActivePlayer) =>
+      copy(currentPhase = newPhase,
+        currentStarId = newActivePlayer,
+        currentRound = currentRound + 1)
+    case ActPhase(_) =>
+      copy(currentPhase = newPhase)
     case SourcePhase =>
-      copy(currentPlayer = nextPlayer,
-        currentPhase = InfluencePhase,
-        currentRound = currentRound + 1,
+      copy(currentPhase = SourcePhase,
         beingsState = Map(),
         lookedCards = Set(),
         revealedCard = Set())
@@ -192,7 +203,7 @@ import cats.{Id, ~>}
 object Game {
 
   def apply(s1 : Star, s2 : Star, src : Deck) =
-    new Game(Seq(s1, s2), 0, InfluencePhase, src, Card.value)
+    new Game(Seq(s1, s2), 0, InfluencePhase(0), src, Card.value)
 
   def apply(players : Seq[PlayerId]) : Game = players match {
     case p1 +: p2 +: Nil => this.apply(p1, p2)
@@ -201,30 +212,11 @@ object Game {
   def apply(pid1 : PlayerId, pid2 : PlayerId) : Game = {
     val deck = deck54()
 
-    // on pioche 9 carte + 1 qui sert à déterminer qui commence
-    val (d2, hand1) = deck.pick(10)
-    val (d3, hand2) = d2.pick(10)
+    // on pioche 9 carte
+    val (d2, hand1) = deck.pick(9)
+    val (d3, hand2) = d2.pick(9)
 
-    //tant qu'on a pas deux carte différente, on continue de piocher (le val 1, p 20)
-    var h1 = hand1
-    var h2 = hand2
-    var d = d3
-    while(Card.value(h1.head) == Card.value(h2.head)) d match {
-      case c1 +: c2 +: remainings =>
-        d = remainings
-        h1 = c1 +: h1
-        h2 = c2 +: h2
-      case Nil | Seq(_)=> ???
-    }
-
-    val (s1, s2) =
-      if(Card.value(h1.head) > Card.value(h2.head))
-        (Star(pid1, h1), Star(pid2, h2))
-      else
-        (Star(pid2, h2), Star(pid1, h1))
-
-    Game(s1, s2, d)
-
+    Game(Star(pid1, hand1), Star(pid2, hand2), d3)
   }
 
 
@@ -240,6 +232,33 @@ object Game {
   def goesToRiver(card : Card) : Boolean = card match {
     case C((Jack | Queen | King), Diamond) => false
     case _ => true
+  }
+
+  def twilight(g : Game) : (Twilight, Game) = {
+    //tant qu'on a pas deux cartes égales, on continue de piocher (le val 1, p 20)
+
+
+    val Seq(s01, s02) = g.stars
+    var d = g.source
+    var h1 = Seq(d.head)
+    d = d.tail
+    var h2 = Seq(d.head)
+    d = d.tail
+
+    while(Card.value(h1.head) == Card.value(h2.head)) d match {
+      case c1 +: c2 +: remainings =>
+        d = remainings
+        h1 = c1 +: h1
+        h2 = c2 +: h2
+
+      case Nil | Seq(_)=> ???
+    }
+    val (s1, s2) = (s01.copy(hand = s01.hand ++ h1), s02.copy(hand = s02.hand ++ h2))
+
+      if(Card.value(h1.head) > Card.value(h2.head))
+        (Twilight(Seq(h1, h2)), g.copy(stars = Seq(s1, s2)))
+      else
+        (Twilight(Seq(h2, h1)), g.copy(stars = Seq(s2, s1)))
   }
 
 }
@@ -275,7 +294,7 @@ class MutableGame(var game : Game) extends (Move ~> Id) {
     case RemoveBeing(card) => game = game.removeBeing(card)
     case PlaceCardsToRiver(cards) => game = game.placeCardsToRiver(cards)
     case Educate(cards, target) => game = game.educate(cards, target)
-    case EndPhase => game = game.endPhase
+    case p : Phase => game = game.beginPhase(p)
   }
 
 

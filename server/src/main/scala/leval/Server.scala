@@ -1,6 +1,6 @@
 package leval
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
 import leval.network.Settings
 import leval.network.server.EntryPoint

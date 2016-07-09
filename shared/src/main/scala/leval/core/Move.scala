@@ -29,7 +29,13 @@ case class PlaceCardsToRiver(cards : Seq[Card]) extends Move[Unit]
 
 case class Educate( cards : Seq[C],
                     target : Card) extends Move[Unit]
-case object EndPhase extends Move[Unit]
+
+sealed abstract class Phase extends Move[Unit]
+case class InfluencePhase(newPlayer : Int) extends Phase
+case class ActPhase(activatedBeings : Set[Card]) extends Phase
+case object SourcePhase extends Phase
+
+case class Twilight(cards : Seq[Seq[Card]])
 
 //import cats.free.Free
 //import cats.free.Free.liftF

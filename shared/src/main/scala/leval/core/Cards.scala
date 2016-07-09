@@ -90,7 +90,12 @@ object Card {
           Ordering.Int.compare(orderingValue(cx), orderingValue(cy))
         case (Joker(_), _) => 1
         case (_, Joker(_)) => -1
-        case (C(_, sx), C(_, sy)) => suitOrdering.compare(sx,sy)
+        case (C(rx, sx), C(ry, sy)) =>
+          if (sx != sy)
+            suitOrdering.compare(sx,sy)
+          else rankOrdering.compare(rx, ry)
+
+
       }
   }
 }

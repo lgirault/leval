@@ -2,8 +2,9 @@ package leval
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.TestActorRef
-import leval.core.{Game, Move, PlayerId}
+import leval.core.{Ace, C, Game, Heart, Jack, Move, PlayerId, Queen, Spade, Twilight}
 import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
+import leval.gui.text.Fr
 
 import scalafx.application.JFXApp
 import scalafx.scene.Scene
@@ -34,19 +35,19 @@ object TestScene extends JFXApp  {
 
 
   stage = new JFXApp.PrimaryStage {
-    title = "V Box Example"
+    title = "Test"
 
     val control =
       new GameScreenControl(game, 0, TestActorRef(ControllerMockup.props(game)))
 
+    implicit val txt = Fr
     scene = new Scene {
       root = control.pane
+      control.showTwilight(
+        Twilight(Seq(Seq(C(Ace, Heart),C(Jack, Heart), C(Queen, Heart)),
+          Seq(C(Ace, Spade), C(Jack, Spade),C(Queen, Spade)))))
+
     }
 
-
-    println("creating scene")
   }
-
-
-  println("creating stage")
 }

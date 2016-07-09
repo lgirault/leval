@@ -1,6 +1,6 @@
 package leval.gui.gameScreen
 
-import leval.core.{Card, CollectFromRiver, CollectFromSource, LookCard}
+import leval.core.{Card, LookCard}
 import leval.gui.CardImg
 
 import scalafx.Includes._
@@ -70,7 +70,6 @@ class DrawAndLookAction
                   if (!(controller.game.lookedCards contains ((bp.being.face, brp.position))) ) {
                     new CardDialog(brp.card, pane).showAndWait() match {
                       case Some(_) =>
-                        look -= 1
                         controller.actor ! LookCard(bp.being.face, brp.position)
                       case None => leval.error()
                     }
@@ -89,33 +88,42 @@ class DrawAndLookAction
       onFinish()
     }
     else {
-
+      println("Draw and look")
+      println("Draw  = " + collect)
+      println("look  = " + look)
       val result =
-      if( ! canLook && ! canCollectFromRiver)  Some(collectFromSource)
-      else
-        new Alert(AlertType.Confirmation) {
-        delegate.initOwner(pane.scene().getWindow)
-        title = "Draw or look Action"
-        headerText = s"Choose next effect of action\n(Draw $collect card(s), look $look card(s)"
-        buttonTypes = remainingEffect
-      }.showAndWait()
+        if( ! canLook && ! canCollectFromRiver)  Some(collectFromSource)
+        else
+          new Alert(AlertType.Confirmation) {
+            delegate.initOwner(pane.scene().getWindow)
+            title = "Draw or look Action"
+            headerText = s"Choose next effect of action\n(Draw $collect card(s), look $look card(s)"
+            buttonTypes = remainingEffect
+          }.showAndWait()
+
+      println("result =" + result)
 
       result match {
         case Some(`collectFromSource`) =>
+          println("collect from source !")
           collect -= 1
-          controller.actor ! CollectFromSource
+          controller.collectFromSource()
           this.apply()
         case Some(`collectFromRiver`) =>
+          println("collect from river !")
           collect -= 1
-          controller.actor ! CollectFromRiver
+          controller.collectFromRiver()
           this.apply()
         case Some(`lookCard`) =>
+          println("look !")
+          look -= 1
           new Alert(AlertType.Information){
             delegate.initOwner(pane.scene().getWindow)
             title = "Look Action"
             headerText = "Click on a card to look at it"
             //contentText = "Every being has acted"
           }.showAndWait()
+        case _ => leval.error()
       }
     }
 

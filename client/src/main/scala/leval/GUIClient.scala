@@ -35,8 +35,10 @@ object GUIClient extends JFXApp {
   val (systemName, actorName) =
     (s"ClientSystem$port", "IdentifyingActor")
 
+
   def config(port: Int): Config = {
     val configStr =
+     "akka.loglevel = OFF\n"+
      "javafx-dispatcher.type = Dispatcher\n" +
      "javafx-dispatcher.executor = " +
        "akka.dispatch.gui.JavaFXEventThreadExecutorServiceConfigurator\n" +

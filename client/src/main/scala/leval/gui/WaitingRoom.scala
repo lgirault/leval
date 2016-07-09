@@ -17,12 +17,13 @@ class WaitingRoom
  partyName : String,
  maxPlayer : Int) extends BorderPane {
 
-  def gameScreen(game : ObservableGame) : Unit ={
-    val pidx =game.stars.indexWhere(_.id == control.thisPlayer)
+  def gameScreen(game : ObservableGame) : GameScreenControl ={
+    val pidx = game.stars.indexWhere(_.id == control.thisPlayer)
     val gcontrol =
       new GameScreenControl(game, pidx, control.actor)
 
     control.scene.root = gcontrol.pane
+    gcontrol
   }
   val label = new Label(s"$partyName - Waiting for players ...")
 

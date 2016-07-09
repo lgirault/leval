@@ -29,7 +29,7 @@ class RiverPane
     if(river.isEmpty) Seq[CardImageView]()
     else river.tail.foldLeft(Seq(CardImg(river.head, fitHeight))) {
       case (acc, c) =>
-        CardImg.cut(c, fitHeight, 3) +: acc
+        CardImg.cutLeft(c, 3, Some(fitHeight)) +: acc
     }
 
   def update() : Unit = {
@@ -85,8 +85,8 @@ class TwoPlayerGamePane
 
   import oGame._
   import controller.opponentId
+  import controller.txt
 
-  implicit val txt = text.Fr
 
   def player = stars(playerGameId)
 
@@ -118,7 +118,8 @@ class TwoPlayerGamePane
             case _ => Seq()
           }
         origin match{
-          case Origin.Hand(_) => createBeeingPane.createBeingLabel +: highlighteds0
+          case Origin.Hand(_) =>
+            createBeeingPane.createBeingLabel +: highlighteds0
           case _ => highlighteds0
         }
       }
@@ -138,13 +139,14 @@ class TwoPlayerGamePane
 
 
 
+
   //Hightable areas
   val opponentStarPanel = StarPanel(oGame, opponentId, controller)
   opponentStarPanel.alignmentInParent = Pos.BottomCenter
   val playerStarPanel = StarPanel(oGame, playerGameId, controller)
   playerStarPanel.alignmentInParent = Pos.TopCenter
 
-  val deck = new CardDropTarget(CardImg.back){
+  val deck = new CardDropTarget(CardImg.back(Some(cardHeight))){
     def onDrop(origin: Origin): Unit =
       controller.drawAndLook(origin)
   }
@@ -172,7 +174,8 @@ class TwoPlayerGamePane
   val createBeeingPane =
     new CreateBeingPane(controller, handPane,
       cardWidth, cardHeight,
-      new CardDragAndDrop(controller, controller.canDragAndDropOnInfluencePhase, _)())
+      new CardDragAndDrop(controller,
+        controller.canDragAndDropOnInfluencePhase, _)())
 
 
   val opponentHandPane = new OpponnentHandPane(controller)
@@ -218,7 +221,7 @@ class TwoPlayerGamePane
 
   val statusPane = new StatusPane()
 
-  statusPane.star = game.stars(game.currentPlayer).name
+  statusPane.star = game.stars(game.currentStarId).name
 
   val leftColumn = Seq(
     statusPane,

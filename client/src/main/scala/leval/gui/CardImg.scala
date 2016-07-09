@@ -58,23 +58,43 @@ object CardImg {
   }
 
 
-  def back : ImageView = new ImageView(img){
-    preserveRatio = true
-    viewport = new Rectangle2D(backCoord._1, backCoord._2, width = width, height = height)
-  }
-  def back(fitHeight : Double): ImageView = {
-    val civ = back
-    civ.fitHeight = fitHeight
-    civ
-  }
+  def back(sfitHeight : Option[Double] = None): ImageView =
+    new ImageView(img){
+      preserveRatio = true
+      viewport = new Rectangle2D(backCoord._1, backCoord._2, width = width, height = height)
+      sfitHeight foreach fitHeight_=
+    }
+
 
   def apply(card : Card,
             front : Boolean = true): CardImageView = imageView(card, width, height, front)
 
-  def cut(card : Card, fitHeight : Double, cut : Double,
-          front : Boolean = true): CardImageView = {
+  def cutRight(card : Card, cut : Double,
+               sfitHeight : Option[Double] = None,
+               front : Boolean = true): CardImageView = {
+
+    val cc: (Double, Double) =
+      if(front) coord(card)
+      else backCoord
+    println("width/ cut = " + width/ cut)
+    val delta = ((cut - 1) / cut) * width
+    println("(cut - 1 / cut) * width = " + ((1 - (1 / cut)) * width))
+    val civ = new CardImageView(card, img) {
+      preserveRatio = true
+      viewport = new Rectangle2D(cc._1 + delta,  cc._2,
+        width = width / cut, height = height)
+    }
+
+    sfitHeight foreach civ.fitHeight_=
+
+    civ
+  }
+
+  def cutLeft(card : Card, cut : Double,
+              sfitHeight : Option[Double] = None,
+              front : Boolean = true): CardImageView = {
     val civ = imageView(card, width/ cut, height, front)
-    civ.fitHeight = fitHeight
+    sfitHeight foreach civ.fitHeight_=
     civ
   }
   def apply(card : Card, fitHeight : Double): CardImageView = {
@@ -85,8 +105,8 @@ object CardImg {
 
 
   private def bottomHalfView(card : Card,
-                          width : Double,
-                          front : Boolean) = {
+                             width : Double,
+                             front : Boolean) = {
     val cc: (Double, Double) =
       if(front) coord(card)
       else backCoord
@@ -102,7 +122,7 @@ object CardImg {
     bottomHalfView(card, width, front)
 
   def cutBottomHalf(card : Card,
-                 front : Boolean = true): CardImageView =
+                    front : Boolean = true): CardImageView =
     bottomHalfView(card, width/3, front)
 
   def topHalf(card : Card,

@@ -1,7 +1,7 @@
 package leval.network.client
 
 import akka.actor.{Actor, ActorRef, Props}
-import leval.core.{Game, Move, PlayerId}
+import leval.core.{Game, Move, PlayerId, Twilight}
 import leval.gui.{GameListPane, ViewController, WaitingRoom}
 import leval.gui.gameScreen.ObservableGame
 import leval.network.client.GameListView.JoinAction
@@ -47,12 +47,9 @@ trait Scheduler {
       if(context.sender() == context.system.deadLetters)
         players foreach {
           pid =>
-            println("sending " + m + " to " + pid.actor)
+            println("sending " + m + " to " + pid.id.name)
           pid.actor ! m
         }
-      else {
-        println(context.sender() + " != " + Actor.noSender)
-      }
   }
 }
 
@@ -79,10 +76,11 @@ trait WaitinPlayers extends Scheduler {
 
       case GameStart => gameMaker ! GameStart
 
-      case g : Game =>
+      case (t @ Twilight(_), g : Game) =>
         println("launching game !")
         val og = new ObservableGame(g)
-        waitingScreen.gameScreen(og)
+        val control = waitingScreen.gameScreen(og)
+        control.showTwilight(t)
         context.become(scheduler(players, og))
 
 

@@ -2,7 +2,7 @@ package leval.gui.gameScreen
 
 import akka.actor.ActorRef
 import leval.core.{ActivateBeing, Being, Card, MajestyEffect, PlaceBeing, RemoveFromHand, Reveal, Suit, _}
-
+import leval.gui.text
 import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
 
@@ -11,17 +11,17 @@ import scalafx.scene.control.Alert.AlertType
   */
 
 object MoveSeq {
+
   def fromHand(c: Card): Seq[Move[_]] =
     Seq(RemoveFromHand(c),
-      EndPhase)
+      ActPhase(Set()))
 
   def fromBeing(b: Being, suit: Suit): Seq[Move[_]] = {
-    Seq(Reveal(b.face, suit),
-      ActivateBeing(b.face))
+    Seq(ActivateBeing(b.face))
   }
 
   def placeBeing(b: Being, side : Int): Seq[Move[_]] = {
-    val s = Seq(PlaceBeing(b, side), EndPhase)
+    val s = Seq(PlaceBeing(b, side), ActPhase(Set()))
     b match {
       case Formation(Spectre) => MajestyEffect(-5, side) +: s
       case _ => s
@@ -30,7 +30,7 @@ object MoveSeq {
   }
 
   def end(origin: Origin) : Seq[Move[_]] = origin match {
-    case Origin.Hand(c) => fromHand(c)
+    case Origin.Hand(c) =>  fromHand(c)
     case Origin.BeingPane(b, s) => fromBeing(b, s)
     case Origin.CreateBeingPane(_) => Seq()
   }
@@ -42,14 +42,14 @@ class GameScreenControl
  val actor : ActorRef)
   extends  GameObserver {
 
+  implicit val txt = text.Fr
   val opponentId = (playerGameId + 1) % 2
 
   def isCurrentPlayer =
-    game.currentPlayer == playerGameId
+    game.currentStarId == playerGameId
 
   val pane : TwoPlayerGamePane =
     new TwoPlayerGamePane(game, playerGameId, this)
-
 
   game.observers += this
 
@@ -66,7 +66,7 @@ class GameScreenControl
   def forbiddenOnFirstRound(origin: Origin) : Boolean =
     origin match {
       case Origin.Hand(C(_, Diamond | Spade))
-      | Origin.BeingPane(_, Diamond | Spade) => true
+           | Origin.BeingPane(_, Diamond | Spade) => true
       case _ => false
     }
 
@@ -78,43 +78,55 @@ class GameScreenControl
     }.showAndWait()
 
   def directEffect(origin: Origin) : Unit =
-  if(game.currentRound == 1 && forbiddenOnFirstRound(origin))
-    cannotAttackAlert()
-  else {
+    if(game.currentRound == 1 && forbiddenOnFirstRound(origin))
+      cannotAttackAlert()
+    else {
 
-    def effect(v : Int, playedSuit : Suit) =
-      playedSuit match {
-        case Heart => MajestyEffect(v, playerGameId)
-        case Diamond | Spade => MajestyEffect(-1 * v, opponentId)
-        case _ => leval.error()
+      def effect(v : Int, playedSuit : Suit) =
+        playedSuit match {
+          case Heart => MajestyEffect(v, playerGameId)
+          case Diamond | Spade => MajestyEffect(-1 * v, opponentId)
+          case _ => leval.error()
+        }
+
+      origin match {
+        case Origin.Hand(Joker(j)) =>
+          jokerEffectFromHand(j)
+        case Origin.Hand(c @ C(_, suit)) =>
+          actor ! effect(Card.value(c), suit)
+        case Origin.BeingPane(b, s)=>
+          actor ! Reveal(b.face, s)
+          actor ! effect(b.value(s, Card.value).get, s)
       }
 
-    origin match {
-      case Origin.Hand(Joker(j)) =>
-        jokerEffectFromHand(j)
-      case Origin.Hand(c @ C(_, suit)) =>
-        actor ! effect(Card.value(c), suit)
-      case Origin.BeingPane(b, s)=>
-        actor ! effect(b.value(s, Card.value).get, s)
+      MoveSeq.end(origin) foreach (actor ! _)
     }
-
-    MoveSeq.end(origin) foreach (actor ! _)
-  }
   def placeBeing(b: Being): Unit = {
     MoveSeq.placeBeing(b, playerGameId) foreach (actor ! _)
   }
 
+  def collectFromSource() : Unit =
+    actor ! CollectFromSource(playerGameId)
+
+  def collectFromRiver() : Unit =
+    actor ! CollectFromRiver(playerGameId)
+
   def endPhase() : Unit =
-    actor ! EndPhase
+    actor ! game.nextPhase
 
 
-  def canCollectFromRiver = game.stars(game.currentPlayer).beings.values exists {
+  def canCollectFromRiver = game.stars(game.currentStarId).beings.values exists {
     case Formation(Spectre) => true
     case _ => false
   }
 
   def drawAndLook(origin: Origin) : Unit = {
 
+    origin match {
+      case Origin.BeingPane(b, s) =>
+        actor !  Reveal(b.face, s)
+      case _ => ()
+    }
     val (numDraw, numLook) = drawAndLookValues(origin)
     new DrawAndLookAction(this, numDraw, numLook, canCollectFromRiver,
       () => MoveSeq.end(origin) foreach (actor ! _)
@@ -162,12 +174,13 @@ class GameScreenControl
           Reveal(target.face, targetSuit) +:
           MoveSeq.fromHand(c)
       case Origin.BeingPane(b, s @ (Diamond | Spade)) =>
-        AttackBeing(b.value(s, Card.value).get,
-          target.face, targetSuit) +:
+          Reveal(b.face, s) +:
+          AttackBeing(b.value(s, Card.value).get,
+            target.face, targetSuit) +:
           Reveal(target.face, targetSuit) +:
           MoveSeq.fromBeing(b,s)
       case Origin.Hand( C(_, Club) )|
-        Origin.BeingPane(_, Club) =>
+           Origin.BeingPane(_, Club) =>
         drawAndLook(origin)
         Seq()
       case _ => leval.error()
@@ -179,121 +192,130 @@ class GameScreenControl
   import pane._
   import game._
 
-  var revealedCards : Seq[BeingResourcePane] = Seq()
-  var lookedCards : Seq[BeingResourcePane] = Seq()
+  def notify[A](m: Move[A], res: A): Unit = {
+    println(game.stars(playerGameId).name +"'s controller notified of " + m)
+    m match {
+      case MajestyEffect(_, _) =>
 
-  def notify[A](m: Move[A], res: A): Unit = m match {
-    case MajestyEffect(_, _) =>
+        playerStarPanel.majestyValueLabel.text =
+          stars(playerGameId).majesty.toString
+        opponentStarPanel.majestyValueLabel.text =
+          stars(opponentId).majesty.toString
 
-      playerStarPanel.majestyValueLabel.text =
-        stars(playerGameId).majesty.toString
-      opponentStarPanel.majestyValueLabel.text =
-        stars(opponentId).majesty.toString
+      case PlaceBeing(b, side) =>
+        if (playerGameId == side) {
+          addPlayerBeingPane(b)
+          createBeeingPane.menuMode()
+        } else {
+          addOpponentBeingPane(b)
+          opponentHandPane.update()
+        }
 
-    case PlaceBeing(b, side) =>
-      if(playerGameId == side) {
-        addPlayerBeingPane(b)
-        createBeeingPane.menuMode()
-      } else {
-        addOpponentBeingPane(b)
+      case RemoveFromHand(_) =>
+        riverPane.update()
+        handPane.update()
         opponentHandPane.update()
-      }
 
-    case RemoveFromHand(_) =>
-      riverPane.update()
-      handPane.update()
-      opponentHandPane.update()
+      case CollectFromRiver(side) =>
+        if (playerGameId == side)
+          new CardDialog(res, pane).showAndWait()
 
-    case CollectFromRiver(side) =>
-      if(playerGameId == side)
-        new CardDialog(res, pane).showAndWait()
+        riverPane.update()
+        handPane.update()
+        opponentHandPane.update()
 
-      riverPane.update()
-      handPane.update()
-      opponentHandPane.update()
+      case CollectFromSource(side) =>
+        println("CollectFromSource(" + side + ")")
+        println("playerGameId = " + playerGameId)
+        if (playerGameId == side)
+          new CardDialog(res, pane).showAndWait()
 
-    case CollectFromSource(side) =>
-      if(playerGameId == side)
-        new CardDialog(res, pane).showAndWait()
+        handPane.update()
 
-      handPane.update()
+      case PlaceCardsToRiver(_) =>
+        riverPane.update()
 
-    case PlaceCardsToRiver(_) =>
-      riverPane.update()
-
-    case LookCard(fc, s) =>
-      beingPanesMap get fc flatMap ( _ resourcePane s) foreach {
-        brp =>
-          brp.looked = true
-          lookedCards +:= brp
-      }
+      case LookCard(fc, s) =>
+        beingPanesMap get fc foreach (_ update s)
 
 
-    case Reveal(fc, s) =>
-      beingPanesMap get fc flatMap ( _ resourcePane s) foreach {
-        brp =>
-          brp.reveal = true
-          revealedCards +:= brp
-      }
+      case Reveal(fc, s) =>
+        beingPanesMap get fc foreach (_ update s)
 
-    case ActivateBeing(fc) =>
-      game.currentPhase match {
-        case ap : ActPhase =>
-          if(ap.activatedBeings.size == playerBeingsPane.children.size()){
-            new Alert(AlertType.Information){
-              delegate.initOwner(pane.scene().getWindow)
-              title = "End of act phase"
-              headerText = "Every being has acted"
-              //contentText = "Every being has acted"
-            }.showAndWait()
-            controller.endPhase()
-          }
-        case _ => leval.error()
-      }
-    case EndPhase =>
+      case ActivateBeing(fc) =>
+        game.currentPhase match {
+          case ap: ActPhase =>
+            if (ap.activatedBeings.size == game.currentStar.beings.size) {
+              new Alert(AlertType.Information) {
+                delegate.initOwner(pane.scene().getWindow)
+                title = txt.end_of_act_phase
+                headerText = txt.every_being_has_acted
+                //contentText = "Every being has acted"
+              }.showAndWait()
+
+              if(isCurrentPlayer)
+                controller.endPhase()
+            }
+          case _ => leval.error()
+        }
+
+      case InfluencePhase(newPlayer) =>
+        println("******************************************")
+        println("******************************************")
+        println("************ round " + game.currentRound + "******************")
+        println("******************************************")
+
+        statusPane.star = game.stars(newPlayer).name
+        statusPane.round = game.currentRound
+        statusPane.phase = game.currentPhase
+
+      case ActPhase(_) =>
+        statusPane.phase = game.currentPhase
+        if (isCurrentPlayer) {
+          if (game.currentStar.beings.nonEmpty)
+            endPhaseButton.visible = true
+          else
+            endPhase()
+        }
+        statusPane.phase = game.currentPhase
+
+      case SourcePhase =>
+        if (isCurrentPlayer)
+          new DrawAndLookAction(this, 1, 0, canCollectFromRiver,
+            () => actor ! game.nextPhase
+          ).apply()
+        else
+          new Alert(AlertType.Information) {
+            delegate.initOwner(pane.scene().getWindow)
+            title = txt.end_of_act_phase
+            headerText = txt.end_of_act_phase
+            //contentText = "Every being has acted"
+          }.showAndWait()
+
+        beingPanesMap.values foreach (_.update())
+        endPhaseButton.visible = false
+
+        statusPane.phase = game.currentPhase
 
 
-      game.currentPhase match {
-        case InfluencePhase =>
-          statusPane.star = game.stars(game.currentPlayer).name
-          statusPane.round = game.currentRound
-        case SourcePhase  =>
-          if(isCurrentPlayer) {
-            new DrawAndLookAction(this, 1, 0, canCollectFromRiver,
-              () => actor ! EndPhase
-            ).apply()
-          }
-          else{
-            new Alert(AlertType.Information){
-              delegate.initOwner(pane.scene().getWindow)
-              title = "New phase"
-              headerText = "End of Act Phase"
-              //contentText = "Every being has acted"
-            }.showAndWait()
-          }
-          revealedCards foreach (_.reveal = false)
-          revealedCards = Seq()
-          lookedCards foreach (_.looked = false)
-          lookedCards = Seq()
-          endPhaseButton.visible = false
-        case ActPhase(_) if isCurrentPlayer =>
-          endPhaseButton.visible = true
-        case _ =>
-      }
-
-      statusPane.phase = game.currentPhase
-
-
-    case _ => ()
+      case _ => ()
+    }
   }
+  def showTwilight(t : Twilight) : Unit =
+    new TwilightDialog(this, t){
+      delegate.initOwner(pane.scene().getWindow)
+    }.showAndWait()
 
   def canDragAndDropOnInfluencePhase() : Boolean =
-    game.currentPlayer == playerGameId &&
-      game.currentPhase == InfluencePhase
+      game.currentPhase match {
+        case InfluencePhase(`playerGameId`) => true
+        case _ => false
+      }
 
   def canDragAndDropOnActPhase(fc : Card)() : Boolean =
-    game.currentPlayer == playerGameId && (game.currentPhase match {
-      case ActPhase(activatedBeings) if ! (activatedBeings contains fc)=> true
+    game.currentStarId == playerGameId && (game.currentPhase match {
+      case ActPhase(activatedBeings)
+        if ! (activatedBeings contains fc) => true
       case _ => false
     })
 

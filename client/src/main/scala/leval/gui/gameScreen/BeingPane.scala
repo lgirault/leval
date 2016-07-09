@@ -5,10 +5,12 @@ import leval.gui.CardImg
 
 import scalafx.Includes._
 import scalafx.event.subscriptions.Subscription
+import scalafx.geometry.Pos
 import scalafx.scene.Node
 import scalafx.scene.image.{Image, ImageView}
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.{ColumnConstraints, GridPane, RowConstraints}
+import scalafx.scene.text.{Text, TextAlignment}
 
 /**
   * Created by Loïc Girault on 05/07/16.
@@ -47,23 +49,39 @@ class BeingResourcePane
 (bp : BeingPane,
  val card : Card,
  val position : Suit, // needed for lovers and Jokers
- cardDragAndDrop: CardDragAndDrop)
-(val backImg : Node = CardImg.back(bp.cardHeight))
+ sCardDragAndDrop: Option[CardDragAndDrop])
+(val backImg : Node = CardImg.back(Some(bp.cardHeight)))
   extends CardDropTarget(backImg) {
 
   val eyeImg : Node = BeingResourcePane.eyeImage(bp.cardWidth)
   eyeImg.visible = false
   val frontImg : Node = CardImg(card, bp.cardHeight)
 
+  val dmgTxt = new Text("0"){
+    style = "-fx-font-size: 24pt"
+    textAlignment = TextAlignment.Center
+    alignmentInParent = Pos.BottomCenter
+  }
+
+  def dmg : String = dmgTxt.text()
+  def dmg_=(i : Int) = if(i == 0){
+    dmgTxt.text = ""
+    dmgTxt.visible = false
+  } else{
+    dmgTxt.text = i.toString
+    dmgTxt.visible = true
+  }
+
+
+
   private [this] var subscription  : Option[Subscription] = None
   def unsetCardDragAndDrop() : Unit =
     subscription foreach (_.cancel())
 
-  def setCardDragAndDrap() : Unit = {
-    subscription = Some(handleEvent(MouseEvent.Any) {
-      cardDragAndDrop
-    })
-  }
+  def setCardDragAndDrap() : Unit =
+    subscription = sCardDragAndDrop map (handleEvent(MouseEvent.Any)(_))
+
+
 
   setCardDragAndDrap()
 
@@ -72,7 +90,7 @@ class BeingResourcePane
   def reveal_=(b : Boolean) : Unit = {
     reveal0 = b
     children =
-      if(b) Seq(frontImg, highlight)
+      if(b) Seq(frontImg, dmgTxt, highlight)
       else
         Seq(backImg, eyeImg, highlight)
   }
@@ -84,6 +102,23 @@ class BeingResourcePane
 
   def onDrop(origin : Origin) : Unit =
     bp.control.playOnBeing(origin, bp.being, position)
+
+  def update() : Unit = {
+    import bp.control.game
+    import bp.being
+
+    (game.beingsState get being.face, position) match {
+      case (Some((heartDmg, _)), Heart) =>
+        dmg = heartDmg
+      case (Some((_, powerDmg)), Club) =>
+        dmg = powerDmg
+      case _ => dmg = 0
+
+    }
+
+    looked = game.lookedCards contains ((being.face, position))
+    reveal = game.revealedCard contains ((being.face, position))
+  }
 
 }
 
@@ -120,14 +155,24 @@ class BeingPane
     resourcePanes0 find (_.position == s)
   }
 
+  def update() : Unit = {
+    resourcePanes foreach (_.update())
+  }
+
+  def update(s : Suit) : Unit = {
+    resourcePane(s) foreach (_.update())
+  }
 
   def placeResourcePane( c : Card, pos : Suit, place : Node => Unit) : Node ={
-    val cardDragAndDrop =
-      new CardDragAndDrop(control,
-        control.canDragAndDropOnActPhase(being.face),
-        Origin.BeingPane(being, pos))(CardImg(c, front = false))
 
-    val bpr = new BeingResourcePane(this, c, pos, cardDragAndDrop)()
+    val sCardDragAndDrop = orientation match {
+      case Player => Some(new CardDragAndDrop(control,
+        control.canDragAndDropOnActPhase(being.face),
+        Origin.BeingPane(being, pos))(CardImg(c, front = false)))
+      case Opponent => None
+    }
+
+    val bpr = new BeingResourcePane(this, c, pos, sCardDragAndDrop)()
     resourcePanes0 +:= bpr
     place(bpr)
     bpr
