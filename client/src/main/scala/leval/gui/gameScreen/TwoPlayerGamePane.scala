@@ -3,9 +3,11 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
-import leval.core.{Being, Card, DeathRiver, Diamond, Formation, OpponentSpectrePower, OpponentStar, SelfStar, Source, Spectre, Target, TargetBeingResource}
+import leval.core.{Being, C, Card, DeathRiver, Diamond, Formation, OpponentSpectrePower, OpponentStar, SelfStar, Source, Spectre, Target, TargetBeingResource}
+import leval.gui.gameScreen.being._
 import leval.gui.{CardImageView, CardImg}
 import leval.gui.text
+
 import scala.collection.mutable
 import scalafx.Includes._
 import scalafx.geometry.{Insets, Pos}
@@ -16,7 +18,8 @@ import scalafx.scene.layout._
 import scalafx.stage.Screen
 
 abstract class CardDropTarget(decorated : Node)
-  extends HighlightableRegion(decorated){
+  extends HighlightableRegion(decorated)  {
+
   def onDrop(origin : Origin) : Unit
 }
 
@@ -27,7 +30,7 @@ class RiverPane
 
   private def images : Seq[CardImageView] =
     if(river.isEmpty) Seq[CardImageView]()
-    else river.tail.foldLeft(Seq(CardImg(river.head, fitHeight))) {
+    else river.tail.foldLeft(Seq(CardImg(river.head, Some(fitHeight)))) {
       case (acc, c) =>
         CardImg.cutLeft(c, 3, Some(fitHeight)) +: acc
     }
@@ -95,6 +98,10 @@ class TwoPlayerGamePane
   def doHightlightTargets(origin : Origin): Unit = {
     val highlighteds =
       if(createBeeingPane.isOpen) createBeeingPane.targets(origin.card)
+      else if(educateBeingPane.isVisible) origin.card match {
+        case c : C => educateBeingPane.targets(c)
+        case _ => Seq()
+      }
       else {
         val highlighteds0 : Seq[CardDropTarget] =
           Target(oGame.game, origin.card) flatMap {
@@ -160,7 +167,7 @@ class TwoPlayerGamePane
   val handPane = new PlayerHandPane(controller)
 
   val endPhaseButton =
-    new Button("EndPhase"){
+    new Button(txt.do_end_act_phase){
       onMouseClicked = {
         me : MouseEvent =>
           controller.endPhase()
@@ -172,11 +179,16 @@ class TwoPlayerGamePane
     right = endPhaseButton
   }
   val createBeeingPane =
-    new CreateBeingPane(controller, handPane,
-      cardWidth, cardHeight,
-      new CardDragAndDrop(controller,
-        controller.canDragAndDropOnInfluencePhase, _)())
+    new CreateBeingPane(controller,
+      handPane,
+      cardWidth, cardHeight)
 
+  val educateBeingPane =
+    new EducateBeingPane(controller,
+      handPane,
+      cardWidth, cardHeight)
+
+  educateBeingPane.visible = false
 
   val opponentHandPane = new OpponnentHandPane(controller)
   val opponentBeingsPane = new FlowPane() /*{
@@ -246,7 +258,9 @@ class TwoPlayerGamePane
     case (area, index) => GridPane.setConstraints(area, 1, index)
   }
 
-  val areas : List[Node ] = leftColumn ++: gameAreas
+  GridPane.setConstraints(educateBeingPane, 1, 2)
+
+  val areas : List[Node ] = educateBeingPane +: leftColumn ++: gameAreas
 
   rowConstraints add handAreaInfo
   rowConstraints add playerAreaInfo

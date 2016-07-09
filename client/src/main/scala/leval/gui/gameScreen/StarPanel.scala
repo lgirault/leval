@@ -30,15 +30,15 @@ class StarPanel
   val majestyValueLabel : Label = new Label())
 (implicit txt : ValText)
   extends CardDropTarget(new VBox {
-
   spacing = 10
   alignment = Pos.Center
   children = Seq(
-    new Text(starName),
-    new Text(txt.majesty),
-    majestyValueLabel
+  new Text(starName),
+  new Text(txt.majesty),
+  majestyValueLabel
   )
-}){
+}) {
+
 
   def onDrop(origin: Origin): Unit = {
     controller.directEffect(origin)

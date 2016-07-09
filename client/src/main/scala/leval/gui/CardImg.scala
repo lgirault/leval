@@ -8,6 +8,10 @@ import leval.core.{Joker, _}
 
 import scalafx.geometry.Rectangle2D
 import scalafx.scene.image.{Image, ImageView}
+import scalafx.scene.layout.StackPane
+import scalafx.scene.paint.Color
+import scalafx.scene.shape.Rectangle
+import scalafx.scene.text.{Text, TextAlignment, TextFlow}
 
 class CardImageView(val card : Card, img : Image) extends ImageView(img)
 object CardImg {
@@ -66,9 +70,6 @@ object CardImg {
     }
 
 
-  def apply(card : Card,
-            front : Boolean = true): CardImageView = imageView(card, width, height, front)
-
   def cutRight(card : Card, cut : Double,
                sfitHeight : Option[Double] = None,
                front : Boolean = true): CardImageView = {
@@ -76,9 +77,7 @@ object CardImg {
     val cc: (Double, Double) =
       if(front) coord(card)
       else backCoord
-    println("width/ cut = " + width/ cut)
     val delta = ((cut - 1) / cut) * width
-    println("(cut - 1 / cut) * width = " + ((1 - (1 / cut)) * width))
     val civ = new CardImageView(card, img) {
       preserveRatio = true
       viewport = new Rectangle2D(cc._1 + delta,  cc._2,
@@ -97,9 +96,11 @@ object CardImg {
     sfitHeight foreach civ.fitHeight_=
     civ
   }
-  def apply(card : Card, fitHeight : Double): CardImageView = {
+  def apply(card : Card,
+            sfitHeight : Option[Double] = None,
+            front : Boolean = true): CardImageView = {
     val civ = imageView(card, width, height, front = true)
-    civ.fitHeight = fitHeight
+    sfitHeight foreach civ.fitHeight_=
     civ
   }
 

@@ -27,8 +27,17 @@ case class PlaceBeing(being: Being, side : Int) extends Move[Unit]
 case class RemoveBeing(card : Card) extends Move[Unit]
 case class PlaceCardsToRiver(cards : Seq[Card]) extends Move[Unit]
 
-case class Educate( cards : Seq[C],
-                    target : Card) extends Move[Unit]
+case class Educate(target : Card, cards : Seq[C]) extends Move[Unit]
+
+//delate Educate and make EducationType a move ??
+sealed abstract class EducationType{
+  def cards : Seq[C]
+}
+case class Switch(c : C) extends EducationType {
+  def cards = Seq(c)
+}
+case class Rise(cards : Seq[C]) extends EducationType
+
 
 sealed abstract class Phase extends Move[Unit]
 case class InfluencePhase(newPlayer : Int) extends Phase

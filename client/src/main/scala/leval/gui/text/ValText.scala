@@ -16,6 +16,16 @@ trait ValText {
   val every_being_has_acted : String
 
   val twilight_ceremony : String
+
+  val educate : String
+  val do_end_act_phase : String
+
+  val face : String
+  val mind : String
+  val power : String
+  val heart : String
+  val weapon : String
+  val create_being : String
 }
 
 object Fr extends ValText {
@@ -32,6 +42,16 @@ object Fr extends ValText {
 
   val end_of_act_phase : String = "Fin de la phase des actes"
   val every_being_has_acted : String = "Tous les êtres ont agits"
+
+  val educate : String = "Éduquer"
+  val do_end_act_phase = "Terminer la phase des Actes"
+
+  val face : String = "Figure"
+  val mind : String = "Esprit"
+  val power : String = "Pouvoir"
+  val heart : String = "Cœur"
+  val weapon : String = "Arme"
+  val create_being : String = "Engendrer un être"
 }
 
 object Eng extends ValText {
@@ -48,4 +68,14 @@ object Eng extends ValText {
 
   val end_of_act_phase : String = "Fin de la phase des actes"
   val every_being_has_acted : String = "Tous les êtres ont agi"
+
+  val educate : String = "Educate"
+  val do_end_act_phase = "End Act phase"
+
+  val face : String = "Face"
+  val mind : String = "Mind"
+  val power : String = "Power"
+  val heart : String = "Heart"
+  val weapon : String = "Weapon"
+  val create_being : String = "Create being"
 }

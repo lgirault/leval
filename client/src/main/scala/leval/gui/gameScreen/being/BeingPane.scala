@@ -1,15 +1,18 @@
-package leval.gui.gameScreen
+package leval.gui.gameScreen.being
 
 import leval.core.{Being, Card, Club, Diamond, Heart, Spade, Suit}
 import leval.gui.CardImg
+import leval.gui.gameScreen.{CardDragAndDrop, CardDropTarget, GameScreenControl, Origin}
+import leval.gui.text.ValText
 
 import scalafx.Includes._
 import scalafx.event.subscriptions.Subscription
 import scalafx.geometry.Pos
 import scalafx.scene.Node
+import scalafx.scene.control.Button
 import scalafx.scene.image.{Image, ImageView}
 import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout.{ColumnConstraints, GridPane, RowConstraints}
+import scalafx.scene.layout.GridPane
 import scalafx.scene.text.{Text, TextAlignment}
 
 /**
@@ -21,7 +24,7 @@ sealed abstract class Orientation{
   val topResource : Suit
   val bottomResource : Suit
 }
-case object Player extends Orientation{
+case object Player extends Orientation {
   val leftResource : Suit = Heart
   val rightResource : Suit = Spade
   val topResource : Suit = Diamond
@@ -35,16 +38,6 @@ case object Opponent extends Orientation {
 }
 
 
-object BeingResourcePane {
-  val eyeUrl = this.getClass.getResource("/eye-icon.png").toExternalForm
-  val eye = new Image(eyeUrl)
-  def eyeImage(width : Double) =
-    new ImageView(eye) {
-      preserveRatio = true
-      fitWidth = width
-    }
-}
-
 class BeingResourcePane
 (bp : BeingPane,
  val card : Card,
@@ -53,9 +46,12 @@ class BeingResourcePane
 (val backImg : Node = CardImg.back(Some(bp.cardHeight)))
   extends CardDropTarget(backImg) {
 
-  val eyeImg : Node = BeingResourcePane.eyeImage(bp.cardWidth)
+  val eyeImg : Node = eyeImage(bp.cardWidth)
   eyeImg.visible = false
-  val frontImg : Node = CardImg(card, bp.cardHeight)
+  val switchImg : Node = switchImage(bp.cardWidth)
+  switchImg.visible = false
+
+  val frontImg : Node = CardImg(card, Some(bp.cardHeight))
 
   val dmgTxt = new Text("0"){
     style = "-fx-font-size: 24pt"
@@ -91,21 +87,31 @@ class BeingResourcePane
     reveal0 = b
     children =
       if(b) Seq(frontImg, dmgTxt, highlight)
-      else
-        Seq(backImg, eyeImg, highlight)
+      else Seq(backImg, switchImg, eyeImg, highlight)
   }
 
   def looked : Boolean = eyeImg.visible()
   def looked_=(b : Boolean) : Unit = {
     eyeImg.visible = b
+    switchImg.visible =
+      if(b) false
+      else switchImg.visible()
+  }
+
+  def switched : Boolean = switchImg.visible()
+  def switched_=(b : Boolean) : Unit = {
+    switchImg.visible = b
+    eyeImg.visible =
+      if(b) false
+      else eyeImg.visible()
   }
 
   def onDrop(origin : Origin) : Unit =
     bp.control.playOnBeing(origin, bp.being, position)
 
   def update() : Unit = {
-    import bp.control.game
     import bp.being
+    import bp.control.game
 
     (game.beingsState get being.face, position) match {
       case (Some((heartDmg, _)), Heart) =>
@@ -127,25 +133,8 @@ class BeingPane
   var being : Being,
   val cardHeight : Double,
   val cardWidth : Double,
-  val orientation: Orientation) extends GridPane {
-
-
-  val rowCts = new RowConstraints(
-    minHeight = cardHeight,
-    prefHeight = cardHeight,
-    maxHeight = cardHeight)
-
-  val colCts = new ColumnConstraints(
-    minWidth = cardWidth,
-    prefWidth = cardWidth,
-    maxWidth = cardWidth
-  )
-
-  for (i <- 0 until 3) {
-    rowConstraints.add(rowCts)
-    columnConstraints.add(colCts)
-  }
-
+  val orientation: Orientation)
+( implicit txt : ValText) extends BeingGrid {
 
 
   private [this] var resourcePanes0 = Seq[BeingResourcePane]()
@@ -185,26 +174,35 @@ class BeingPane
   def bottomCard  = being.resources get bottomResource
 
   leftCard foreach { c =>
-    placeResourcePane(c, leftResource,
-      GridPane.setConstraints(_, 0, 1))
+    placeResourcePane(c, leftResource, leftConstraints)
   }
 
   rightCard foreach { c =>
-    placeResourcePane(c, rightResource,
-      GridPane.setConstraints(_, 2, 1))
+    placeResourcePane(c, rightResource, rightConstraints)
   }
 
   topCard foreach { c =>
-    placeResourcePane(c, topResource,
-      GridPane.setConstraints(_, 1, 0))
+    placeResourcePane(c, topResource, topConstraints)
   }
 
   bottomCard foreach { c =>
-    placeResourcePane(c, bottomResource,
-      GridPane.setConstraints(_, 1, 2))
+    placeResourcePane(c, bottomResource, bottomConstraints)
   }
 
-  val faceImage = CardImg(being.face, cardHeight)
+  val faceImage = CardImg(being.face, Some(cardHeight))
   GridPane.setConstraints(faceImage, 1, 1)
-  children = faceImage +: resourcePanes
+
+
+  val educateButton = new Button(txt.educate){
+    visible = false
+    onMouseClicked = {
+      me : MouseEvent =>
+        control.pane.educateBeingPane.being = being
+
+    }
+  }
+  GridPane.setConstraints(educateButton, 2, 2)
+
+  children = educateButton +: faceImage +: resourcePanes
+
 }

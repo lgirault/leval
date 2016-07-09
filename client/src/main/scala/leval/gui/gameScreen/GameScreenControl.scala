@@ -101,6 +101,13 @@ class GameScreenControl
 
       MoveSeq.end(origin) foreach (actor ! _)
     }
+
+  def educate(target : Card,
+              cards : Seq[C]) : Unit = {
+    actor ! Educate(target, cards)
+    actor ! ActPhase(Set())
+  }
+
   def placeBeing(b: Being): Unit = {
     MoveSeq.placeBeing(b, playerGameId) foreach (actor ! _)
   }
@@ -260,16 +267,20 @@ class GameScreenControl
         }
 
       case InfluencePhase(newPlayer) =>
-        println("******************************************")
-        println("******************************************")
-        println("************ round " + game.currentRound + "******************")
-        println("******************************************")
+        if(isCurrentPlayer)
+        beingPanesMap.values foreach { bp =>
+           if(playerBeingsPane.children contains bp)
+             bp.educateButton.visible = true
+        }
 
         statusPane.star = game.stars(newPlayer).name
         statusPane.round = game.currentRound
         statusPane.phase = game.currentPhase
 
       case ActPhase(_) =>
+        beingPanesMap.values foreach { bp =>
+            bp.educateButton.visible = false
+        }
         statusPane.phase = game.currentPhase
         if (isCurrentPlayer) {
           if (game.currentStar.beings.nonEmpty)

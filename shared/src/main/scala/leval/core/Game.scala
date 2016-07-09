@@ -136,8 +136,8 @@ case class Game
     stars.set(owner, ownerStar.copy(beings = ownerStar.beings + (target.face  -> newBeing)))
   }
 
-  def educate(cards : Seq[C],
-              target : Card) : Game = {
+  def educate(target : Card,
+              cards : Seq[C]) : Game = {
     val newStars = stars map {
       s =>
         s.beings get target match {
@@ -293,7 +293,7 @@ class MutableGame(var game : Game) extends (Move ~> Id) {
     case PlaceBeing(being, side) => game = game.placeBeing(being, side)
     case RemoveBeing(card) => game = game.removeBeing(card)
     case PlaceCardsToRiver(cards) => game = game.placeCardsToRiver(cards)
-    case Educate(cards, target) => game = game.educate(cards, target)
+    case Educate(target, cards) => game = game.educate(target, cards)
     case p : Phase => game = game.beginPhase(p)
   }
 

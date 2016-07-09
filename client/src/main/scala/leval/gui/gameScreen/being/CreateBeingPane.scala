@@ -1,6 +1,8 @@
-package leval.gui.gameScreen
+package leval.gui.gameScreen.being
 
 import leval.core._
+import leval.gui.gameScreen._
+import leval.gui.text.ValText
 import leval.gui.{CardImageView, CardImg}
 
 import scalafx.Includes._
@@ -9,8 +11,6 @@ import scalafx.scene.canvas.Canvas
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout._
 import scalafx.scene.paint.Color
-import scalafx.scene.shape.Rectangle
-import scalafx.scene.text.{Text, TextAlignment, TextFlow}
 
 /**
   * Created by lorilan on 7/4/16.
@@ -37,7 +37,7 @@ class CreateBeingTile
 
   def card = cardImg0 map (_._1.card)
   def card_=(c : Card) = {
-    val ci = CardImg(c, tile.prefHeight.value)
+    val ci = CardImg(c, Some(tile.prefHeight.value))
     cardImg = Some((ci, doCardDragAndDrop(Origin.CreateBeingPane(c))))
   }
 
@@ -59,50 +59,26 @@ class CreateBeingTile
   }
 }
 
-class CreateBeingPane
-(controller : GameScreenControl,
- hand : PlayerHandPane,
- cardWidth : Double, cardHeight : Double,
- doCardDragAndDrop: Origin => CardDragAndDrop) extends GridPane {
 
-  def cardRectangle(txt: String): Pane = new StackPane {
-    val rect = Rectangle(cardWidth, cardHeight, Color.White)
-    prefHeight = cardHeight
-    rect.setStroke(Color.Green)
-    rect.setArcWidth(20)
-    rect.setArcHeight(20)
-    val txtFlow = new TextFlow (new Text(txt)) {
-      textAlignment = TextAlignment.Center
-    }
-    children = Seq(rect, txtFlow)
-  }
+
+class CreateBeingPane
+( controller : GameScreenControl,
+  hand : PlayerHandPane,
+  val cardWidth : Double,
+  val cardHeight : Double)
+( implicit txt : ValText ) extends BeingGrid {
 
   private [this] var open0 : Boolean = false
 
   def isOpen = open0
 
-  val okButton : Node = {
-    val w = cardWidth / 4
-    val cv = new Canvas(1.3*w, w+3)
-    val gc = cv.graphicsContext2D
-    //gc.fill = Color.White
-    gc.stroke = Color.Green
-    gc.strokeLine(1, 1, 1, w) // top -
-    gc.strokeLine(1, 1, w, 1) // left |
-    gc.strokeLine(w, 1, w, w) // right |
-    gc.strokeLine(1, w, w, w) // bottom -
 
-    gc.strokeLine(0, w/3, w/2, w) // \
-    gc.strokeLine(w/2, w, 1.25*w, w/5) // /
+  val okButton = okCanvas(cardWidth)
+  okButton.visible = false
 
-    cv.visible = false
-
-    cv.onMouseClicked = {
-      me : MouseEvent =>
-        being foreach controller.placeBeing
-    }
-
-    cv
+  okButton.onMouseClicked = {
+    me : MouseEvent =>
+      being foreach controller.placeBeing
   }
 
   def editMode(origin: Origin) : Unit = {
@@ -120,43 +96,31 @@ class CreateBeingPane
   }
 
   val createBeingLabel =
-    new CardDropTarget(cardRectangle("Create Beeing")) {
+    new CardDropTarget(cardRectangle(txt.create_being, cardWidth, cardHeight)) {
       def onDrop(origin: Origin) =
         editMode(origin)
     }
 
 
-  val rowCts = new RowConstraints(
-    minHeight = cardHeight,
-    prefHeight = cardHeight,
-    maxHeight = cardHeight)
-
-  val colCts = new ColumnConstraints(
-    minWidth = cardWidth,
-    prefWidth = cardWidth,
-    maxWidth = cardWidth
-  )
-
-  for (i <- 0 until 3) {
-    rowConstraints.add(rowCts)
-    columnConstraints.add(colCts)
-  }
-
   def makeTilePane(txt : String) =
-    new CreateBeingTile(this, cardRectangle(txt), hand, doCardDragAndDrop)
+    new CreateBeingTile(this,
+      cardRectangle(txt, cardWidth, cardHeight),
+      hand,
+      new CardDragAndDrop(controller,
+        controller.canDragAndDropOnInfluencePhase, _)())
 
   GridPane.setConstraints(createBeingLabel, 1, 1)
   children = createBeingLabel
-  val face = makeTilePane("Face")
-  GridPane.setConstraints(face, 1, 1)
-  val mind = makeTilePane("Mind")
-  GridPane.setConstraints(mind, 1, 0)
-  val power = makeTilePane("Power")
-  GridPane.setConstraints(power, 1, 2)
-  val heart = makeTilePane("Heart")
-  GridPane.setConstraints(heart, 0, 1)
-  val weapon = makeTilePane("Weapon")
-  GridPane.setConstraints(weapon, 2, 1)
+  val face = makeTilePane(txt.face)
+  centerConstraints(face)
+  val mind = makeTilePane(txt.mind)
+  topConstraints(mind)
+  val power = makeTilePane(txt.power)
+  bottomConstraints(power)
+  val heart = makeTilePane(txt.heart)
+  leftConstraints(heart)
+  val weapon = makeTilePane(txt.weapon)
+  rightConstraints(weapon)
 
 
   val tiles : Seq[CreateBeingTile] = Seq(face, mind, power, heart, weapon)
@@ -182,26 +146,10 @@ class CreateBeingPane
   }
 
 
-  val closeButton : Node = {
-    val w = cardWidth / 4
-    val cv = new Canvas(w+3, w+3)
-    val gc = cv.graphicsContext2D
-    //gc.fill = Color.White
-    gc.stroke = Color.Green
-    gc.strokeLine(1, 1, 1, w) // top -
-    gc.strokeLine(1, 1, w, 1) // left |
-    gc.strokeLine(w, 1, w, w) // right |
-    gc.strokeLine(1, w, w, w) // bottom -
-
-    gc.strokeLine(1, 1, w, w) // \
-    gc.strokeLine(w, 1, 1, w) // /
-
-    cv.onMouseClicked = {
-      me : MouseEvent =>
-        menuMode()
-    }
-
-    cv
+  val closeButton : Node = closeCanvas(cardWidth)
+  closeButton.onMouseClicked = {
+    me : MouseEvent =>
+      menuMode()
   }
 
   GridPane.setConstraints(okButton, 0, 2)
