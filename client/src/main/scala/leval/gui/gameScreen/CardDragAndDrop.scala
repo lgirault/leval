@@ -60,6 +60,7 @@ class CardDragAndDrop
       pane.doHightlightTargets(origin)
       anchorPt = new Point2D(me.sceneX, me.sceneY)
       cardImageView.managed = false
+      cardImageView.visible = true
       pane.children.add(cardImageView)
       updateCoord(me)
 
@@ -67,13 +68,15 @@ class CardDragAndDrop
       if cardImageView != null=>
 
       val cardBounds = cardImageView.boundsInScene
-
       //println("[CARD] " + cardImageView.boundsInScene)
       pane.highlightedTargets.find {
         tgt =>
           //  println("[TARGET] " + tgt.boundsInScene)
           tgt.boundsInScene intersects cardBounds
-      } foreach { _.onDrop(origin)}
+      } foreach {
+        cardImageView.visible = false
+        _.onDrop(origin)
+      }
       //println()
 
       pane.unHightlightTargets()

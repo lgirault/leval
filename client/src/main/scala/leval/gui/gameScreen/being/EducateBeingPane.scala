@@ -1,7 +1,7 @@
 package leval.gui.gameScreen.being
 
-import leval.core.{Being, C, Card, Club, Diamond, EducationType, Face, Formation, Heart, Joker, King, Queen, Rise, Spade, Switch}
-import leval.gui.{CardImageView, CardImg}
+import leval.core.{Being, C, Card, Club, Diamond, EducationType, Formation, Heart, King, Queen, Rise, Spade, Switch}
+import leval.gui.CardImg
 import leval.gui.gameScreen._
 import leval.gui.text.ValText
 
@@ -10,7 +10,7 @@ import scalafx.geometry.Pos
 import scalafx.scene.Node
 import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
-import scalafx.scene.image.{Image, ImageView}
+import scalafx.scene.image.ImageView
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.{GridPane, Pane}
 
@@ -112,13 +112,28 @@ class EducateBeingPane
 
   alignmentInParent = Pos.Center
 
-  private [this] var being0 : Being = _
+  private [this] var beingPane0 : BeingPane = _
+  private [this] var position0 : Option[Int] = None
+  def playerArea =   controller.pane.beingsPane(beingPane0.orientation)
+  def position = position0
+  def position_=(p : Option[ Int]) = {
+    position0 = p
+    p.foreach { idx => playerArea.children.set(idx, this) }
+  }
+
+  def resetBeingPane() : Unit =
+    position foreach {
+      idx =>
+       playerArea.children.set(idx, beingPane)
+       position0 = None
+    }
+
+
 
   def makeTilePane(txt : String) =
     new EducateBeingTile(this,
       cardRectangle(txt, cardWidth, cardHeight),
       hand)
-
 
   val face = makeTilePane(txt.face)
   centerConstraints(face)
@@ -132,19 +147,38 @@ class EducateBeingPane
   rightConstraints(weapon)
 
 
+  private [this] def installEducatePane(bp : BeingPane) : Boolean = {
+
+    val siblings = controller.pane.beingsPane(bp.orientation).children
+    val index = siblings.indexOf(bp)
+    if(index != -1) {
+      position = Some(index)
+      true
+    }
+    else
+      false
+  }
+
+  def isOpen = position.nonEmpty
+
+  def beingPane = beingPane0
+  def beingPane_=(bp : BeingPane) = {
+    beingPane0 = bp
+    being = bp.being
+    if(!installEducatePane(bp)){
+        leval.error()
+    }
+  }
   def being_=(b : Being) : Unit = {
-    being0 = b
     face.card = b.face
     b.mind foreach mind.card_=
     b.heart foreach heart.card_=
     b.power foreach power.card_=
     b.weapon foreach weapon.card_=
 
-    this.visible = true
-
   }
 
-  def being = being0
+  def being = beingPane0.being
 
   var sEducation : Option[EducationType] = None
 
@@ -154,13 +188,13 @@ class EducateBeingPane
     me : MouseEvent =>
       sEducation foreach (e =>
         controller.educate(being.face, e.cards))
-
+      resetBeingPane()
   }
 
   val closeButton : Node = closeCanvas(cardWidth)
   closeButton.onMouseClicked = {
     me : MouseEvent =>
-      this.visible = false
+      resetBeingPane()
   }
 
   GridPane.setConstraints(okButton, 0, 2)

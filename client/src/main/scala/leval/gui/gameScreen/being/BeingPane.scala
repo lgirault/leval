@@ -10,7 +10,6 @@ import scalafx.event.subscriptions.Subscription
 import scalafx.geometry.Pos
 import scalafx.scene.Node
 import scalafx.scene.control.Button
-import scalafx.scene.image.{Image, ImageView}
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.GridPane
 import scalafx.scene.text.{Text, TextAlignment}
@@ -131,8 +130,8 @@ class BeingResourcePane
 class BeingPane
 ( val control: GameScreenControl,
   var being : Being,
-  val cardHeight : Double,
   val cardWidth : Double,
+  val cardHeight : Double,
   val orientation: Orientation)
 ( implicit txt : ValText) extends BeingGrid {
 
@@ -193,11 +192,14 @@ class BeingPane
   GridPane.setConstraints(faceImage, 1, 1)
 
 
+  import control.pane.educateBeingPane
+
+
   val educateButton = new Button(txt.educate){
     visible = false
     onMouseClicked = {
       me : MouseEvent =>
-        control.pane.educateBeingPane.being = being
+        educateBeingPane.beingPane = BeingPane.this
 
     }
   }

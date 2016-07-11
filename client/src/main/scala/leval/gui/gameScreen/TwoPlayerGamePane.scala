@@ -6,7 +6,6 @@ package leval.gui.gameScreen
 import leval.core.{Being, C, Card, DeathRiver, Diamond, Formation, OpponentSpectrePower, OpponentStar, SelfStar, Source, Spectre, Target, TargetBeingResource}
 import leval.gui.gameScreen.being._
 import leval.gui.{CardImageView, CardImg}
-import leval.gui.text
 
 import scala.collection.mutable
 import scalafx.Includes._
@@ -86,9 +85,8 @@ class TwoPlayerGamePane
   extends GridPane {
   pane =>
 
+  import controller.{opponentId, txt}
   import oGame._
-  import controller.opponentId
-  import controller.txt
 
 
   def player = stars(playerGameId)
@@ -98,7 +96,7 @@ class TwoPlayerGamePane
   def doHightlightTargets(origin : Origin): Unit = {
     val highlighteds =
       if(createBeeingPane.isOpen) createBeeingPane.targets(origin.card)
-      else if(educateBeingPane.isVisible) origin.card match {
+      else if(educateBeingPane.isOpen) origin.card match {
         case c : C => educateBeingPane.targets(c)
         case _ => Seq()
       }
@@ -188,8 +186,6 @@ class TwoPlayerGamePane
       handPane,
       cardWidth, cardHeight)
 
-  educateBeingPane.visible = false
-
   val opponentHandPane = new OpponnentHandPane(controller)
   val opponentBeingsPane = new FlowPane() /*{
     style = "-fx-border-width: 1; -fx-border-color: black;"
@@ -197,6 +193,11 @@ class TwoPlayerGamePane
   val playerBeingsPane = new FlowPane() /*{
     style = "-fx-border-width: 1; -fx-border-color: black;"
   }*/
+
+  def beingsPane(o : Orientation) = o match {
+    case Player => playerBeingsPane
+    case Opponent => opponentBeingsPane
+  }
 
   private [gameScreen] val beingPanesMap = mutable.Map[Card, BeingPane]()
 
@@ -212,13 +213,13 @@ class TwoPlayerGamePane
   }
 
   def addOpponentBeingPane(b : Being) : Unit = {
-    val bp = new BeingPane(controller, b, cardHeight, cardWidth, Opponent)
+    val bp = new BeingPane(controller, b, cardWidth, cardHeight, Opponent)
     beingPanesMap += (b.face -> bp)
     leval.ignore(opponentBeingsPane.children add bp)
   }
 
   def addPlayerBeingPane(b : Being) : Unit = {
-    val bp = new BeingPane(controller, b, cardHeight, cardWidth, Player)
+    val bp = new BeingPane(controller, b, cardWidth, cardHeight, Player)
     beingPanesMap += (b.face -> bp)
     playerBeingsPane.children add bp
   }
@@ -258,9 +259,6 @@ class TwoPlayerGamePane
     case (area, index) => GridPane.setConstraints(area, 1, index)
   }
 
-  GridPane.setConstraints(educateBeingPane, 1, 2)
-
-  val areas : List[Node ] = educateBeingPane +: leftColumn ++: gameAreas
 
   rowConstraints add handAreaInfo
   rowConstraints add playerAreaInfo
@@ -269,12 +267,9 @@ class TwoPlayerGamePane
   rowConstraints add handAreaInfo
   columnConstraints add leftColumnInfo
   columnConstraints add gameAreaInfo
-  children = gameAreas
 
-  children = areas
+  children = leftColumn ++: gameAreas
 
-//  val dnd = new GridPaneDnD(this)
-//  handleEvent(MouseEvent.Any)(dnd)
 
 }
 
