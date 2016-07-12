@@ -4,7 +4,6 @@ import javafx.geometry.Bounds
 
 import leval.ignore
 import leval.core._
-import leval.gui.CardImg
 
 import scalafx.geometry.Point2D
 import scalafx.scene.Node

@@ -1,7 +1,6 @@
 package leval.gui.gameScreen.being
 
-import leval.core.{Being, C, Card, Club, Diamond, EducationType, Formation, Heart, King, Queen, Rise, Spade, Switch}
-import leval.gui.CardImg
+import leval.core.{Being, C, Card, Club, Diamond, EducationType, Formation, Heart, King, Queen, Rise, Spade, Suit, Switch}
 import leval.gui.gameScreen._
 import leval.gui.text.ValText
 
@@ -12,7 +11,7 @@ import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.image.ImageView
 import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout.{GridPane, Pane}
+import scalafx.scene.layout.{GridPane, Pane, StackPane}
 
 
 /**
@@ -23,7 +22,8 @@ import scalafx.scene.layout.{GridPane, Pane}
 class EducateBeingTile
 (val pane : EducateBeingPane,
  val backImg : Pane,
- val hand : PlayerHandPane)
+ val hand : PlayerHandPane,
+ val suit : Suit)
   extends CardDropTarget(backImg) {
 
   val switchImg : Node = switchImage(pane.cardWidth)
@@ -44,9 +44,16 @@ class EducateBeingTile
 
   private [this] var card0 : Option[Card] = None
   def card = card0
-  def card_=(c : Card) ={
+  def card_=(c : Card) = setCard(c, front = true)
+
+  def setCard(c : Card, front : Boolean) ={
     card0 = Some(c)
-    cardImg = Some(CardImg(c, Some(backImg.prefHeight.value)))
+    cardImg = Some(CardImg(c, Some(backImg.prefHeight.value), front))
+  }
+
+  def reset() = {
+    card0 = None
+    cardImg = None
   }
 
   def doOnDrop(c : C) : Unit = {
@@ -81,7 +88,7 @@ class EducateBeingTile
         }.showAndWait()
 
       case Some(Rise(s)) =>
-        if(cardImg0.nonEmpty)
+        if((pane.being.resources get suit ).nonEmpty)
           new Alert(AlertType.Information) {
             delegate.initOwner(pane.scene().getWindow)
             title = "Education"
@@ -92,6 +99,7 @@ class EducateBeingTile
             if (c2.suit == c.suit) c
             else c2)
           pane.sEducation = Some(Rise(newS))
+          doOnDrop(c)
         }
 
     }
@@ -108,7 +116,7 @@ class EducateBeingPane
 
   style = "-fx-border-width: 3; " +
     "-fx-border-color: black; " +
-    "-fx-background-color : green;"
+    "-fx-background-color : blue;"
 
   alignmentInParent = Pos.Center
 
@@ -121,29 +129,34 @@ class EducateBeingPane
     p.foreach { idx => playerArea.children.set(idx, this) }
   }
 
-  def resetBeingPane() : Unit =
+  def resetBeingPane() : Unit = {
     position foreach {
       idx =>
-       playerArea.children.set(idx, beingPane)
-       position0 = None
+        playerArea.children.set(idx, beingPane)
+        position0 = None
     }
+    sEducation = None
+    Seq(mind, power, heart, weapon) foreach (_.reset())
+  }
 
 
 
-  def makeTilePane(txt : String) =
+  def makeTilePane(txt : String, s : Suit) =
     new EducateBeingTile(this,
       cardRectangle(txt, cardWidth, cardHeight),
-      hand)
+      hand, s)
 
-  val face = makeTilePane(txt.face)
+  val face = new StackPane{
+    children = cardRectangle(txt.face, cardWidth, cardHeight)
+  } //makeTilePane(txt.face)
   centerConstraints(face)
-  val mind = makeTilePane(txt.mind)
+  val mind = makeTilePane(txt.mind, Diamond)
   topConstraints(mind)
-  val power = makeTilePane(txt.power)
+  val power = makeTilePane(txt.power, Club)
   bottomConstraints(power)
-  val heart = makeTilePane(txt.heart)
+  val heart = makeTilePane(txt.heart, Heart)
   leftConstraints(heart)
-  val weapon = makeTilePane(txt.weapon)
+  val weapon = makeTilePane(txt.weapon, Spade)
   rightConstraints(weapon)
 
 
@@ -170,11 +183,11 @@ class EducateBeingPane
     }
   }
   def being_=(b : Being) : Unit = {
-    face.card = b.face
-    b.mind foreach mind.card_=
-    b.heart foreach heart.card_=
-    b.power foreach power.card_=
-    b.weapon foreach weapon.card_=
+    face.children = CardImg(b.face, Some(cardHeight))
+    b.mind foreach (mind.setCard(_, front = false))
+    b.heart foreach (heart.setCard(_, front = false))
+    b.power foreach (power.setCard(_, front = false))
+    b.weapon foreach (weapon.setCard(_, front = false))
 
   }
 
@@ -186,15 +199,17 @@ class EducateBeingPane
   okButton.visible = false
   okButton.onMouseClicked = {
     me : MouseEvent =>
+      resetBeingPane()
       sEducation foreach (e =>
         controller.educate(being.face, e.cards))
-      resetBeingPane()
+
   }
 
   val closeButton : Node = closeCanvas(cardWidth)
   closeButton.onMouseClicked = {
     me : MouseEvent =>
       resetBeingPane()
+      hand.update()
   }
 
   GridPane.setConstraints(okButton, 0, 2)
@@ -202,7 +217,7 @@ class EducateBeingPane
   children = Seq(face, mind, power, heart, weapon,
     okButton, closeButton)
 
-  val tiles : Seq[EducateBeingTile] = Seq(face, mind, power, heart, weapon)
+  val tiles : Seq[EducateBeingTile] = Seq(mind, power, heart, weapon)
 
   def cards : Seq[Card] = tiles flatMap (_.card)
 
@@ -216,21 +231,17 @@ class EducateBeingPane
 
   def targets(c : C): Seq[CardDropTarget] =
     defaultPos(c) +: (
-      face.card map {
-        fc =>
-          (fc, c) match {
+          (being.face, c) match {
             case (C(Queen, fsuit), C(King, suit)) if fsuit == suit =>
               Seq(heart)
             case (C(King, fsuit), C(Queen, suit)) if fsuit == suit =>
               Seq(heart)
             case _ => Seq()
-          }
-      } getOrElse Seq())
+          })
 
   def legalFormation : Boolean =
-    face.card.nonEmpty && (
-      (heart.card, weapon.card, mind.card, power.card) match {
+    (heart.card, weapon.card, mind.card, power.card) match {
         case Formation(_) => true
         case _ => false
-      })
+      }
 }

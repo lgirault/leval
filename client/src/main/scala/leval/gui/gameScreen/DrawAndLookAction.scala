@@ -1,7 +1,6 @@
 package leval.gui.gameScreen
 
 import leval.core.{Card, LookCard}
-import leval.gui.CardImg
 
 import scalafx.Includes._
 import scalafx.event.subscriptions.Subscription

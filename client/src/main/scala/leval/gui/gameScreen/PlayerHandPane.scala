@@ -1,7 +1,6 @@
 package leval.gui.gameScreen
 
 import leval.core.Card
-import leval.gui.{CardImageView, CardImg}
 
 import scalafx.Includes._
 import scalafx.geometry.Pos

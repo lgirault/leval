@@ -3,14 +3,11 @@ package leval.gui.gameScreen.being
 import leval.core._
 import leval.gui.gameScreen._
 import leval.gui.text.ValText
-import leval.gui.{CardImageView, CardImg}
 
 import scalafx.Includes._
 import scalafx.scene.Node
-import scalafx.scene.canvas.Canvas
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout._
-import scalafx.scene.paint.Color
 
 /**
   * Created by lorilan on 7/4/16.

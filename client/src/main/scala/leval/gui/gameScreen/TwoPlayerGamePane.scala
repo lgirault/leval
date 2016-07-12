@@ -5,7 +5,6 @@ package leval.gui.gameScreen
   */
 import leval.core.{Being, C, Card, DeathRiver, Diamond, Formation, OpponentSpectrePower, OpponentStar, SelfStar, Source, Spectre, Target, TargetBeingResource}
 import leval.gui.gameScreen.being._
-import leval.gui.{CardImageView, CardImg}
 
 import scala.collection.mutable
 import scalafx.Includes._
@@ -140,10 +139,6 @@ class TwoPlayerGamePane
     highlightableRegions = Seq()
     hed.foreach(_.deactivateHightLight())
   }
-
-
-
-
 
   //Hightable areas
   val opponentStarPanel = StarPanel(oGame, opponentId, controller)

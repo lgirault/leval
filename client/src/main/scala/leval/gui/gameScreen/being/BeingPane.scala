@@ -1,8 +1,7 @@
 package leval.gui.gameScreen.being
 
 import leval.core.{Being, Card, Club, Diamond, Heart, Spade, Suit}
-import leval.gui.CardImg
-import leval.gui.gameScreen.{CardDragAndDrop, CardDropTarget, GameScreenControl, Origin}
+import leval.gui.gameScreen._
 import leval.gui.text.ValText
 
 import scalafx.Includes._

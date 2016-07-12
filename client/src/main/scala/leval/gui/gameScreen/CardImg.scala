@@ -1,4 +1,4 @@
-package leval.gui
+package leval.gui.gameScreen
 
 /**
   * Created by lorilan on 6/21/16.
@@ -8,10 +8,6 @@ import leval.core.{Joker, _}
 
 import scalafx.geometry.Rectangle2D
 import scalafx.scene.image.{Image, ImageView}
-import scalafx.scene.layout.StackPane
-import scalafx.scene.paint.Color
-import scalafx.scene.shape.Rectangle
-import scalafx.scene.text.{Text, TextAlignment, TextFlow}
 
 class CardImageView(val card : Card, img : Image) extends ImageView(img)
 object CardImg {
@@ -99,7 +95,7 @@ object CardImg {
   def apply(card : Card,
             sfitHeight : Option[Double] = None,
             front : Boolean = true): CardImageView = {
-    val civ = imageView(card, width, height, front = true)
+    val civ = imageView(card, width, height, front)
     sfitHeight foreach civ.fitHeight_=
     civ
   }

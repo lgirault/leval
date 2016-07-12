@@ -256,7 +256,7 @@ object Game {
     val (s1, s2) = (s01.copy(hand = s01.hand ++ h1), s02.copy(hand = s02.hand ++ h2))
 
       if(Card.value(h1.head) > Card.value(h2.head))
-        (Twilight(Seq(h1, h2)), g.copy(stars = Seq(s1, s2)))
+        (Twilight(Seq(h1, h2)), g.copy(stars = Seq(s1, s2), source = d))
       else
         (Twilight(Seq(h2, h1)), g.copy(stars = Seq(s2, s1)))
   }

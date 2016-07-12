@@ -1,7 +1,6 @@
 package leval.gui.gameScreen
 
 import leval.core.Twilight
-import leval.gui.CardImg
 import leval.gui.text.ValText
 
 import scalafx.Includes._
