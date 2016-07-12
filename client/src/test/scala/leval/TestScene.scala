@@ -2,12 +2,14 @@ package leval
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.TestActorRef
-import leval.core.{Game, InfluencePhase, Move, PlayerId}
-import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
+import leval.core.{C, Diamond, Game, Heart, InfluencePhase, King, Move, Numeric, PlayerId, Spade}
+import leval.gui.CardImg
+import leval.gui.gameScreen.{BurialDialog, BurialPane, GameScreenControl, ObservableGame}
 import leval.gui.text.Fr
 
 import scalafx.application.JFXApp
 import scalafx.scene.Scene
+import scalafx.scene.layout.FlowPane
 
 /**
   * Created by lorilan on 7/4/16.
@@ -46,4 +48,23 @@ object TestScene extends JFXApp  {
   }
 
   control showTwilight twilight
+}
+
+object BurialTestScene extends JFXApp {
+  val fp = new FlowPane
+
+  stage = new JFXApp.PrimaryStage {
+    title = "Test"
+    implicit val txt = Fr
+    scene = new Scene {
+      root = fp
+    }
+  }
+
+  new BurialDialog(
+    Seq(C(King, Spade),
+      C(Numeric(5), Heart),
+      C(Numeric(7), Diamond)),
+    CardImg.width, CardImg.height,
+    fp).showAndWait()
 }

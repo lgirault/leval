@@ -9,7 +9,15 @@ import leval.core.{Joker, _}
 import scalafx.geometry.Rectangle2D
 import scalafx.scene.image.{Image, ImageView}
 
-class CardImageView(val card : Card, img : Image) extends ImageView(img)
+import javafx.scene.{image => jfxsi}
+
+class JFXCardImageView(val card : Card, img : Image) extends jfxsi.ImageView(img)
+class CardImageView(override val delegate: JFXCardImageView)
+  extends ImageView {
+  def this(card : Card, img : Image) = this(new JFXCardImageView(card, img))
+  def card : Card = delegate.card
+}
+
 object CardImg {
 
   val url = this.getClass.getResource("/svg-z-cards.png").toExternalForm
