@@ -14,18 +14,6 @@ import scalafx.scene.input.MouseEvent
   * Created by lorilan on 6/25/16.
   */
 
-object Origin {
-  case class Hand(card : Card) extends Origin
-  case class BeingPane(b : Being, suit : Suit) extends Origin {
-    def card = b resources suit
-  }
-  case class CreateBeingPane(card : Card) extends Origin
-}
-sealed abstract class Origin {
-  def card : Card
-}
-
-
 object CardDragAndDrop {
 
   implicit class NodeOps(val n : Node) extends AnyVal {
@@ -44,9 +32,10 @@ class CardDragAndDrop
 
   import control.pane
 
-  var anchorPt: Point2D = null
-  var previousLocation: Point2D = null
+  var anchorPt: Point2D = new Point2D(0,0)
+  var previousLocation: Point2D = anchorPt
 
+  cardImageView.managed = false
 
   def updateCoord(me : MouseEvent) : Unit = {
     cardImageView.x = me.sceneX - (CardImg.width / 2)
@@ -54,37 +43,31 @@ class CardDragAndDrop
   }
 
 
+
   def apply(me : MouseEvent) : Unit = me.eventType match {
     case MouseEvent.MousePressed if canDragAndDrop() =>
+
       pane.doHightlightTargets(origin)
       anchorPt = new Point2D(me.sceneX, me.sceneY)
-      cardImageView.managed = false
       cardImageView.visible = true
       pane.children.add(cardImageView)
       updateCoord(me)
 
-    case MouseEvent.MouseReleased
-      if cardImageView != null=>
+    case MouseEvent.MouseReleased =>
 
       val cardBounds = cardImageView.boundsInScene
-      //println("[CARD] " + cardImageView.boundsInScene)
       pane.highlightedTargets.find {
         tgt =>
-          //  println("[TARGET] " + tgt.boundsInScene)
           tgt.boundsInScene intersects cardBounds
       } foreach {
         cardImageView.visible = false
         _.onDrop(origin)
       }
-      //println()
-
       pane.unHightlightTargets()
-      ignore(pane.children.remove(cardImageView))
+      leval.ignore(pane.children.remove(cardImageView.delegate))
 
+    case MouseEvent.MouseDragged =>
 
-    case MouseEvent.MouseDragged
-      if cardImageView != null=>
-      if (anchorPt != null) {
         previousLocation = anchorPt
         anchorPt = new Point2D(me.sceneX, me.sceneY)
 
@@ -94,7 +77,7 @@ class CardDragAndDrop
         cardImageView.x.value = cardImageView.x.value + tx
         cardImageView.y.value = cardImageView.y.value + ty
 
-      }
+
     case _ => ()
   }
 }

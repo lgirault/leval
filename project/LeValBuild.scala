@@ -28,7 +28,7 @@ object LeValBuild extends Build {
     organization := "",
     name := s"leval-$module",
     version := "1.0-SNAPSHOT",
-    scalaVersion := "2.11.8",
+    scalaVersion := "2.12.0-M4",
     sbtVersion := "0.13.11",
 
     classPathFileName := "CLASSPATH",
@@ -39,13 +39,7 @@ object LeValBuild extends Build {
 
     libraryDependencies ++=
       Seq("com.typesafe.akka" %% "akka-remote" % "2.4.7",
-      //Multiple dependencies with the same organization/name but different versions. To avoid conflict, pick one version
-//          "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.3",
-//          "org.scala-lang.modules" %% "scala-xml" % "1.0.3",
-//          "org.scala-lang" % "scala-reflect" % "2.11.6",
-  /*),
-libraryDependencies in Test ++=
-Seq(*/    "org.scalatest" %% "scalatest" % "2.2.4",
+          "org.scalatest" %% "scalatest" % "2.2.6",
           "com.typesafe.akka" %% "akka-testkit" % "2.4.7"),
 
     scalacOptions ++= Seq(
@@ -80,7 +74,7 @@ Seq(*/    "org.scalatest" %% "scalatest" % "2.2.4",
   val shared = (project
     settings commonSettings("shared")
 
-    settings (libraryDependencies += "org.typelevel" %% "cats" % "0.6.0")
+    //settings (libraryDependencies += "org.typelevel" %% "cats" % "0.6.0")
     )
 
   val client = (project

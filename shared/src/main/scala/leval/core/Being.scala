@@ -33,13 +33,6 @@ case class Being
  resources : Map[Suit, Card],
  lover : Boolean = false){
 
-//  def this( face : Card,
-//            resources : Seq[Card],
-//            lover : Boolean) =
-//    this(face, resources.foldLeft(Map[Suit, Card]()){
-//      case (m, c @ (r, s)) => m + (s -> c)
-//    }, lover)
-
   def heart : Option[Card] = resources get Heart
   def weapon : Option[Card] = resources get Spade
   def mind : Option[Card] = resources get Diamond
@@ -52,10 +45,19 @@ case class Being
 
 
   //a being cannot be educated to become messianic or possessed so no ambiguity here
-  def educateWith(card : C) : (Being, Option[Card]) = card match {
-    case C(King | Queen , _) => (copy(face, resources + (Heart -> card), lover = true), heart)
-    case C(_ , Heart) => (copy(face, resources + (Heart -> card), lover = false), heart)
-    case C(_, suit) => (copy(face, resources + (suit -> card)), resources get suit)
+  def educateWith(card : C) : Being = card match {
+    case C(King | Queen , _) => copy(face, resources + (Heart -> card))
+    case C(_ , Heart) => copy(face, resources + (Heart -> card))
+    case C(_, suit) => copy(face, resources + (suit -> card))
+  }
+
+  def educateWith(e : Educate) : Being = e match {
+    case Switch(`face`, c) => educateWith(c)
+
+    case Rise(`face`, cards) =>
+      val kvs = cards map (c => c.suit -> c)
+      copy(resources = kvs.foldLeft(resources)(_ + _))
+    case _ => this
   }
 
   def cards : Seq[Card] = face +: resources.values.toSeq
@@ -126,7 +128,7 @@ case object Knight extends Formation
 case object Child extends Formation
 case object Wizard extends Formation
 case object Spectre extends Formation
-
+case object Shadow extends Formation
 
 object Star {
   def apply(id : PlayerId, hand : Seq[Card]) : Star = {

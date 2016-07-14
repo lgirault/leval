@@ -10,7 +10,7 @@ package object core {
   type Deck = Seq[Card]
 
   val suits = Seq(Diamond, Club, Heart, Spade)
-  val ranks = (for(i <- 2 to 10 ) yield Numeric(i)) ++ Seq(Jack, Queen, King, Ace)
+  val ranks = (for(i <- 1 to 10 ) yield Numeric(i)) ++ Seq(Jack, Queen, King)
   val jokers = Seq[Card]( Joker.Red, Joker.Black )
 
   def deck54() : Deck = {

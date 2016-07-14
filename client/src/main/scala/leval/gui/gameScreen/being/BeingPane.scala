@@ -1,6 +1,6 @@
 package leval.gui.gameScreen.being
 
-import leval.core.{Being, Card, Club, Diamond, Heart, Spade, Suit}
+import leval.core.{Being, Card, Club, Diamond, Heart, Origin, Spade, Suit}
 import leval.gui.gameScreen._
 import leval.gui.text.ValText
 
@@ -69,12 +69,14 @@ class BeingResourcePane
 
 
   private [this] var subscription  : Option[Subscription] = None
-  def unsetCardDragAndDrop() : Unit =
+  def unsetCardDragAndDrop() : Unit = {
     subscription foreach (_.cancel())
+    subscription = None
+  }
 
-  def setCardDragAndDrap() : Unit =
+  def setCardDragAndDrap() : Unit = if(subscription.isEmpty){
     subscription = sCardDragAndDrop map (handleEvent(MouseEvent.Any)(_))
-
+  }
 
 
   setCardDragAndDrap()
@@ -113,9 +115,16 @@ class BeingResourcePane
 
     (game.beingsState get being.face, position) match {
       case (Some((heartDmg, _)), Heart) =>
-        dmg = heartDmg
+        if(heartDmg >= game.value(being, Heart).get)
+          bp remove Heart
+        else
+          dmg = heartDmg
+
       case (Some((_, powerDmg)), Club) =>
-        dmg = powerDmg
+        if(powerDmg >= game.value(being, Club).get)
+          bp remove Club
+        else
+          dmg = powerDmg
       case _ => dmg = 0
 
     }
@@ -142,6 +151,13 @@ class BeingPane
     resourcePanes0 find (_.position == s)
   }
 
+  def remove(s : Suit) : Unit = {
+    val (removed, remainings) = resourcePanes0 partition (_.position == s)
+    resourcePanes0 = remainings
+    removed foreach (children remove _)
+    being = being.copy(resources = being.resources - s)
+  }
+
   def update() : Unit = {
     resourcePanes foreach (_.update())
   }
@@ -149,47 +165,6 @@ class BeingPane
   def update(s : Suit) : Unit = {
     resourcePane(s) foreach (_.update())
   }
-
-  def placeResourcePane( c : Card, pos : Suit, place : Node => Unit) : Node ={
-
-    val sCardDragAndDrop = orientation match {
-      case Player => Some(new CardDragAndDrop(control,
-        control.canDragAndDropOnActPhase(being.face),
-        Origin.BeingPane(being, pos))(CardImg(c, front = false)))
-      case Opponent => None
-    }
-
-    val bpr = new BeingResourcePane(this, c, pos, sCardDragAndDrop)()
-    resourcePanes0 +:= bpr
-    place(bpr)
-    bpr
-  }
-
-  import orientation._
-  def topCard  = being.resources get topResource
-  def leftCard = being.resources get leftResource
-  def rightCard = being.resources get rightResource
-  def bottomCard  = being.resources get bottomResource
-
-  leftCard foreach { c =>
-    placeResourcePane(c, leftResource, leftConstraints)
-  }
-
-  rightCard foreach { c =>
-    placeResourcePane(c, rightResource, rightConstraints)
-  }
-
-  topCard foreach { c =>
-    placeResourcePane(c, topResource, topConstraints)
-  }
-
-  bottomCard foreach { c =>
-    placeResourcePane(c, bottomResource, bottomConstraints)
-  }
-
-  val faceImage = CardImg(being.face, Some(cardHeight))
-  GridPane.setConstraints(faceImage, 1, 1)
-
 
   import control.pane.educateBeingPane
 
@@ -204,6 +179,56 @@ class BeingPane
   }
   GridPane.setConstraints(educateButton, 2, 2)
 
-  children = educateButton +: faceImage +: resourcePanes
+  def placeResourcePane( c : Card, pos : Suit, place : Node => Unit) : Node ={
+    val sCardDragAndDrop = orientation match {
+      case Player => Some(new CardDragAndDrop(control,
+        control.canDragAndDropOnActPhase(being.face),
+        Origin.BeingPane(being, pos))(CardImg(c, front = false)))
+      case Opponent => None
+    }
+
+    val bpr = new BeingResourcePane(this, c, pos, sCardDragAndDrop)()
+    resourcePanes0 +:= bpr
+    place(bpr)
+    bpr
+  }
+
+
+
+  import orientation._
+  def topCard  = being.resources get topResource
+  def leftCard = being.resources get leftResource
+  def rightCard = being.resources get rightResource
+  def bottomCard  = being.resources get bottomResource
+
+  def update(b : Being) : Unit = {
+    being = b
+    leftCard foreach { c =>
+      placeResourcePane(c, leftResource, leftConstraints)
+    }
+
+    rightCard foreach { c =>
+      placeResourcePane(c, rightResource, rightConstraints)
+    }
+
+    topCard foreach { c =>
+      placeResourcePane(c, topResource, topConstraints)
+    }
+
+    bottomCard foreach { c =>
+      placeResourcePane(c, bottomResource, bottomConstraints)
+    }
+
+    val faceImage = CardImg(being.face, Some(cardHeight))
+    GridPane.setConstraints(faceImage, 1, 1)
+    children = educateButton +: faceImage +: resourcePanes
+  }
+
+  update(being)
+
+
+
+
+
 
 }

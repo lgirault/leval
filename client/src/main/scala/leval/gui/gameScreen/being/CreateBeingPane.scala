@@ -33,10 +33,13 @@ class CreateBeingTile
   }
 
   def card = cardImg0 map (_._1.card)
-  def card_=(c : Card) = {
-    val ci = CardImg(c, Some(tile.prefHeight.value))
-    cardImg = Some((ci, doCardDragAndDrop(Origin.CreateBeingPane(c))))
-  }
+  def card_=(sc : Option[Card]) =
+    cardImg = sc map {
+      c =>
+        val ci = CardImg(c, Some(tile.prefHeight.value))
+        (ci, doCardDragAndDrop(Origin.Hand(c)))
+    }
+
 
   highlight.handleEvent(MouseEvent.Any){
     me : MouseEvent =>
@@ -45,8 +48,30 @@ class CreateBeingTile
       }
   }
 
+  def pos : Option[Suit] = pane.mapTiles.find( _._2 == this) map (_._1)
+
   def onDrop(origin : Origin) : Unit = {
-    card = origin.card
+    (pane.tiles find( p => p != this && (p.card contains origin.card) ), card) match {
+      case (Some(otherPane), Some(thisCard)) => //card comes from othePane
+
+        val switch = otherPane.pos match {
+          case None => //other pane is face
+            pane.rules.checkLegalLover(origin.card, thisCard)
+          case Some(otherPos) =>
+            pane.rules.validResource(thisCard, otherPos)
+        }
+
+        if(switch)
+          otherPane.card = Some(thisCard)
+        else
+          otherPane.card = None
+
+
+      case (None, _) => ()
+    }
+
+    card = Some(origin.card)
+
     if(pane.legalFormation)
       pane.okButton.visible = true
     else
@@ -68,7 +93,6 @@ class CreateBeingPane
   private [this] var open0 : Boolean = false
 
   def isOpen = open0
-
 
   val okButton = okCanvas(cardWidth)
   okButton.visible = false
@@ -124,7 +148,14 @@ class CreateBeingPane
 
   def cards : Seq[Card] = tiles flatMap (_.card)
 
+  val mapTiles : Map[Suit, CreateBeingTile] =
+    Map(Diamond -> mind,
+      Club -> power,
+      Heart -> heart,
+      Spade -> weapon)
+
   def being : Option[Being] = {
+
     val m0 = Map[Suit, Card]()
     val m1 = mind.card map (c => m0 + (Diamond -> c)) getOrElse m0
     val m2 = power.card map (c => m1 + (Club -> c)) getOrElse m1
@@ -155,18 +186,18 @@ class CreateBeingPane
   GridPane.setConstraints(closeButton, 2, 2)
   //  closeButton.alignmentInParent = Pos.BottomRight
 
-//  val buttonWrapper = new VBox {
-//    val vspacer = new Region()
-//    VBox.setVgrow(vspacer, Priority.Always)
-//
-//    val hspacer = new Region()
-//    HBox.setHgrow(hspacer, Priority.Always)
-//
-//
-//    children = Seq(vspacer,
-//      new HBox(okButton, hspacer, closeButton))
-//  }
-//  GridPane.setConstraints(buttonWrapper, 2, 2)
+  //  val buttonWrapper = new VBox {
+  //    val vspacer = new Region()
+  //    VBox.setVgrow(vspacer, Priority.Always)
+  //
+  //    val hspacer = new Region()
+  //    HBox.setHgrow(hspacer, Priority.Always)
+  //
+  //
+  //    children = Seq(vspacer,
+  //      new HBox(okButton, hspacer, closeButton))
+  //  }
+  //  GridPane.setConstraints(buttonWrapper, 2, 2)
   def defaultPos(c : Card) : CardDropTarget =
     c match {
       case C(_ : Face, _) | Joker(_) => face
@@ -176,23 +207,38 @@ class CreateBeingPane
       case C(_, Spade) => weapon
     }
 
-  def targets(c : Card ): Seq[CardDropTarget] =
-    defaultPos(c) +: (
-      face.card map {
-        fc =>
-          (fc, c) match {
-            case (C(Queen, fsuit), C(King, suit)) if fsuit == suit =>
-              Seq(heart)
-            case (C(King, fsuit), C(Queen, suit)) if fsuit == suit =>
-              Seq(heart)
-            case _ => Seq()
-          }
-      } getOrElse Seq())
+  val rules = controller.game.rules
+
+  def targets(c : Card ): Seq[CardDropTarget] = {
+
+    val allowedTiles : Seq[CardDropTarget] = defaultPos(c) :: (mapTiles filter {
+      case (pos, tile) => rules.validResource(c, pos)
+    } values).toList
+
+    (face.card , c) match {
+      case (Some(C(lover@(King | Queen), fsuit)), C(r : Face, s))
+        if fsuit == s && rules.otherLover(lover) == r =>
+        heart +: allowedTiles
+      case _ => allowedTiles
+    }
+  }
 
   def legalFormation : Boolean =
-    face.card.nonEmpty && (
-    (heart.card, weapon.card, mind.card, power.card) match {
-      case Formation(_) => true
+    being match {
+      case None => false
+      case Some(b @ Formation(f))=>
+      rules.validBeing(b) && !(b.lover ||
+        rules.legalLoverFormationAtCreation(f)) && {
+
+        val star = controller.game.stars(controller.playerGameId)
+
+        val hasSameFormation = star.beings.values exists {
+          case Formation(`f`) => true
+          case _ => false
+        }
+
+        !hasSameFormation
+      }
       case _ => false
-    })
+  }
 }

@@ -8,10 +8,21 @@ sealed abstract class Move[A]
 case class MajestyEffect(value : Int, targetStar : Int) extends Move[Unit]
 //diamond or spades
 case class AttackBeing
-(attack : Int,
+(origin : Origin,
  target : Card,
  targetedSuit : Suit
 ) extends Move[Boolean]
+
+object Origin {
+  case class Hand(card : Card) extends Origin
+  case class BeingPane(b : Being, suit : Suit) extends Origin {
+    def card = b resources suit
+  }
+}
+sealed abstract class Origin {
+  def card : Card
+}
+
 
 case class RemoveFromHand(card : Card) extends Move[Unit]
 case class ActivateBeing(card : Card) extends Move[Unit]
@@ -25,18 +36,16 @@ case class LookCard(target : Card, resource : Suit) extends Move[Boolean]
 
 case class PlaceBeing(being: Being, side : Int) extends Move[Unit]
 case class RemoveBeing(card : Card) extends Move[Unit]
-case class PlaceCardsToRiver(cards : Seq[Card]) extends Move[Unit]
-
-case class Educate(target : Card, cards : Seq[C]) extends Move[Unit]
+case class PlaceCardsToRiver(cards : List[Card]) extends Move[Unit]
 
 //delate Educate and make EducationType a move ??
-sealed abstract class EducationType{
-  def cards : Seq[C]
+sealed abstract class Educate extends Move[Unit] {
+  def target : Card
 }
-case class Switch(c : C) extends EducationType {
-  def cards = Seq(c)
-}
-case class Rise(cards : Seq[C]) extends EducationType
+case class Switch(target : Card,
+                  c : C) extends Educate
+case class Rise(target : Card,
+                cards : Seq[C]) extends Educate
 
 
 sealed abstract class Phase extends Move[Unit]

@@ -34,7 +34,6 @@ object CardImg {
     case Spade => 3
   }
   def column(r : Rank) : Int = r match {
-    case Ace => 0
     case Numeric(i) => i - 1
     case Jack => 10
     case Queen => 11

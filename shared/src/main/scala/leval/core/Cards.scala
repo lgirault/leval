@@ -19,7 +19,6 @@ sealed abstract class Face extends Rank
 case object Jack extends Face
 case object Queen extends Face
 case object King extends Face
-case object Ace extends Rank
 case class Numeric(value: Int) extends Rank
 
 sealed abstract class Card
@@ -43,13 +42,11 @@ object Card {
 
   def value(c : Card) : Int =
     c match {
-      case Joker(_) => 1
-      case C(rank, _) => rank match {
-        case Numeric(v) => v
-        case Jack | Ace => 1
-        case Queen => 2
-        case King => 3
-      }
+      case Joker(_)
+      | C(Jack, _)=> 1
+      case C(Numeric(v), _) => v
+      case C(Queen, _) => 2
+      case C(King, _) => 3
     }
 
 
@@ -65,7 +62,6 @@ object Card {
   }
   private def orderingValue(r : Rank) : Int = r match {
     case Numeric(v) => v
-    case Ace  => 1
     case Jack => 11
     case Queen => 12
     case King => 13

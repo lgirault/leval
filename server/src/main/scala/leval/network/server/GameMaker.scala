@@ -53,7 +53,7 @@ class GameMaker
       }
 
     case GameStart =>
-      val g = Game.twilight(Game(players map (_.id)))
+      val g = Game.gameWithoutMulligan(players map (_.id))
 
 
       players.foreach {

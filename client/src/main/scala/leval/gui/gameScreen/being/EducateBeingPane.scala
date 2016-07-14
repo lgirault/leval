@@ -1,6 +1,6 @@
 package leval.gui.gameScreen.being
 
-import leval.core.{Being, C, Card, Club, Diamond, EducationType, Formation, Heart, King, Queen, Rise, Spade, Suit, Switch}
+import leval.core._
 import leval.gui.gameScreen._
 import leval.gui.text.ValText
 
@@ -73,21 +73,21 @@ class EducateBeingTile
     pane.sEducation match {
       case None =>
         if(cardImg0.nonEmpty)
-          pane.sEducation = Some(Switch(c))
+          pane.sEducation = Some(Switch(pane.being.face, c))
         else
-          pane.sEducation = Some(Rise(Seq(c)))
+          pane.sEducation = Some(Rise(pane.being.face, Seq(c)))
         doOnDrop(c)
-      case Some(Switch(c2)) if c2.suit == c.suit =>
-        pane.sEducation = Some(Switch(c2))
+      case Some(Switch(tgt, c2)) if c2.suit == c.suit =>
+        pane.sEducation = Some(Switch(tgt, c2))
         doOnDrop(c2)
-      case Some(Switch(c2))  =>
+      case Some(Switch(tgt, c2))  =>
         new Alert(AlertType.Information) {
           delegate.initOwner(pane.scene().getWindow)
           title = "Education"
           headerText = s"Only one switch at a time"
         }.showAndWait()
 
-      case Some(Rise(s)) =>
+      case Some(Rise(tgt, s)) =>
         if((pane.being.resources get suit ).nonEmpty)
           new Alert(AlertType.Information) {
             delegate.initOwner(pane.scene().getWindow)
@@ -95,10 +95,8 @@ class EducateBeingTile
             headerText = s"Switch or rise not both at the same time"
           }.showAndWait()
         else {
-          val newS = s map (c2 =>
-            if (c2.suit == c.suit) c
-            else c2)
-          pane.sEducation = Some(Rise(newS))
+          val newS = c +: s.filterNot(_.suit == c.suit)
+          pane.sEducation = Some(Rise(tgt, newS))
           doOnDrop(c)
         }
 
@@ -193,15 +191,15 @@ class EducateBeingPane
 
   def being = beingPane0.being
 
-  var sEducation : Option[EducationType] = None
+  var sEducation : Option[Educate] = None
 
   val okButton = okCanvas(cardWidth)
   okButton.visible = false
   okButton.onMouseClicked = {
     me : MouseEvent =>
-      resetBeingPane()
       sEducation foreach (e =>
-        controller.educate(being.face, e.cards))
+        controller.educate(e))
+      resetBeingPane()
 
   }
 
@@ -218,30 +216,29 @@ class EducateBeingPane
     okButton, closeButton)
 
   val tiles : Seq[EducateBeingTile] = Seq(mind, power, heart, weapon)
-
   def cards : Seq[Card] = tiles flatMap (_.card)
+  val mapTiles : Map[Suit, EducateBeingTile] =
+    Map(Diamond -> mind,
+      Club -> power,
+      Heart -> heart,
+      Spade -> weapon)
 
-  def defaultPos(c : C) : CardDropTarget =
-    c match {
-      case C(_, Heart) => heart
-      case C(_, Club) => power
-      case C(_, Diamond) => mind
-      case C(_, Spade) => weapon
+
+
+  val rules = controller.game.rules
+
+  def targets(c : C): Seq[CardDropTarget] ={
+
+    val allowedTiles : Seq[CardDropTarget] = (mapTiles filter {
+      case (pos, tile) => rules.validResource(c, pos)
+    } values).toList
+    (being.face, c) match {
+      case (C(lover@(King | Queen), fsuit), C(r : Face, s))
+        if fsuit == s && rules.otherLover(lover) == r =>
+        heart +: allowedTiles
+      case _ => allowedTiles
     }
-
-  def targets(c : C): Seq[CardDropTarget] =
-    defaultPos(c) +: (
-          (being.face, c) match {
-            case (C(Queen, fsuit), C(King, suit)) if fsuit == suit =>
-              Seq(heart)
-            case (C(King, fsuit), C(Queen, suit)) if fsuit == suit =>
-              Seq(heart)
-            case _ => Seq()
-          })
-
+  }
   def legalFormation : Boolean =
-    (heart.card, weapon.card, mind.card, power.card) match {
-        case Formation(_) => true
-        case _ => false
-      }
+    sEducation exists (e => rules.validBeing(being.educateWith(e)))
 }

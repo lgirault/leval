@@ -3,7 +3,7 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
-import leval.core.{Being, C, Card, DeathRiver, Diamond, Formation, OpponentSpectrePower, OpponentStar, SelfStar, Source, Spectre, Target, TargetBeingResource}
+import leval.core.{Being, C, Card, DeathRiver, Diamond, Formation, OpponentSpectrePower, OpponentStar, Origin, SelfStar, Source, Spectre, Target, TargetBeingResource}
 import leval.gui.gameScreen.being._
 
 import scala.collection.mutable
@@ -28,10 +28,14 @@ class RiverPane
 
   private def images : Seq[CardImageView] =
     if(river.isEmpty) Seq[CardImageView]()
-    else river.tail.foldLeft(Seq(CardImg(river.head, Some(fitHeight)))) {
-      case (acc, c) =>
-        CardImg.cutLeft(c, 3, Some(fitHeight)) +: acc
-    }
+    else
+      river.tail.foldLeft(List(CardImg(river.head, Some(fitHeight)))) {
+        case (acc, c) =>
+          CardImg.cutLeft(c, 3, Some(fitHeight)) :: acc
+      }
+
+
+
 
   def update() : Unit = {
     children.clear()
@@ -129,6 +133,9 @@ class TwoPlayerGamePane
       }
 
 
+    println(Target(oGame.game, origin.card))
+    println(highlighteds)
+
     highlighteds foreach (_.activateHighlight())
     highlightableRegions = highlighteds
   }
@@ -140,7 +147,7 @@ class TwoPlayerGamePane
     hed.foreach(_.deactivateHightLight())
   }
 
-  //Hightable areas
+  //Highlightable areas
   val opponentStarPanel = StarPanel(oGame, opponentId, controller)
   opponentStarPanel.alignmentInParent = Pos.BottomCenter
   val playerStarPanel = StarPanel(oGame, playerGameId, controller)
@@ -202,9 +209,11 @@ class TwoPlayerGamePane
     if(playerGameId == playerId) playerBeingsPane
     else opponentBeingsPane
 
-  def beingPanes(playerId : Int) : Iterable[BeingPane] = {
-    val parent = beingsPane(playerId).delegate
-    beingPanes filter (_.parent == parent)
+  def beingPanes(sideId : Int) : Iterable[BeingPane] = {
+    if(sideId == playerGameId)
+      beingPanesMap.values.filter(_.orientation == Player)
+    else
+      beingPanesMap.values.filter(_.orientation == Opponent)
   }
 
   def addOpponentBeingPane(b : Being) : Unit = {

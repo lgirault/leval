@@ -2,8 +2,7 @@ package leval.gui.gameScreen
 
 import javafx.geometry.Bounds
 
-import leval.core.Card
-import leval.gui.{CardImg, JFXCardImageView}
+import leval.core.{Card, PlaceCardsToRiver}
 import CardDragAndDrop.NodeOps
 
 import scalafx.Includes._
@@ -35,16 +34,17 @@ class BurialDialog
 (  cs : Seq[Card],
    cardWidth : Double,
    cardHeight : Double,
-   p : Pane) extends Dialog[Seq[Card]] {
-  //initOwner(window)
+   p : Pane) extends Dialog[PlaceCardsToRiver] {
+
   title = "Card"
   headerText = "Choose order of burial"
+
   val pane = new BurialPane(cs, cardWidth, cardHeight)
   dialogPane().content = pane
   delegate.initOwner(p.scene().getWindow)
-  resultConverter = {
-    _ => pane.order
-  }
+  resultConverter =
+    x => PlaceCardsToRiver(pane.order)
+
 
   dialogPane().buttonTypes = Seq(ButtonType.OK)
 }
@@ -119,6 +119,6 @@ class BurialPane
      case _=> ()
   }
 
-  def order : Seq[Card] =
-    imgs.sortBy(GridPane.getColumnIndex) map (_.card)
+  def order : List[Card] =
+    (imgs.sortBy(GridPane.getColumnIndex) map (_.card)).toList
 }
