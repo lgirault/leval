@@ -44,6 +44,8 @@ class BeingResourcePane
 (val backImg : Node = CardImg.back(Some(bp.cardHeight)))
   extends CardDropTarget(backImg) {
 
+  def being = bp.being
+
   val eyeImg : Node = eyeImage(bp.cardWidth)
   eyeImg.visible = false
   val switchImg : Node = switchImage(bp.cardWidth)
@@ -110,7 +112,6 @@ class BeingResourcePane
     bp.control.playOnBeing(origin, bp.being, position)
 
   def update() : Unit = {
-    import bp.being
     import bp.control.game
 
     (game.beingsState get being.face, position) match {

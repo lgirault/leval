@@ -1,6 +1,7 @@
 package leval.gui.gameScreen
 
-import leval.core.{Card, LookCard}
+import leval.core.{Being, Card, LookCard, Suit}
+import leval.gui.gameScreen.being.BeingResourcePane
 
 import scalafx.Includes._
 import scalafx.event.subscriptions.Subscription
@@ -13,24 +14,22 @@ import scalafx.scene.layout.Pane
   * Created by lorilan on 7/6/16.
   */
 class CardDialog( c : Card, p : Pane) extends Dialog[Card] {
-  //initOwner(window)
   title = "Card"
   dialogPane().content = CardImg(c)
   delegate.initOwner(p.scene().getWindow)
   resultConverter = {
     _ => c
   }
-
-
   dialogPane().buttonTypes = Seq(ButtonType.OK)
 }
 
 class DrawAndLookAction
-( controller : GameScreenControl,
+( val controller : GameScreenControl,
   var collect : Int = 1,
   var look : Int = 1,
   canCollectFromRiver : Boolean,
-  onFinish : () => Unit) {
+  onFinish : () => Unit)
+  extends ResourceSelector {
 
   import controller.pane
 
@@ -56,40 +55,34 @@ class DrawAndLookAction
     else s0
   }
 
-  val subscriptions: Iterable[Subscription] =
-    if (look == 0) Iterable.empty
-    else
-      pane.beingPanes flatMap {
-        bp =>
-          bp.resourcePanes map {
-            brp =>
-              brp.unsetCardDragAndDrop()
-              brp.handleEvent(MouseEvent.MouseClicked) {
-                me: MouseEvent =>
-                  if (!(controller.game.lookedCards contains ((bp.being.face, brp.position))) ) {
-                    new CardDialog(brp.card, pane).showAndWait() match {
-                      case Some(_) =>
-                        controller.actor ! LookCard(bp.being.face, brp.position)
-                      case None => leval.error()
-                    }
-                    this.apply()
-                  }
-              }
-          }
+  def canSelect(b : Being, pos : Suit) : Boolean = true
+
+  def onClick(brp : BeingResourcePane) : Unit =
+    if (!(controller.game.lookedCards contains ((brp.being.face, brp.position))) ) {
+      new CardDialog(brp.card, pane).showAndWait() match {
+        case Some(_) =>
+          controller.actor ! LookCard(brp.being.face, brp.position)
+        case None => leval.error()
       }
+      this.apply()
+    }
+
+
+  val subscriptions = suscribe {
+    if (look == 0) Iterable.empty
+    else {
+      pane.resourcesPanes foreach (_.unsetCardDragAndDrop())
+      pane.resourcesPanes
+    }
+  }
 
   def apply() : Unit =
     if (remainingEffect.isEmpty) {
-      subscriptions foreach (_.cancel)
-      pane.beingPanes foreach (
-        _.resourcePanes foreach ( _.setCardDragAndDrap() )
-        )
+      unsuscribeSelector(subscriptions)
+      pane.resourcesPanes foreach (_.setCardDragAndDrap())
       onFinish()
     }
     else {
-      println("Draw and look")
-      println("Draw  = " + collect)
-      println("look  = " + look)
       val result =
         if( ! canLook && ! canCollectFromRiver)  Some(collectFromSource)
         else
@@ -100,21 +93,16 @@ class DrawAndLookAction
             buttonTypes = remainingEffect
           }.showAndWait()
 
-      println("result =" + result)
-
       result match {
         case Some(`collectFromSource`) =>
-          println("collect from source !")
           collect -= 1
           controller.collectFromSource()
           this.apply()
         case Some(`collectFromRiver`) =>
-          println("collect from river !")
           collect -= 1
           controller.collectFromRiver()
           this.apply()
         case Some(`lookCard`) =>
-          println("look !")
           look -= 1
           new Alert(AlertType.Information){
             delegate.initOwner(pane.scene().getWindow)

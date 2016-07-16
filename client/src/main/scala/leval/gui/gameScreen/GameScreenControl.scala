@@ -137,14 +137,20 @@ class GameScreenControl
 
   }
 
-  def jokerEffectFromHand(jokerSuit : Joker) : Unit = {
-    // /!\ premier tour que effet du trèfle ou que effet du cœur
-    new Alert(AlertType.Information) {
-      delegate.initOwner(pane.scene().getWindow)
-      title = "ALERT !"
-      headerText = "Joker effect from hand not implemented"
-      //contentText = "Every being has acted"
-    }.showAndWait()
+
+
+  def jokerEffectFromHand(joker : Joker) : Unit = joker match {
+    case Joker.Red =>
+      actor ! MajestyEffect(1, playerGameId) // heart effect
+      new Alert(AlertType.Information){
+        delegate.initOwner(pane.scene().getWindow)
+        title = "Mind Action"
+        headerText = "Click on a card or the opponent star to attack"
+        //contentText = "Every being has acted"
+      }.showAndWait()
+      new JokerMindEffectTargetSelector(this)
+    case Joker.Black =>
+      new BlackJokerEffect(this)
   }
 
   //(num draw, num look)

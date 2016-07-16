@@ -3,7 +3,7 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
-import leval.core.{Being, C, Card, DeathRiver, Diamond, Formation, OpponentSpectrePower, OpponentStar, Origin, SelfStar, Source, Spectre, Target, TargetBeingResource}
+import leval.core.{Being, C, Card, DeathRiver, Diamond, Formation, OpponentSpectrePower, OpponentStar, Origin, SelfStar, Source, Spectre, Suit, Target, TargetBeingResource}
 import leval.gui.gameScreen.being._
 
 import scala.collection.mutable
@@ -94,6 +94,21 @@ class TwoPlayerGamePane
 
   def player = stars(playerGameId)
 
+  def opponentSpectrePower : Iterable[BeingResourcePane] =
+    beingPanes(opponentId) filter (bp => bp.being match {
+      case Formation(Spectre) => true
+      case _ => false
+    }) map (_.resourcePane(Diamond).get)
+
+  def targetBeingResource(s: Suit, sides : Seq[Int]) : Iterable[BeingResourcePane]  = {
+    val bps = sides match {
+      case Seq(id) => beingPanes(id)
+      case _ => beingPanes
+    }
+    bps.flatMap(_.resourcePane(s))
+  }
+
+
   private [this] var highlightableRegions = Seq[CardDropTarget]()
   def highlightedTargets = highlightableRegions
   def doHightlightTargets(origin : Origin): Unit = {
@@ -111,18 +126,9 @@ class TwoPlayerGamePane
             case Source => Seq(deck)
             case DeathRiver => Seq(riverWrapper)
             case OpponentSpectrePower =>
-
-              beingPanes(opponentId) filter (bp => bp.being match {
-                case Formation(Spectre) => true
-                case _ => false
-              }) map (_.resourcePane(Diamond).get)
-
+              opponentSpectrePower
             case TargetBeingResource(s, sides) =>
-              val bps = sides match {
-                case Seq(id) => beingPanes(id)
-                case _ => beingPanes
-              }
-              bps.flatMap(_.resourcePane(s))
+              targetBeingResource(s,sides)
             case _ => Seq()
           }
         origin match{
@@ -204,6 +210,8 @@ class TwoPlayerGamePane
   private [gameScreen] val beingPanesMap = mutable.Map[Card, BeingPane]()
 
   def beingPanes : Iterable[BeingPane] = beingPanesMap.values
+
+  def resourcesPanes : Iterable[BeingResourcePane] = beingPanes flatMap (_.resourcePanes)
 
   def beingsPane(playerId : Int) : Pane =
     if(playerGameId == playerId) playerBeingsPane
