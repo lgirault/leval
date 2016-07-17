@@ -60,7 +60,7 @@ case class Being
     case _ => this
   }
 
-  def cards : Seq[Card] = face +: resources.values.toSeq
+  def cards : List[Card] = face :: resources.values.toList
 
   def regularFormationBonus(resource : Suit) = (resource, this) match {
     case (Heart, Formation(Child)) => 1
@@ -131,9 +131,9 @@ case object Spectre extends Formation
 case object Shadow extends Formation
 
 object Star {
-  def apply(id : PlayerId, hand : Seq[Card]) : Star = {
+  def apply(id : PlayerId, hand : Seq[Card], beings : Map[Card, Being] = Map()) : Star = {
     val s : Set[Card] = SortedSet.empty(Card.cardOrdering)
-    new Star(id, 25, s ++ hand, Map())
+    new Star(id, 25, s ++ hand, beings)
   }
 }
 

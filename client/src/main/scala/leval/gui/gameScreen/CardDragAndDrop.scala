@@ -56,15 +56,16 @@ class CardDragAndDrop
     case MouseEvent.MouseReleased =>
 
       val cardBounds = cardImageView.boundsInScene
-      pane.highlightedTargets.find {
+      val stgt = pane.highlightedTargets.find {
         tgt =>
           tgt.boundsInScene intersects cardBounds
-      } foreach {
-        cardImageView.visible = false
-        _.onDrop(origin)
       }
       pane.unHightlightTargets()
       leval.ignore(pane.children.remove(cardImageView.delegate))
+      stgt foreach {
+        cardImageView.visible = false
+        _.onDrop(origin)
+      }
 
     case MouseEvent.MouseDragged =>
 

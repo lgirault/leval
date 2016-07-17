@@ -17,24 +17,29 @@ trait ResourceSelector {
   def onClick(brp : BeingResourcePane) : Unit
 
   def unsuscribeSelector(subscriptions : Iterable[(BeingResourcePane, Subscription)]) =
-    subscriptions.foreach  {
-      case (brp, subscription) =>
-        subscription.cancel()
-        brp.deactivateHightLight()
+    {
+      println("unsuscribeSelector")
+      subscriptions.foreach  {
+        case (brp, subscription) =>
+          subscription.cancel()
+          brp.deactivateHightLight()
+      }
     }
 
   def suscribe
   ( brps : Iterable[BeingResourcePane]
-  ) : Iterable[(BeingResourcePane, Subscription)] = brps map {
-    brp =>
-      brp.activateHighlight()
-      val someSuscribe =
-        brp.handleEvent(MouseEvent.MouseClicked) {
-          me: MouseEvent =>
-            onClick(brp)
-        }
-
-      (brp, someSuscribe)
+  ) : Iterable[(BeingResourcePane, Subscription)] = {
+    println("suscribe")
+    brps map {
+      brp =>
+        println(brp)
+        brp.activateHighlight()
+        (brp,
+          brp.handleEvent(MouseEvent.MouseClicked) {
+            me: MouseEvent =>
+              onClick(brp)
+          })
+    }
   }
 
 }
@@ -44,19 +49,23 @@ class JokerMindEffectTargetSelector
   extends ResourceSelector {
   import controller.pane
 
-  val end = Seq(ActPhase(Set()), RemoveFromHand(Joker.Red))
+  println("JokerMindEffectTargetSelector")
 
   val (subscriptions, starSubscription) = {
     val opponentSpectres = pane.opponentSpectrePower
-    if (opponentSpectres.nonEmpty)
-        (suscribe(opponentSpectres), None)
+    if (opponentSpectres.nonEmpty) {
+     println("opponentSpectres.nonEmpty")
+      (suscribe(opponentSpectres), None)
+    }
     else {
+      println("star should be available")
       val brps = controller.pane.targetBeingResource(Club, Seq(controller.opponentId))
       pane.opponentStarPanel.activateHighlight()
       val starSub = pane.opponentStarPanel.handleEvent(MouseEvent.MouseClicked) {
         me: MouseEvent =>
-          (MajestyEffect(-1, controller.opponentId) +: end
-            ) foreach (controller.actor ! )
+          Seq(MajestyEffect(-1, controller.opponentId),
+            RemoveFromHand(Joker.Red),
+            ActPhase(Set())) foreach (controller.actor ! )
           unsuscribe()
       }
       (suscribe(brps), Some(starSub))
@@ -75,8 +84,9 @@ class JokerMindEffectTargetSelector
 
 
   def onClick(brp: BeingResourcePane): Unit = {
-    AttackBeing(Origin.Hand(Joker.Red),
-      brp.being.face, brp.position) +: end foreach (controller.actor ! _)
+    Seq(AttackBeing(Origin.Hand(Joker.Red),
+      brp.being.face, brp.position),
+    ActPhase(Set())) foreach (controller.actor ! _)
     unsuscribe()
   }
 
@@ -98,6 +108,7 @@ class JokerWeaponEffectTargetSelector
     else Right (pane.opponentStarPanel.handleEvent(MouseEvent.MouseClicked) {
         me: MouseEvent =>
           controller.actor ! MajestyEffect(-1, controller.opponentId)
+          controller.actor ! RemoveFromHand(Joker.Black)
           unsuscribeAndFinish()
       })
   }
@@ -132,7 +143,7 @@ class BlackJokerEffect(val controller: GameScreenControl) {
   val attack = new ButtonType("Attack")
   val collectAndLook = new ButtonType("Collect and look")
 
-  val end : Seq[Move[_]] = Seq(ActPhase(Set()), RemoveFromHand(Joker.Black))
+  def end() : Unit = controller.actor ! ActPhase(Set())
 
   val result = new Alert(AlertType.Confirmation) {
     delegate.initOwner(controller.pane.scene().getWindow)
@@ -154,14 +165,14 @@ class BlackJokerEffect(val controller: GameScreenControl) {
       alertAttack()
       new JokerWeaponEffectTargetSelector(controller,
         () => new DrawAndLookAction(controller, 1, 1, controller.canCollectFromRiver,
-          () => end foreach (controller.actor ! _)).apply()
+          end ).apply()
       )
     case Some(`collectAndLook`) =>
 
       new DrawAndLookAction(controller, 1, 1, controller.canCollectFromRiver,
         () => {alertAttack()
           new JokerWeaponEffectTargetSelector(controller,
-          () => end foreach (controller.actor ! _))}).apply()
+          end )}).apply()
 
 
   }

@@ -68,13 +68,13 @@ class DrawAndLookAction
     }
 
 
-  val subscriptions = suscribe {
-    if (look == 0) Iterable.empty
+  val subscriptions =
+    if (! canLook) Iterable.empty
     else {
       pane.resourcesPanes foreach (_.unsetCardDragAndDrop())
-      pane.resourcesPanes
+      suscribe(pane.resourcesPanes)
     }
-  }
+
 
   def apply() : Unit =
     if (remainingEffect.isEmpty) {
@@ -89,7 +89,8 @@ class DrawAndLookAction
           new Alert(AlertType.Confirmation) {
             delegate.initOwner(pane.scene().getWindow)
             title = "Draw or look Action"
-            headerText = s"Choose next effect of action\n(Draw $collect card(s), look $look card(s)"
+            headerText = "Choose next effect of action\n" +
+                    s"(Draw $collect card(s), look $look card(s)"
             buttonTypes = remainingEffect
           }.showAndWait()
 

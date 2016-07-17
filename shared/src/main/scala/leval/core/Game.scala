@@ -79,15 +79,13 @@ case class Game
       .setPlayerBeing(side, being)
   }
 
-  def removeBeing(target : Card) : Game = {
+  def burry(target : Card, cards : List[Card])  : Game = {
     val (targetB, owner) = findBeing(target)
     val ownerStar = stars(owner)
     val newStars = stars.set(owner, ownerStar.copy(beings = ownerStar.beings - target))
-    copy(stars = newStars)
+    copy(stars = newStars,
+      deathRiver = cards reverse_::: deathRiver)
   }
-
-  def placeCardsToRiver(cards : List[Card])  : Game =
-    copy(deathRiver = cards reverse_::: deathRiver )
 
   def findBeing(face : Card) : (Being, Int) = {
     var i = nextPlayer
@@ -132,7 +130,10 @@ case class Game
       }
 
     (origin match {
-      case Origin.Hand(c) => g1.copy(deathRiver = c :: g1.deathRiver)
+      case Origin.Hand(c) =>
+        g1.copy(deathRiver = g1.deathRiver)
+          .removeFromHand(c)
+
       case Origin.BeingPane(b, s) => g1
     }, remvode1)
 
@@ -147,7 +148,7 @@ case class Game
 
     val removedCard = target resources removedSuit
     val newRiver =
-      if(goesToRiver(removedCard)) deathRiver :+ removedCard
+      if(goesToRiver(removedCard)) removedCard :: deathRiver
       else deathRiver
 
     val newBeing = target.copy(resources = target.resources - removedSuit)
@@ -329,8 +330,7 @@ class MutableGame(var game : Game) /*extends (Move ~> Id)*/ {
       cardRemoved
 
     case PlaceBeing(being, side) => game = game.placeBeing(being, side)
-    case RemoveBeing(card) => game = game.removeBeing(card)
-    case PlaceCardsToRiver(cards) => game = game.placeCardsToRiver(cards)
+    case Burry(target, cards) => game = game.burry(target, cards)
     case e : Educate => game = game.educate(e)
     case p : Phase => game = game.beginPhase(p)
   }

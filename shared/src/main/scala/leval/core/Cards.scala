@@ -40,6 +40,8 @@ object Joker {
 
 object Card {
 
+  implicit def pair2card(p:(Int, Suit)) : C = C(Numeric(p._1), p._2)
+
   def value(c : Card) : Int =
     c match {
       case Joker(_)

@@ -35,8 +35,7 @@ case class Reveal(target : Card, resource : Suit) extends Move[Boolean]
 case class LookCard(target : Card, resource : Suit) extends Move[Boolean]
 
 case class PlaceBeing(being: Being, side : Int) extends Move[Unit]
-case class RemoveBeing(card : Card) extends Move[Unit]
-case class PlaceCardsToRiver(cards : List[Card]) extends Move[Unit]
+case class Burry(target : Card, order : List[Card]) extends Move[Unit]
 
 //delate Educate and make EducationType a move ??
 sealed abstract class Educate extends Move[Unit] {

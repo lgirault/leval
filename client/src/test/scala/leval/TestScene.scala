@@ -2,7 +2,7 @@ package leval
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.TestActorRef
-import leval.core.{C, Diamond, Game, Heart, InfluencePhase, King, Move, Numeric, PlayerId, Spade}
+import leval.core.{AttackBeing, Being, Burry, C, Card, Club, Diamond, Formation, Game, Heart, InfluencePhase, Joker, King, Move, Numeric, PlayerId, Queen, Spade, Star, Suit}
 import leval.gui.gameScreen.{BurialDialog, CardImg, GameScreenControl, ObservableGame}
 import leval.gui.text.Fr
 
@@ -22,21 +22,59 @@ class ControllerMockup
 ( val oGame : ObservableGame
 ) extends Actor {
 
+  val playerId = 0
+  val opponentId = 1
+
   override def receive: Receive = {
-    case InfluencePhase(1) => leval.ignore(oGame(InfluencePhase(0)))
+    case InfluencePhase(opponentId) => leval.ignore(oGame(InfluencePhase(playerId)))
+    case m @ AttackBeing(_,target,_) =>
+      leval.ignore(oGame(m))
+      val (b, owner) = oGame.game.findBeing(target)
+      if(owner == opponentId && (
+        b match {
+        case Formation(_) => false
+        case _ => true //dead being
+      }))
+        oGame(Burry(b.face, b.cards))
     case m : Move[_] =>
       println("Controller Mockup receives" + m)
       leval.ignore(oGame(m))
+
   }
 }
 
 object TestScene extends JFXApp  {
 
-  val (twilight, g) = Game.gameWithoutMulligan(
-    Seq(PlayerId(69, "Betelgeuse"),
-        PlayerId(42, "AlphaCentauri")))
+  def initGame : Game = {
 
-  val game = new ObservableGame(g)
+
+    val fool = new Being(C(Queen, Spade),
+      Map(Club -> ((8, Club)),
+        Heart -> ((1, Heart)),
+        Spade -> ((1, Spade))
+      ))
+    val spectre = new Being(C(King, Spade),
+      Map(Club -> ((1, Club)),
+        Diamond -> ((6, Diamond)),
+        Spade -> ((3, Spade))
+      ))
+
+    val (p1, p2) = (PlayerId(69, "Betelgeuse"), PlayerId(42, "AlphaCentauri"))
+
+    val usedCards : Set[Card] = fool.cards.toSet ++ spectre.cards + Joker.Red + Joker.Black
+
+    val deck = core.deck54() filterNot usedCards.contains
+
+    val (d2, hand1) = deck.pick(9)
+    val (d3, hand2) = d2.pick(9)
+
+    Game(Star(p1, hand1 :+ Joker.Red :+ Joker.Black),
+      Star(p2, hand2, Map(fool.face -> fool, spectre.face -> spectre)), d3)
+  }
+
+
+
+  val game = new ObservableGame(initGame)
 
   implicit val system = ActorSystem()
   //  val _ = system.actorOf(ControlerMockup.props(game))
@@ -65,10 +103,9 @@ object BurialTestScene extends JFXApp {
     }
   }
 
-  new BurialDialog(
-    Seq(C(King, Spade),
-      C(Numeric(5), Heart),
-      C(Numeric(7), Diamond)),
+  new BurialDialog( Being(C(King, Spade),
+      Map[Suit, Card](Heart ->C(Numeric(5), Heart),
+      Diamond -> C(Numeric(7), Diamond))),
     CardImg.width, CardImg.height,
     fp).showAndWait()
 }

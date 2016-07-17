@@ -26,6 +26,9 @@ trait ValText {
   val heart : String
   val weapon : String
   val create_being : String
+
+  val burying : String
+  val wait_end_burial : String
 }
 
 object Fr extends ValText {
@@ -52,6 +55,9 @@ object Fr extends ValText {
   val heart : String = "Cœur"
   val weapon : String = "Arme"
   val create_being : String = "Engendrer un être"
+
+  val burying : String = "Enterrement"
+  val wait_end_burial : String = "Attendez la fin de l'enterrement"
 }
 
 object Eng extends ValText {
@@ -78,4 +84,8 @@ object Eng extends ValText {
   val heart : String = "Heart"
   val weapon : String = "Weapon"
   val create_being : String = "Create being"
+
+  val burying : String = "Burying"
+
+  val wait_end_burial : String = "Wait end of burial"
 }

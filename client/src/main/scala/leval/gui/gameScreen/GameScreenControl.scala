@@ -16,8 +16,13 @@ import scalafx.scene.control.Alert.AlertType
 object MoveSeq {
 
   def fromHand(c: Card): Seq[Move[_]] =
-    Seq(RemoveFromHand(c),
-      ActPhase(Set()))
+    c match {
+      case Joker(_) => Seq()
+      case _ =>
+        Seq(RemoveFromHand(c),
+          ActPhase(Set()))
+    }
+
 
   def placeBeing(b: Being, side : Int): Seq[Move[_]] = {
     val s = Seq(PlaceBeing(b, side), ActPhase(Set()))
@@ -124,33 +129,39 @@ class GameScreenControl
   }
 
   def drawAndLook(origin: Origin) : Unit = {
-
+    def doDrawAndLook() = {
+      val (numDraw, numLook) = drawAndLookValues(origin)
+      new DrawAndLookAction(this, numDraw, numLook, canCollectFromRiver,
+        () => MoveSeq.end(origin) foreach (actor ! _)
+      ).apply()
+    }
     origin match {
       case Origin.BeingPane(b, s) =>
         actor !  Reveal(b.face, s)
-      case _ => ()
+        doDrawAndLook()
+      case Origin.Hand(Joker(j)) =>
+        jokerEffectFromHand(j)
+      case _ => doDrawAndLook()
     }
-    val (numDraw, numLook) = drawAndLookValues(origin)
-    new DrawAndLookAction(this, numDraw, numLook, canCollectFromRiver,
-      () => MoveSeq.end(origin) foreach (actor ! _)
-    ).apply()
-
   }
 
 
 
-  def jokerEffectFromHand(joker : Joker) : Unit = joker match {
-    case Joker.Red =>
-      actor ! MajestyEffect(1, playerGameId) // heart effect
-      new Alert(AlertType.Information){
-        delegate.initOwner(pane.scene().getWindow)
-        title = "Mind Action"
-        headerText = "Click on a card or the opponent star to attack"
-        //contentText = "Every being has acted"
-      }.showAndWait()
-      new JokerMindEffectTargetSelector(this)
-    case Joker.Black =>
-      new BlackJokerEffect(this)
+  def jokerEffectFromHand(joker : Joker) : Unit ={
+    println("joker from hand")
+    joker match {
+      case Joker.Red =>
+        actor ! MajestyEffect(1, playerGameId) // heart effect
+        new Alert(AlertType.Information){
+          delegate.initOwner(pane.scene().getWindow)
+          title = "Mind Action"
+          headerText = "Click on a card or the opponent star to attack"
+          //contentText = "Every being has acted"
+        }.showAndWait()
+        new JokerMindEffectTargetSelector(this)
+      case Joker.Black =>
+        new BlackJokerEffect(this)
+    }
   }
 
   //(num draw, num look)
@@ -180,9 +191,9 @@ class GameScreenControl
           ActPhase(Set()))
 
       case Origin.BeingPane(b, s @ (Diamond | Spade)) =>
-          Seq(AttackBeing(origin,
-            target.face, targetSuit),
-            ActivateBeing(b.face))
+        Seq(AttackBeing(origin,
+          target.face, targetSuit),
+          ActivateBeing(b.face))
 
       case Origin.Hand( C(_, Club) )|
            Origin.BeingPane(_, Club) =>
@@ -198,15 +209,13 @@ class GameScreenControl
   import game._
 
   def burry(b : Being) : Unit =
-     new BurialDialog(b.cards,
+    new BurialDialog(b,
       CardImg.width,
       CardImg.height,
       pane).showAndWait() match {
-       case Some(move @ PlaceCardsToRiver(_)) =>
-         actor ! RemoveBeing(b.face)
-         actor ! move
-       case None => leval.error()
-     }
+      case Some(move) => actor ! move
+      case None => leval.error()
+    }
 
 
   def notify[A](m: Move[A], res: A): Unit = {
@@ -229,6 +238,7 @@ class GameScreenControl
         }
 
       case RemoveFromHand(_) =>
+        println(game.deathRiver)
         riverPane.update()
         handPane.update()
         opponentHandPane.update()
@@ -248,8 +258,14 @@ class GameScreenControl
         handPane.update()
         opponentHandPane.update()
 
-      case PlaceCardsToRiver(_) =>
-        println(game.deathRiver)
+      case Burry(target, _) =>
+        println("burry it !")
+        burialOnGoing = false
+        beingPanesMap get target foreach {
+          bp =>
+            beingsPane(bp.orientation).children.remove(bp.delegate)
+        }
+        beingPanesMap -= target
         riverPane.update()
 
       case LookCard(fc, s) =>
@@ -277,24 +293,35 @@ class GameScreenControl
           case _ => leval.error()
         }
 
-      case AttackBeing(attack, target, targetSuit) =>
-        println("AttackBeing" + game.findBeing(target))
+      case AttackBeing(origin, target, targetSuit) =>
+        println("AttackBeing " + game.findBeing(target))
         game.findBeing(target) match {
           case (Formation(f),_) =>
-            println(s"found $f")
             beingPanesMap get target foreach (_ update targetSuit)
-          case (b, `playerGameId`) =>
+          case (b, ownerId) =>
+            if(ownerId == playerGameId)
               burry(b)
+            else {
+              burialOnGoing = true
+              new Alert(AlertType.Information) {
+                delegate.initOwner(pane.scene().getWindow)
+                title = txt.burying
+                headerText = txt.wait_end_burial
+                //contentText = "Every being has acted"
+              }.showAndWait()
+            }
+          case _ => ()
+        }
+        origin match {
+          case Origin.Hand(_) =>
+            println(game.stars(playerGameId).hand)
+            riverPane.update()
+            handPane.update()
+            opponentHandPane.update()
           case _ => ()
         }
 
 
-
-      case RemoveBeing(card) =>
-        beingPanesMap get card foreach {
-          bp =>
-            beingsPane(bp.orientation).children.remove(bp)
-        }
 
       case InfluencePhase(newPlayer) =>
         if(isCurrentPlayer)
@@ -313,10 +340,10 @@ class GameScreenControl
         }
         statusPane.phase = game.currentPhase
         if (isCurrentPlayer) {
-          if (game.currentStar.beings.nonEmpty)
-            endPhaseButton.visible = true
-          else
-            endPhase()
+          //do not end phase automatically if no beings
+          //to let the player see cards potentially
+          // revealed during influence phase
+          endPhaseButton.visible = true
         }
         statusPane.phase = game.currentPhase
 
@@ -347,6 +374,7 @@ class GameScreenControl
           handPane.update()
         else
           opponentHandPane.update()
+
       case Rise(target, c) =>
         val bp = beingPanesMap(target)
         val (b, _) = game.findBeing(target)
@@ -370,8 +398,11 @@ class GameScreenControl
       case _ => false
     }
 
+  var burialOnGoing = false
+
   def canDragAndDropOnActPhase(fc : Card)() : Boolean =
-    game.currentStarId == playerGameId && (game.currentPhase match {
+    game.currentStarId == playerGameId &&
+      !burialOnGoing && (game.currentPhase match {
       case ActPhase(activatedBeings)
         if ! (activatedBeings contains fc) => true
       case _ => false

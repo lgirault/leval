@@ -2,7 +2,7 @@ package leval.gui.gameScreen
 
 import javafx.geometry.Bounds
 
-import leval.core.{Card, PlaceCardsToRiver}
+import leval.core.{Being, Burry, Card}
 import CardDragAndDrop.NodeOps
 
 import scalafx.Includes._
@@ -31,19 +31,19 @@ object BurialPane {
 
 
 class BurialDialog
-(  cs : Seq[Card],
+(  b : Being,
    cardWidth : Double,
    cardHeight : Double,
-   p : Pane) extends Dialog[PlaceCardsToRiver] {
+   p : Pane) extends Dialog[Burry] {
 
   title = "Card"
   headerText = "Choose order of burial"
 
-  val pane = new BurialPane(cs, cardWidth, cardHeight)
+  val pane = new BurialPane(b.cards, cardWidth, cardHeight)
   dialogPane().content = pane
   delegate.initOwner(p.scene().getWindow)
   resultConverter =
-    x => PlaceCardsToRiver(pane.order)
+    x => Burry(b.face, pane.order)
 
 
   dialogPane().buttonTypes = Seq(ButtonType.OK)

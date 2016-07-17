@@ -3,7 +3,7 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
-import leval.core.{Being, C, Card, DeathRiver, Diamond, Formation, OpponentSpectrePower, OpponentStar, Origin, SelfStar, Source, Spectre, Suit, Target, TargetBeingResource}
+import leval.core._
 import leval.gui.gameScreen.being._
 
 import scala.collection.mutable
@@ -95,10 +95,13 @@ class TwoPlayerGamePane
   def player = stars(playerGameId)
 
   def opponentSpectrePower : Iterable[BeingResourcePane] =
-    beingPanes(opponentId) filter (bp => bp.being match {
+    beingPanes(opponentId) filter {bp =>
+      val Formation(f) = bp.being
+      println(bp.being.face + " : " + f)
+      bp.being match {
       case Formation(Spectre) => true
       case _ => false
-    }) map (_.resourcePane(Diamond).get)
+    }} map (_.resourcePane(Club).get)
 
   def targetBeingResource(s: Suit, sides : Seq[Int]) : Iterable[BeingResourcePane]  = {
     val bps = sides match {
@@ -195,13 +198,10 @@ class TwoPlayerGamePane
       cardWidth, cardHeight)
 
   val opponentHandPane = new OpponnentHandPane(controller)
-  val opponentBeingsPane = new FlowPane() /*{
-    style = "-fx-border-width: 1; -fx-border-color: black;"
-  }*/
-  val playerBeingsPane = new FlowPane() /*{
-    style = "-fx-border-width: 1; -fx-border-color: black;"
-  }*/
+  //style = "-fx-border-width: 1; -fx-border-color: black;"
+  val opponentBeingsPane = new FlowPane()
 
+  val playerBeingsPane = new FlowPane()
   def beingsPane(o : Orientation) = o match {
     case Player => playerBeingsPane
     case Opponent => opponentBeingsPane
@@ -209,20 +209,22 @@ class TwoPlayerGamePane
 
   private [gameScreen] val beingPanesMap = mutable.Map[Card, BeingPane]()
 
+  controller.game.stars(controller.opponentId).beings.values foreach addOpponentBeingPane
+  controller.game.stars(controller.playerGameId).beings.values foreach addPlayerBeingPane
+
+
   def beingPanes : Iterable[BeingPane] = beingPanesMap.values
 
-  def resourcesPanes : Iterable[BeingResourcePane] = beingPanes flatMap (_.resourcePanes)
+  def resourcesPanes : Iterable[BeingResourcePane] =
+    beingPanes flatMap (_.resourcePanes)
 
   def beingsPane(playerId : Int) : Pane =
     if(playerGameId == playerId) playerBeingsPane
     else opponentBeingsPane
 
-  def beingPanes(sideId : Int) : Iterable[BeingPane] = {
-    if(sideId == playerGameId)
-      beingPanesMap.values.filter(_.orientation == Player)
-    else
-      beingPanesMap.values.filter(_.orientation == Opponent)
-  }
+  def beingPanes(sideId : Int) : Iterable[BeingPane] =
+    game.stars(sideId).beings map {case (face, _) => beingPanesMap(face)}
+
 
   def addOpponentBeingPane(b : Being) : Unit = {
     val bp = new BeingPane(controller, b, cardWidth, cardHeight, Opponent)
