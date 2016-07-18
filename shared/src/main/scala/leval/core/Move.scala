@@ -14,13 +14,19 @@ case class AttackBeing
 ) extends Move[Boolean]
 
 object Origin {
-  case class Hand(card : Card) extends Origin
+  case class Hand(card : Card) extends Origin {
+    def owner(g : Game) : Int =
+      g.stars.zipWithIndex.find{case (s, _) => s.hand contains card}.get._2
+  }
   case class BeingPane(b : Being, suit : Suit) extends Origin {
     def card = b resources suit
+    def owner(g : Game) : Int =
+      g.findBeing(b.face)._2
   }
 }
 sealed abstract class Origin {
   def card : Card
+  def owner(g : Game) : Int
 }
 
 

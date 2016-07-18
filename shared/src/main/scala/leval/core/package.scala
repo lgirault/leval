@@ -7,6 +7,7 @@ import scala.util.Random
   */
 package object core {
 
+
   type Deck = Seq[Card]
 
   val suits = Seq(Diamond, Club, Heart, Spade)

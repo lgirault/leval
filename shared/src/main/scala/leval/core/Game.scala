@@ -87,6 +87,7 @@ case class Game
       deathRiver = cards reverse_::: deathRiver)
   }
 
+
   def findBeing(face : Card) : (Being, Int) = {
     var i = nextPlayer
     do{
@@ -99,14 +100,47 @@ case class Game
     leval.error()
   }
 
+  def majestyEffectOnAttackBeing
+  ( target : Being,
+    attacker : Int,
+    ownerId : Int,
+    removed : Boolean
+    ) : Game = {
 
+    //deadSpectreBonus
+    target match {
+      case Formation(Spectre) if removed =>
+        val ownerStar = stars(ownerId)
+        copy(stars = stars.set(ownerId,
+          ownerStar.copy(majesty = ownerStar.majesty + 5)))
+      case _ =>
+        val childPenalty = target match {
+          case Formation(Child) if removed => 5
+          case _ => 0
+        }
+        val selfAttackPenalty =
+          if(attacker == currentStarId){
+            if(target.lover) 10
+            else 5
+          }
+          else 0
 
-  def attackBeing(origin :Origin,
+        val attackerStar = stars(attacker)
+
+        copy(stars = stars.set(attacker,
+          attackerStar.copy(majesty = attackerStar.majesty +
+            childPenalty +
+            selfAttackPenalty)))
+
+    }
+  }
+
+  def attackBeing(origin : Origin,
                   target : Card,
                   targetedSuit : Suit) : (Game, Boolean) = {
     val (g0, removed0)  = revealCard(target, targetedSuit)
 
-    val (g1, remvode1) =
+    val (g1, removed1) =
       if(removed0) (g0, removed0)
       else {
         val amplitude: Int = origin match {
@@ -129,14 +163,15 @@ case class Game
         else g0).copy(beingsState = globalNewState), removeCard)
       }
 
-    (origin match {
+    val g2 = origin match {
       case Origin.Hand(c) =>
         g1.copy(deathRiver = g1.deathRiver)
           .removeFromHand(c)
+      case Origin.BeingPane(_, _) => g1
+    }
 
-      case Origin.BeingPane(b, s) => g1
-    }, remvode1)
-
+    val (b, ownerId) = findBeing(target)
+    (g2.majestyEffectOnAttackBeing(b, origin.owner(this), ownerId, removed1), removed1)
   }
 
 
@@ -151,9 +186,11 @@ case class Game
       if(goesToRiver(removedCard)) removedCard :: deathRiver
       else deathRiver
 
+
     val newBeing = target.copy(resources = target.resources - removedSuit)
     val ownerStar = stars(owner)
-    copy(stars = stars.set(owner, ownerStar.copy(beings = ownerStar.beings + (target.face  -> newBeing))),
+    copy(stars = stars.set(owner,
+      ownerStar.copy(beings = ownerStar.beings + (target.face  -> newBeing))),
       deathRiver = newRiver )
   }
 

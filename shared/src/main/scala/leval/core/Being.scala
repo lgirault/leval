@@ -62,20 +62,12 @@ case class Being
 
   def cards : List[Card] = face :: resources.values.toList
 
-  def regularFormationBonus(resource : Suit) = (resource, this) match {
+  def formationBonus(resource : Suit) = (resource, this) match {
     case (Heart, Formation(Child)) => 1
     case (Club, Formation(Fool)) => 1
     case (Diamond, Formation(Wizard)) => 1
     case (Spade, Formation(Knight)) => 1
-    case _ => 0
-  }
-  def loverSpectreBonus(resource : Suit) = {
-    val isSpectre = this match {
-      case Formation(Spectre) => true
-      case _ => false
-    }
-
-    if(isSpectre)
+    case (_, Formation(Spectre)) if lover =>
       (face, resource) match {
         case (C(King | Queen,_), Diamond) => 1
         case (C(King,_), Club) => 3
@@ -83,12 +75,8 @@ case class Being
         case (C(King,_), Spade) => 1
         case _ => 0
       }
-    else 0
+    case _ => 0
   }
-
-  def formationBonus(resource : Suit) =
-    if(lover) loverSpectreBonus(resource)
-    else regularFormationBonus(resource)
 
   def value(resource : Suit, v : Card => Int)  : Option[Int] = {
     resources get resource map {
