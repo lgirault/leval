@@ -20,7 +20,8 @@ class ObservableGame(g : Game) extends MutableGame(g){
   def deathRiver: List[Card] = game.deathRiver
   def currentRound : Int = game.currentRound
   def currentStar : Star = game.currentStar
-
+  def ended : Boolean = game.ended
+  def result = game.result
   def findBeing(face : Card) = game.findBeing(face)
 
   def nextPhase = game.nextPhase

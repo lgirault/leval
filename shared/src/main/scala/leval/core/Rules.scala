@@ -9,12 +9,47 @@ trait Rules {
 
   def startingMajesty : Int
 
+  val losingMajesty : Int = 0
+  val winningMajesty : Int = 100
+
+
   //way to specific
-  //we could generalize that with a (situation, formation)=> effect kind of function
+  //we could generalize that with a (situation, being)=> effect kind of function
+  //situation = onDraw/onDeath/onKill/onAttack // ??
+  //effect = majestyEffect (target = Origin Star, Targeted Star), draw, retrieve killed face,
   //but then how to handle contextual effect like fool *first* collect of helios ?
   def wizardCollect : Int
   def foolFirstCollect : Int
   def shadowAllowed : Boolean
+
+  //default = 2 players
+  //winner, loser
+  def result(g : Game) : Option[(PlayerId, PlayerId)] =
+    if(g.source.isEmpty) None
+    else {
+      val someWinner = g.stars.zipWithIndex.find {
+        case (s, i) => s.majesty == winningMajesty
+      }
+      val result = someWinner map {
+        case (s, i) => (s.id, g.stars(i+1%2).id)
+      }
+      if(result.nonEmpty) result
+      else {
+        val someLoser = g.stars.zipWithIndex.find {
+          case (s, i) => s.majesty == losingMajesty
+        }
+        someLoser map {
+          case (s, i) => (g.stars(i+1%2).id, s.id)
+        }
+      }
+    }
+
+
+  def ended(g : Game) : Boolean =
+    g.source.isEmpty || g.stars.exists(s =>
+      s.majesty == losingMajesty ||
+        s.majesty == winningMajesty)
+
 
   def canSoulBeSold : Boolean //variante du diable
   //variante Janus à 4 joueur
@@ -91,7 +126,7 @@ trait AntaresHeliosCommon {
 
   def validResource(c : Card, pos : Suit) = c match {
     case C(Numeric(_) | Jack, `pos`)
-    | Joker(_) => true
+         | Joker(_) => true
     case _ => false
   }
 }
@@ -103,7 +138,7 @@ object Antares
 
 object Helios
   extends Rules
-  with AntaresHeliosCommon {
+    with AntaresHeliosCommon {
   def value(c: Card): Int = Card.value(c)
 
   val startingMajesty : Int = 36

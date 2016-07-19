@@ -1,9 +1,10 @@
 package leval.gui.gameScreen
 
-import akka.actor.ActorRef
+import akka.actor.{ActorRef, PoisonPill}
 import leval.core._
 import leval.gui.gameScreen.being.BeingPane
 import leval.gui.text
+import leval.network.client.StartScreen
 
 import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
@@ -37,6 +38,7 @@ object MoveSeq {
     case Origin.Hand(c) =>  fromHand(c)
     case Origin.BeingPane(b, s) => Seq(ActivateBeing(b.face))
   }
+
 }
 
 class GameScreenControl
@@ -217,9 +219,27 @@ class GameScreenControl
       case None => leval.error()
     }
 
+  def endGame(): Unit = {
+    val txt = game.result match {
+      case None => "Draw !"
+      case Some((winner, loser)) =>
+        winner.name + " wins !"
+    }
+    new Alert(AlertType.Information){
+      delegate.initOwner(pane.scene().getWindow)
+      title = "Game Over"
+      headerText = txt
+      //contentText = "Every being has acted"
+    }.showAndWait()
+    actor ! StartScreen
+
+  }
 
   def notify[A](m: Move[A], res: A): Unit = {
     println(game.stars(playerGameId).name +"'s controller notified of " + m)
+
+    if(game.ended) endGame()
+    else
     m match {
       case MajestyEffect(_, _) =>
 
@@ -258,8 +278,7 @@ class GameScreenControl
         handPane.update()
         opponentHandPane.update()
 
-      case Burry(target, _) =>
-        println("burry it !")
+      case Bury(target, _) =>
         burialOnGoing = false
         beingPanesMap get target foreach {
           bp =>
@@ -298,18 +317,19 @@ class GameScreenControl
         game.findBeing(target) match {
           case (Formation(f),_) =>
             beingPanesMap get target foreach (_ update targetSuit)
-          case (b, ownerId) =>
-            if(ownerId == playerGameId)
-              burry(b)
-            else {
+          case (b, ownerId) if ownerId != playerGameId =>
+              origin match {
+                case Origin.BeingPane(Formation(Wizard), _) =>
+                  new DrawAndLookAction(this,
+                    collect = game.rules.wizardCollect,
+                    look = 0, canCollectFromRiver,
+                    () => MoveSeq.end(origin) foreach (actor ! _)
+                  ).apply()
+                case _ => ()
+              }
+              actor ! BuryRequest(b, ownerId)
               burialOnGoing = true
-              new Alert(AlertType.Information) {
-                delegate.initOwner(pane.scene().getWindow)
-                title = txt.burying
-                headerText = txt.wait_end_burial
-                //contentText = "Every being has acted"
-              }.showAndWait()
-            }
+
           case _ => ()
         }
         origin match {
@@ -398,7 +418,20 @@ class GameScreenControl
       case _ => false
     }
 
-  var burialOnGoing = false
+  private [this] var burialOnGoing0 = false
+  def burialOnGoing = burialOnGoing0
+  def burialOnGoing_=(b : Boolean): Unit = {
+    burialOnGoing0 = b
+    if(b) {
+      new Alert(AlertType.Information) {
+        delegate.initOwner(pane.scene().getWindow)
+        title = txt.burying
+        headerText = txt.wait_end_burial
+        //contentText = "Every being has acted"
+      }.showAndWait()
+    }
+  }
+
 
   def canDragAndDropOnActPhase(fc : Card)() : Boolean =
     game.currentStarId == playerGameId &&

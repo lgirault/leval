@@ -2,7 +2,7 @@ package leval
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.TestActorRef
-import leval.core.{AttackBeing, Being, Burry, C, Card, Club, Diamond, Formation, Game, Heart, InfluencePhase, Joker, King, Move, Numeric, PlayerId, Queen, Spade, Star, Suit}
+import leval.core.{AttackBeing, Being, Bury, C, Card, Club, Diamond, Formation, Game, Heart, InfluencePhase, Joker, King, Move, Numeric, PlayerId, Queen, Spade, Star, Suit}
 import leval.gui.gameScreen.{BurialDialog, CardImg, GameScreenControl, ObservableGame}
 import leval.gui.text.Fr
 
@@ -35,7 +35,7 @@ class ControllerMockup
         case Formation(_) => false
         case _ => true //dead being
       }))
-        oGame(Burry(b.face, b.cards))
+        oGame(Bury(b.face, b.cards))
     case m : Move[_] =>
       println("Controller Mockup receives" + m)
       leval.ignore(oGame(m))

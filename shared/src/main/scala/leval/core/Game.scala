@@ -18,9 +18,15 @@ case class Game
  revealedCard : Set[(Card, Suit)] = Set()
 ) {
 
-  def nextPlayer = (currentStarId + 1) % stars.length
 
+  def nextPlayer = (currentStarId + 1) % stars.length
   def currentStar = stars(currentStarId)
+
+  def ended = rules.ended(this)
+
+  def result = rules.result(this)
+
+
   def nextPhase : Phase = currentPhase match {
     case InfluencePhase(_)=> ActPhase(Set())
     case ActPhase(_) => SourcePhase
@@ -367,7 +373,7 @@ class MutableGame(var game : Game) /*extends (Move ~> Id)*/ {
       cardRemoved
 
     case PlaceBeing(being, side) => game = game.placeBeing(being, side)
-    case Burry(target, cards) => game = game.burry(target, cards)
+    case Bury(target, cards) => game = game.burry(target, cards)
     case e : Educate => game = game.educate(e)
     case p : Phase => game = game.beginPhase(p)
   }

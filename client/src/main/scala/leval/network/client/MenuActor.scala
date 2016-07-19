@@ -1,9 +1,9 @@
 package leval.network.client
 
 import akka.actor.{Actor, ActorRef, Props}
-import leval.core.{Game, Move, PlayerId, Twilight}
+import leval.core.{BuryRequest, Game, Move, PlayerId, Twilight}
 import leval.gui.{GameListPane, ViewController, WaitingRoom}
-import leval.gui.gameScreen.ObservableGame
+import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
 import leval.network.client.GameListView.JoinAction
 import leval.network.protocol._
 
@@ -38,7 +38,18 @@ trait Scheduler {
   this : Actor =>
 
   def scheduler(players : Seq[NetPlayerId],
-                observableGame: ObservableGame) : Actor.Receive = {
+                observableGame: ObservableGame,
+                control : GameScreenControl) : Actor.Receive = {
+    case BuryRequest(target, owner) =>
+      if(context.sender() == context.system.deadLetters)
+        players(owner).actor ! BuryRequest(target, owner)
+      else {
+        val (b, _) = observableGame.findBeing(target)
+        control.burry(b)
+      }
+
+
+
     case m : Move[_] =>
       println(m + " received from " + context.sender())
 
@@ -50,6 +61,10 @@ trait Scheduler {
             println("sending " + m + " to " + pid.id.name)
           pid.actor ! m
         }
+    case StartScreen =>
+      context.unbecome()
+      println("code after unbecome executed !")
+      context.self ! StartScreen
   }
 }
 
@@ -83,7 +98,7 @@ trait WaitinPlayers extends Scheduler {
         control.showTwilight(t)
         context.become(scheduler(players, og))
 
-
+      case StartScreen => context.unbecome()
 
       case msg => println(s"Waiting players state : msg $msg unhandled")
     }
