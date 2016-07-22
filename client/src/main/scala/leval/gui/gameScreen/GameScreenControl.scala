@@ -235,89 +235,94 @@ class GameScreenControl
 
   }
 
+  def checkEveryBeingHasActedAndEndPhase() =
+    game.currentPhase match {
+      case ap: ActPhase =>
+        if (ap.activatedBeings.size == game.currentStar.beings.size) {
+          new Alert(AlertType.Information) {
+            delegate.initOwner(pane.scene().getWindow)
+            title = txt.end_of_act_phase
+            headerText = txt.every_being_has_acted
+            //contentText = "Every being has acted"
+          }.showAndWait()
+
+          if(isCurrentPlayer)
+            controller.endPhase()
+        }
+      case _ => leval.error()
+    }
+
   def notify[A](m: Move[A], res: A): Unit = {
     println(game.stars(playerGameId).name +"'s controller notified of " + m)
 
     if(game.ended) endGame()
     else
-    m match {
-      case MajestyEffect(_, _) =>
+      m match {
+        case MajestyEffect(_, _) =>
 
-        playerStarPanel.majestyValueLabel.text =
-          stars(playerGameId).majesty.toString
-        opponentStarPanel.majestyValueLabel.text =
-          stars(opponentId).majesty.toString
+          playerStarPanel.majestyValueLabel.text =
+            stars(playerGameId).majesty.toString
+          opponentStarPanel.majestyValueLabel.text =
+            stars(opponentId).majesty.toString
 
-      case PlaceBeing(b, side) =>
-        if (playerGameId == side) {
-          addPlayerBeingPane(b)
-          createBeeingPane.menuMode()
-        } else {
-          addOpponentBeingPane(b)
+        case PlaceBeing(b, side) =>
+          if (playerGameId == side) {
+            addPlayerBeingPane(b)
+            createBeeingPane.menuMode()
+          } else {
+            addOpponentBeingPane(b)
+            opponentHandPane.update()
+          }
+
+        case RemoveFromHand(_) =>
+          println(game.deathRiver)
+          riverPane.update()
+          handPane.update()
           opponentHandPane.update()
-        }
 
-      case RemoveFromHand(_) =>
-        println(game.deathRiver)
-        riverPane.update()
-        handPane.update()
-        opponentHandPane.update()
+        case CollectFromRiver(side) =>
+          if (playerGameId == side)
+            new CardDialog(res, pane).showAndWait()
 
-      case CollectFromRiver(side) =>
-        if (playerGameId == side)
-          new CardDialog(res, pane).showAndWait()
+          riverPane.update()
+          handPane.update()
+          opponentHandPane.update()
 
-        riverPane.update()
-        handPane.update()
-        opponentHandPane.update()
+        case CollectFromSource(side) =>
+          if (playerGameId == side)
+            new CardDialog(res, pane).showAndWait()
 
-      case CollectFromSource(side) =>
-        if (playerGameId == side)
-          new CardDialog(res, pane).showAndWait()
+          handPane.update()
+          opponentHandPane.update()
 
-        handPane.update()
-        opponentHandPane.update()
+        case LookCard(fc, s) =>
+          beingPanesMap get fc foreach (_ update s)
+          if(res) riverPane.update()
 
-      case Bury(target, _) =>
-        burialOnGoing = false
-        beingPanesMap get target foreach {
-          bp =>
-            beingsPane(bp.orientation).children.remove(bp.delegate)
-        }
-        beingPanesMap -= target
-        riverPane.update()
+        case Reveal(fc, s) =>
+          beingPanesMap get fc foreach (_ update s)
+          if(res) riverPane.update()
 
-      case LookCard(fc, s) =>
-        beingPanesMap get fc foreach (_ update s)
-        if(res) riverPane.update()
+        case Bury(target, _) =>
+          burialOnGoing = false
+          beingPanesMap get target foreach {
+            bp =>
+              beingsPane(bp.orientation).children.remove(bp.delegate)
+          }
+          beingPanesMap -= target
+          riverPane.update()
+          checkEveryBeingHasActedAndEndPhase()
 
-      case Reveal(fc, s) =>
-        beingPanesMap get fc foreach (_ update s)
-        if(res) riverPane.update()
+        case ActivateBeing(fc) =>
+          if(!burialOnGoing)
+          checkEveryBeingHasActedAndEndPhase()
 
-      case ActivateBeing(fc) =>
-        game.currentPhase match {
-          case ap: ActPhase =>
-            if (ap.activatedBeings.size == game.currentStar.beings.size) {
-              new Alert(AlertType.Information) {
-                delegate.initOwner(pane.scene().getWindow)
-                title = txt.end_of_act_phase
-                headerText = txt.every_being_has_acted
-                //contentText = "Every being has acted"
-              }.showAndWait()
-
-              if(isCurrentPlayer)
-                controller.endPhase()
-            }
-          case _ => leval.error()
-        }
-
-      case AttackBeing(origin, target, targetSuit) =>
-        println("AttackBeing " + game.findBeing(target))
-        game.findBeing(target) match {
-          case (Formation(f),_) =>
-            beingPanesMap get target foreach (_ update targetSuit)
-          case (b, ownerId) if ownerId != playerGameId =>
+        case AttackBeing(origin, target, targetSuit) =>
+          println("AttackBeing " + game.findBeing(target))
+          game.findBeing(target) match {
+            case (Formation(f),_) =>
+              beingPanesMap get target foreach (_ update targetSuit)
+            case (b, ownerId) if ownerId != playerGameId =>
               origin match {
                 case Origin.BeingPane(Formation(Wizard), _) =>
                   new DrawAndLookAction(this,
@@ -330,82 +335,73 @@ class GameScreenControl
               actor ! BuryRequest(b, ownerId)
               burialOnGoing = true
 
-          case _ => ()
-        }
-        origin match {
-          case Origin.Hand(_) =>
-            println(game.stars(playerGameId).hand)
-            riverPane.update()
-            handPane.update()
-            opponentHandPane.update()
-          case _ => ()
-        }
-
-
-
-      case InfluencePhase(newPlayer) =>
-        if(isCurrentPlayer)
-          beingPanesMap.values foreach { bp =>
-            if(playerBeingsPane.children contains bp)
-              bp.educateButton.visible = true
+            case _ => ()
+          }
+          origin match {
+            case Origin.Hand(_) =>
+              println(game.stars(playerGameId).hand)
+              riverPane.update()
+              handPane.update()
+              opponentHandPane.update()
+            case _ => ()
           }
 
-        statusPane.star = game.stars(newPlayer).name
-        statusPane.round = game.currentRound
-        statusPane.phase = game.currentPhase
 
-      case ActPhase(_) =>
-        beingPanesMap.values foreach {
-          _.educateButton.visible = false
-        }
-        statusPane.phase = game.currentPhase
-        if (isCurrentPlayer) {
-          //do not end phase automatically if no beings
-          //to let the player see cards potentially
-          // revealed during influence phase
-          endPhaseButton.visible = true
-        }
-        statusPane.phase = game.currentPhase
 
-      case SourcePhase =>
-        if (isCurrentPlayer)
-          new DrawAndLookAction(this, 1, 0, canCollectFromRiver,
-            () => actor ! game.nextPhase
-          ).apply()
-        else
-          new Alert(AlertType.Information) {
-            delegate.initOwner(pane.scene().getWindow)
-            title = txt.end_of_act_phase
-            headerText = txt.end_of_act_phase
-            //contentText = "Every being has acted"
-          }.showAndWait()
+        case InfluencePhase(newPlayer) =>
+          if(isCurrentPlayer)
+            beingPanesMap.values foreach { bp =>
+              if(playerBeingsPane.children contains bp)
+                bp.educateButton.visible = true
+            }
 
-        beingPanesMap.values foreach (_.update())
-        endPhaseButton.visible = false
+          statusPane.star = game.stars(newPlayer).name
+          statusPane.round = game.currentRound
+          statusPane.phase = game.currentPhase
 
-        statusPane.phase = game.currentPhase
+        case ActPhase(_) =>
+          beingPanesMap.values foreach {
+            _.educateButton.visible = false
+          }
+          statusPane.phase = game.currentPhase
+          if (isCurrentPlayer) {
+            //do not end phase automatically if no beings
+            //to let the player see cards potentially
+            // revealed during influence phase
+            endPhaseButton.visible = true
+          }
+          statusPane.phase = game.currentPhase
 
-      case Switch(target, c) =>
-        println("controller notified of education")
-        println(game.findBeing(target))
-        val bp = beingPanesMap(target)
-        bp.update(c.suit)
-        if(isCurrentPlayer)
-          handPane.update()
-        else
-          opponentHandPane.update()
+        case SourcePhase =>
+          if (isCurrentPlayer)
+            new DrawAndLookAction(this, 1, 0, canCollectFromRiver,
+              () => actor ! game.nextPhase
+            ).apply()
+          else
+            new Alert(AlertType.Information) {
+              delegate.initOwner(pane.scene().getWindow)
+              title = txt.end_of_act_phase
+              headerText = txt.end_of_act_phase
+              //contentText = "Every being has acted"
+            }.showAndWait()
 
-      case Rise(target, c) =>
-        val bp = beingPanesMap(target)
-        val (b, _) = game.findBeing(target)
-        bp.update(b)
-        if(isCurrentPlayer)
-          handPane.update()
-        else
-          opponentHandPane.update()
+          beingPanesMap.values foreach (_.update())
+          endPhaseButton.visible = false
 
-      case _ => ()
-    }
+          statusPane.phase = game.currentPhase
+
+        case e : Educate =>
+          println("Educate update pane !")
+          val bp = beingPanesMap(e.target)
+          val (b, _) = game.findBeing(e.target)
+          bp.update(b)
+          if(isCurrentPlayer)
+            handPane.update()
+          else
+            opponentHandPane.update()
+
+        case _ => ()
+      }
   }
   def showTwilight(t : Twilight) : Unit =
     new TwilightDialog(this, t){

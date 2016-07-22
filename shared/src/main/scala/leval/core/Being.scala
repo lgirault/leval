@@ -45,14 +45,14 @@ case class Being
 
 
   //a being cannot be educated to become messianic or possessed so no ambiguity here
-  def educateWith(card : C) : Being = card match {
-    case C(King | Queen , _) => copy(face, resources + (Heart -> card))
-    case C(_ , Heart) => copy(face, resources + (Heart -> card))
-    case C(_, suit) => copy(face, resources + (suit -> card))
+  def educateWith(card : C) : (Being, Card) = card match {
+    case C(King | Queen , _) => (copy(face, resources + (Heart -> card), lover = true), resources(Heart))
+    case C(_ , Heart) => (copy(face, resources + (Heart -> card), lover = false), resources(Heart))
+    case C(_, suit) => (copy(face, resources + (suit -> card)), resources(suit))
   }
 
   def educateWith(e : Educate) : Being = e match {
-    case Switch(`face`, c) => educateWith(c)
+    case Switch(`face`, c) => educateWith(c)._1
 
     case Rise(`face`, cards) =>
       val kvs = cards map (c => c.suit -> c)

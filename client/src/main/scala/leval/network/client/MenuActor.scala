@@ -43,10 +43,9 @@ trait Scheduler {
     case BuryRequest(target, owner) =>
       if(context.sender() == context.system.deadLetters)
         players(owner).actor ! BuryRequest(target, owner)
-      else {
-        val (b, _) = observableGame.findBeing(target)
-        control.burry(b)
-      }
+      else
+        control.burry(target)
+
 
 
 
@@ -96,7 +95,7 @@ trait WaitinPlayers extends Scheduler {
         val og = new ObservableGame(g)
         val control = waitingScreen.gameScreen(og)
         control.showTwilight(t)
-        context.become(scheduler(players, og))
+        context.become(scheduler(players, og, control))
 
       case StartScreen => context.unbecome()
 

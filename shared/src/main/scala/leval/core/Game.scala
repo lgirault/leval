@@ -208,9 +208,11 @@ case class Game
     def aux(b : Being, s : Star) : Star =
       e match {
         case Switch(target, c) =>
-          val oldC = b.resources(c.suit)
+          val (newB, oldC) = b.educateWith(c)
+          println("old Being = " + b)
+          println("new Being = " + newB)
           s.copy(hand = s.hand - c + oldC,
-            beings = s.beings + (target -> b.educateWith(c)))
+            beings = s.beings + (target -> newB))
         case Rise(target, cards) =>
           s.copy(hand = s.hand -- cards,
             beings = s.beings + (target -> b.educateWith(e)))

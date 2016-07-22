@@ -109,7 +109,8 @@ trait SinnlosAntaresCommon {
 
 object SinnlosRules
   extends Rules
-    with SinnlosAntaresCommon {
+    with SinnlosAntaresCommon
+    with Serializable {
 
   def legalLoverFormationAtCreation(c : Formation) : Boolean =
     c == Accomplished
@@ -135,10 +136,12 @@ object Antares
   extends Rules
     with SinnlosAntaresCommon
     with AntaresHeliosCommon
+    with Serializable
 
 object Helios
   extends Rules
-    with AntaresHeliosCommon {
+    with AntaresHeliosCommon
+    with Serializable {
   def value(c: Card): Int = Card.value(c)
 
   val startingMajesty : Int = 36

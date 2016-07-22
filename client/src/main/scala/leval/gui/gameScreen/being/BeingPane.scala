@@ -145,17 +145,16 @@ class BeingPane
 ( implicit txt : ValText) extends BeingGrid {
 
 
-  private [this] var resourcePanes0 = Seq[BeingResourcePane]()
-  def resourcePanes = resourcePanes0
+  private [this] var resourcePanes0 = Map[Suit, BeingResourcePane]()
+  def resourcePanes = resourcePanes0.values
 
   def resourcePane(s : Suit) : Option[BeingResourcePane] = {
-    resourcePanes0 find (_.position == s)
+    resourcePanes0 get s
   }
 
   def remove(s : Suit) : Unit = {
-    val (removed, remainings) = resourcePanes0 partition (_.position == s)
-    resourcePanes0 = remainings
-    removed foreach (children remove _)
+    resourcePane(s) foreach (children remove _)
+    resourcePanes0 -= s
     being = being.copy(resources = being.resources - s)
   }
 
@@ -189,7 +188,7 @@ class BeingPane
     }
 
     val bpr = new BeingResourcePane(this, c, pos, sCardDragAndDrop)()
-    resourcePanes0 +:= bpr
+    resourcePanes0 += pos -> bpr
     place(bpr)
     bpr
   }
@@ -203,7 +202,9 @@ class BeingPane
   def bottomCard  = being.resources get bottomResource
 
   def update(b : Being) : Unit = {
+    println("update being pane with " + b)
     being = b
+
     leftCard foreach { c =>
       placeResourcePane(c, leftResource, leftConstraints)
     }
@@ -222,7 +223,7 @@ class BeingPane
 
     val faceImage = CardImg(being.face, Some(cardHeight))
     GridPane.setConstraints(faceImage, 1, 1)
-    children = educateButton +: faceImage +: resourcePanes
+    children = educateButton +: faceImage +: resourcePanes.toSeq
   }
 
   update(being)
