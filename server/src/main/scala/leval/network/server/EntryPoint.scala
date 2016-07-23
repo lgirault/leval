@@ -19,8 +19,8 @@ class EntryPoint extends Actor {
   val playersDB =
     Map(("toto", "1234") -> 0,
         ("titi", "1234") -> 1,
-        ("tutu", "1234") -> 2,
-        ("tata", "1234") -> 3)
+        ("Antares", "1234") -> 4,
+        ("Sinnlos", "1234") -> 5)
 
   override def receive: Receive = {
     case Connect(login, pass) =>

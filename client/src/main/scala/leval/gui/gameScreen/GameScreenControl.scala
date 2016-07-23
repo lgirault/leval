@@ -315,31 +315,39 @@ class GameScreenControl
 
         case ActivateBeing(fc) =>
           if(!burialOnGoing)
-          checkEveryBeingHasActedAndEndPhase()
+            checkEveryBeingHasActedAndEndPhase()
 
         case AttackBeing(origin, target, targetSuit) =>
           println("AttackBeing " + game.findBeing(target))
           game.findBeing(target) match {
             case (Formation(f),_) =>
               beingPanesMap get target foreach (_ update targetSuit)
-            case (b, ownerId) if ownerId != playerGameId =>
-              origin match {
-                case Origin.BeingPane(Formation(Wizard), _) =>
-                  new DrawAndLookAction(this,
-                    collect = game.rules.wizardCollect,
-                    look = 0, canCollectFromRiver,
-                    () => MoveSeq.end(origin) foreach (actor ! _)
-                  ).apply()
-                case _ => ()
+            case (b, ownerId) =>
+              if(ownerId != playerGameId) {
+                origin match {
+                  case Origin.BeingPane(Formation(Wizard), _) =>
+                    new DrawAndLookAction(this,
+                      collect = game.rules.wizardCollect,
+                      look = 0, canCollectFromRiver,
+                      () => MoveSeq.end(origin) foreach (actor ! _)
+                    ).apply()
+                  case _ => ()
+                }
+                if(b.cards.size > 1) {
+                  actor ! BuryRequest(b, ownerId)
+                  alertWaitEndOfBurial()
+                }
+                else {
+                  actor ! Bury(b.face, b.cards)
+                }
               }
-              actor ! BuryRequest(b, ownerId)
-              burialOnGoing = true
+              if(b.cards.size > 1)
+                burialOnGoing = true
 
             case _ => ()
           }
           origin match {
             case Origin.Hand(_) =>
-              println(game.stars(playerGameId).hand)
               riverPane.update()
               handPane.update()
               opponentHandPane.update()
@@ -414,18 +422,14 @@ class GameScreenControl
       case _ => false
     }
 
-  private [this] var burialOnGoing0 = false
-  def burialOnGoing = burialOnGoing0
-  def burialOnGoing_=(b : Boolean): Unit = {
-    burialOnGoing0 = b
-    if(b) {
+  private [this] var burialOnGoing = false
+  def alertWaitEndOfBurial() : Unit = {
       new Alert(AlertType.Information) {
         delegate.initOwner(pane.scene().getWindow)
         title = txt.burying
         headerText = txt.wait_end_burial
         //contentText = "Every being has acted"
       }.showAndWait()
-    }
   }
 
 

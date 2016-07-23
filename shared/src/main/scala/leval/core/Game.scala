@@ -271,7 +271,7 @@ case class Game
 object Game {
 
   def apply(s1 : Star, s2 : Star, src : Deck) =
-    new Game(Seq(s1, s2), 0, InfluencePhase(0), src, SinnlosRules)
+    new Game(Seq(s1, s2), 0, InfluencePhase(0), src, Sinnlos)
 
   def apply(players : Seq[PlayerId]) : Game = players match {
     case p1 +: p2 +: Nil => this.apply(p1, p2)

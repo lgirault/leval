@@ -17,7 +17,7 @@ object GUIClient extends JFXApp {
     root = new SearchingServerScene()
   }
   stage = new PrimaryStage {
-    title = "Le Vl"
+    title = "Le Val"
     scene = stageScene
   }
 
@@ -72,6 +72,5 @@ object GUIClient extends JFXApp {
     println("Shutting down !!")
     system.terminate()
     println("Bye bye !!")
-
   }
 }

@@ -41,13 +41,14 @@ trait Scheduler {
                 observableGame: ObservableGame,
                 control : GameScreenControl) : Actor.Receive = {
     case BuryRequest(target, owner) =>
-      if(context.sender() == context.system.deadLetters)
-        players(owner).actor ! BuryRequest(target, owner)
+      if(context.sender() == context.system.deadLetters) {
+        val ownerId = observableGame.stars(owner).id.uuid
+        players.find(_.id.uuid == ownerId) foreach {
+          _.actor ! BuryRequest(target, owner)
+        }
+      }
       else
         control.burry(target)
-
-
-
 
     case m : Move[_] =>
       println(m + " received from " + context.sender())

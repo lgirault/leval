@@ -107,7 +107,7 @@ trait SinnlosAntaresCommon {
 
 }
 
-object SinnlosRules
+object Sinnlos
   extends Rules
     with SinnlosAntaresCommon
     with Serializable {
