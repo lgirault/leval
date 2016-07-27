@@ -2,7 +2,6 @@ package leval.gui.gameScreen
 
 import javafx.geometry.Bounds
 
-import leval.ignore
 import leval.core._
 
 import scalafx.geometry.Point2D

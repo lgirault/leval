@@ -23,11 +23,11 @@ class TwilightDialog
     percentWidth = 50
   }
 
-  val t1 = twilight.cards(control.playerGameId)
+  val t1 = twilight.cards(control.playerGameIdx)
 
   import control.game
   val s1 = new VBox {
-    children = Seq(new Text(game.stars(control.playerGameId).name),
+    children = Seq(new Text(game.stars(control.playerGameIdx).name),
       new HBox{
         children add CardImg(t1.head)
         t1.tail foreach (c => children.add(CardImg.cutRight(c, 3)))

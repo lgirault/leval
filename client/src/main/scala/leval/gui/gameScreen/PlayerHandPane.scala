@@ -14,7 +14,7 @@ import scalafx.scene.layout.{FlowPane, HBox}
 class PlayerHandPane
 ( controller : GameScreenControl) extends FlowPane {
 
-  def hand = controller.game.stars(controller.playerGameId).hand
+  def hand = controller.game.stars(controller.playerGameIdx).hand
 
 
 

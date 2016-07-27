@@ -67,7 +67,7 @@ class CreateBeingTile
           otherPane.card = None
 
 
-      case (None, _) => ()
+      case _ => ()
     }
 
     card = Some(origin.card)
@@ -163,7 +163,8 @@ class CreateBeingPane
     val m =  weapon.card map (c => m3 + (Spade -> c)) getOrElse m3
 
     face.card map {
-      case fc : Card => new Being(fc, m,
+      case fc : Card => new Being(controller.playerGameIdx,
+        fc, m,
         heart.card exists {
           case C(King | Queen, _) => true
           case _ => false
@@ -230,9 +231,9 @@ class CreateBeingPane
       rules.validBeing(b) && !(b.lover ||
         rules.legalLoverFormationAtCreation(f)) && {
 
-        val star = controller.game.stars(controller.playerGameId)
+        val playerBeings = controller.game beingsOwnBy controller.playerGameIdx
 
-        val hasSameFormation = star.beings.values exists {
+        val hasSameFormation = playerBeings exists {
           case Formation(`f`) => true
           case _ => false
         }

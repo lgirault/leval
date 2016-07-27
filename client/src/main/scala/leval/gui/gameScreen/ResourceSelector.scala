@@ -1,6 +1,6 @@
 package leval.gui.gameScreen
 
-import leval.core.{ActPhase, AttackBeing, Being, Club, Diamond, Heart, Joker, LookCard, MajestyEffect, Move, Origin, RemoveFromHand, Suit}
+import leval.core._
 import leval.gui.gameScreen.being.BeingResourcePane
 
 import scalafx.Includes._

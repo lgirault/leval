@@ -29,8 +29,8 @@ class ControllerMockup
     case InfluencePhase(opponentId) => leval.ignore(oGame(InfluencePhase(playerId)))
     case m @ AttackBeing(_,target,_) =>
       leval.ignore(oGame(m))
-      val (b, owner) = oGame.game.findBeing(target)
-      if(owner == opponentId && (
+      val b = oGame.game.beings(target)
+      if(b.owner == opponentId && (
         b match {
         case Formation(_) => false
         case _ => true //dead being
@@ -48,12 +48,14 @@ object TestScene extends JFXApp  {
   def initGame : Game = {
 
 
-    val fool = new Being(C(Queen, Spade),
+    val fool = new Being(1,
+      C(Queen, Spade),
       Map(Club -> ((8, Club)),
         Heart -> ((1, Heart)),
         Spade -> ((1, Spade))
       ))
-    val spectre = new Being(C(King, Spade),
+    val spectre = new Being(1,
+      C(King, Spade),
       Map(Club -> ((1, Club)),
         Diamond -> ((6, Diamond)),
         Spade -> ((3, Spade))
@@ -69,7 +71,7 @@ object TestScene extends JFXApp  {
     val (d3, hand2) = d2.pick(9)
 
     Game(Star(p1, hand1 :+ Joker.Red :+ Joker.Black),
-      Star(p2, hand2, Map(fool.face -> fool, spectre.face -> spectre)), d3)
+      Star(p2, hand2), d3).copy(beings = Map(fool.face -> fool, spectre.face -> spectre))
   }
 
 
@@ -103,7 +105,8 @@ object BurialTestScene extends JFXApp {
     }
   }
 
-  new BurialDialog( Being(C(King, Spade),
+  new BurialDialog(Being(0,
+      C(King, Spade),
       Map[Suit, Card](Heart ->C(Numeric(5), Heart),
       Diamond -> C(Numeric(7), Diamond))),
     CardImg.width, CardImg.height,

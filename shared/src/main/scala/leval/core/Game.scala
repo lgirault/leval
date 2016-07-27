@@ -3,14 +3,15 @@ package leval.core
 /**
   * Created by lorilan on 6/29/16.
   */
-import Game.{SeqOps, goesToRiver}
+import Game.{SeqOps, goesToRiver, StarIdx}
 
 case class Game
 (stars : Seq[Star], // for 4 or 3 players ??
- currentStarId : Int,
+ currentStarIdx : StarIdx,
  currentPhase: Phase,
  source : Deck,
  rules : Rules,
+ beings : Map[Card, Being] = Map(),
  deathRiver: List[Card] = List(),
  currentRound : Int = 1,
  beingsState : Map[Card, Being.State] = Map(), //reset each round
@@ -19,8 +20,8 @@ case class Game
 ) {
 
 
-  def nextPlayer = (currentStarId + 1) % stars.length
-  def currentStar = stars(currentStarId)
+  def nextPlayer = (currentStarIdx + 1) % stars.length
+  def currentStar = stars(currentStarIdx)
 
   def ended = rules.ended(this)
 
@@ -39,11 +40,6 @@ case class Game
     copy(stars.set(numStar, star.copy(hand = newHand)))
   }
 
-
-  def setPlayerBeing(numStar : Int, being : Being) : Game = {
-    val newPlayer = stars(numStar).copy(beings = stars(numStar).beings + (being.face -> being))
-    copy(stars = stars.set(currentStarId, newPlayer))
-  }
 
   def directEffect(value : Int, target : Int) : Game = {
     val s = stars(target)
@@ -79,40 +75,27 @@ case class Game
       deathRiver.head)
   }
 
-  def placeBeing(being : Being, side : Int) : Game = {
+  def placeBeing(being : Being, side : StarIdx) : Game = {
     val newHand = stars(side).hand  -- being.cards
     setHand(side, newHand)
-      .setPlayerBeing(side, being)
+      .copy(beings = beings + (being.face -> being))
+
   }
 
-  def burry(target : Card, cards : List[Card])  : Game = {
-    val (targetB, owner) = findBeing(target)
-    val ownerStar = stars(owner)
-    val newStars = stars.set(owner, ownerStar.copy(beings = ownerStar.beings - target))
-    copy(stars = newStars,
+  def burry(target : Card, cards : List[Card])  : Game =
+    copy(beings = beings - target,
       deathRiver = cards reverse_::: deathRiver)
-  }
 
 
-  def findBeing(face : Card) : (Being, Int) = {
-    var i = nextPlayer
-    do{
-      val sb = stars(i).beings get face
-      if(sb.nonEmpty)
-        return (sb.get, i)
 
-      i = (i+1) % stars.length
-    }while(i != nextPlayer)
-    leval.error()
-  }
+
 
   def majestyEffectOnAttackBeing
   ( target : Being,
     attacker : Int,
-    ownerId : Int,
     removed : Boolean
     ) : Game = {
-
+    val ownerId = target.owner
     //deadSpectreBonus
     target match {
       case Formation(Spectre) if removed =>
@@ -125,7 +108,7 @@ case class Game
           case _ => 0
         }
         val selfAttackPenalty =
-          if(attacker == currentStarId){
+          if(attacker == currentStarIdx){
             if(target.lover) 10
             else 5
           }
@@ -153,7 +136,7 @@ case class Game
           case Origin.Hand(c) => rules.value(c)
           case Origin.BeingPane(b, s) => beingValue(b, s).get
         }
-        val (targetB, owner) = findBeing(target)
+        val targetB = beings(target)
         import Being.StateOps
         val targetState = beingsState getOrElse(target, (0, 0))
 
@@ -165,7 +148,7 @@ case class Game
         val removeCard = (targetNewState get targetedSuit) >= hp
 
 
-        ((if (removeCard) removeCardFromBeing(stars, targetB, owner, targetedSuit)
+        ((if (removeCard) removeCardFromBeing(targetB, targetedSuit)
         else g0).copy(beingsState = globalNewState), removeCard)
       }
 
@@ -176,15 +159,14 @@ case class Game
       case Origin.BeingPane(_, _) => g1
     }
 
-    val (b, ownerId) = findBeing(target)
-    (g2.majestyEffectOnAttackBeing(b, origin.owner(this), ownerId, removed1), removed1)
+    val b = beings(target)
+    (g2.majestyEffectOnAttackBeing(b, origin.owner(this), removed1), removed1)
   }
 
 
 
 
-  private def removeCardFromBeing(stars : Seq[Star],
-                                  target : Being, owner : Int,
+  private def removeCardFromBeing(target : Being,
                                   removedSuit : Suit) : Game = {
 
     val removedCard = target resources removedSuit
@@ -192,51 +174,47 @@ case class Game
       if(goesToRiver(removedCard)) removedCard :: deathRiver
       else deathRiver
 
-
     val newBeing = target.copy(resources = target.resources - removedSuit)
-    val ownerStar = stars(owner)
-    copy(stars = stars.set(owner,
-      ownerStar.copy(beings = ownerStar.beings + (target.face  -> newBeing))),
+    copy( beings = beings + (target.face  -> newBeing),
       deathRiver = newRiver )
   }
 
   def educate(e : Educate) : Game = {
-    val (b, sid) = findBeing(e.target)
+    val b = beings(e.target)
 
-    val star = stars(sid)
+    val star = stars(b.owner)
 
-    def aux(b : Being, s : Star) : Star =
+    def aux(b : Being, s : Star) : (Star, Being) =
       e match {
         case Switch(target, c) =>
           val (newB, oldC) = b.educateWith(c)
-          println("old Being = " + b)
-          println("new Being = " + newB)
-          s.copy(hand = s.hand - c + oldC,
-            beings = s.beings + (target -> newB))
+          (s.copy(hand = s.hand - c + oldC), newB)
         case Rise(target, cards) =>
-          s.copy(hand = s.hand -- cards,
-            beings = s.beings + (target -> b.educateWith(e)))
+          (s.copy(hand = s.hand -- cards), b.educateWith(e))
       }
 
 
-    copy(stars = stars.set(sid, aux(b, star)))
+    val (newStar, newBeing) = aux(b, star)
+
+    copy(beings = beings + (newBeing.face -> newBeing),
+        stars = stars.set(b.owner, newStar))
   }
 
   def revealAndLookLoverCheck(targetfc : Card,
                               s : Suit,
                               removeGard : Int => Boolean) : (Game, Boolean) = {
-    val (targetB, owner) = findBeing(targetfc)
+    val targetB = beings(targetfc)
     val looked = targetB resources s
     looked match {
-      case C(Queen | King, _) if removeGard(owner)  =>
-        (removeCardFromBeing(stars, targetB, owner, Heart), true)
+      case C(Queen | King, _) if removeGard(targetB.owner)  =>
+        (removeCardFromBeing(targetB, Heart), true)
       case _ => (this, false)
     }
   }
 
   def lookCard (targetfc : Card, s : Suit) : (Game, Boolean) = {
     val(g, cardRemoved) =
-      revealAndLookLoverCheck(targetfc, s, _ != currentStarId)
+      revealAndLookLoverCheck(targetfc, s, _ != currentStarIdx)
     (g.copy(lookedCards = lookedCards + ((targetfc, s))),
       cardRemoved)
   }
@@ -252,7 +230,7 @@ case class Game
   def beginPhase(newPhase : Phase) : Game = newPhase match {
     case InfluencePhase(newActivePlayer) =>
       copy(currentPhase = newPhase,
-        currentStarId = newActivePlayer,
+        currentStarIdx = newActivePlayer,
         currentRound = currentRound + 1)
     case ActPhase(_) =>
       copy(currentPhase = newPhase)
@@ -264,11 +242,14 @@ case class Game
   }
 
   def beingValue(b : Being, s : Suit ) = b.value(s, rules.value)
+  def beingsOwnBy(idx: StarIdx) = beings.values filter (_.owner == idx)
 }
 
 
 
 object Game {
+
+  type StarIdx = Int
 
   def apply(s1 : Star, s2 : Star, src : Deck) =
     new Game(Seq(s1, s2), 0, InfluencePhase(0), src, Sinnlos)
@@ -344,6 +325,8 @@ object Game {
     if(mulligan(g)) gameWithoutMulligan(players)
     else (t, g)
   }
+
+
 }
 
 //import cats.{Id, ~>}

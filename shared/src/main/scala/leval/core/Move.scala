@@ -20,8 +20,8 @@ object Origin {
   }
   case class BeingPane(b : Being, suit : Suit) extends Origin {
     def card = b resources suit
-    def owner(g : Game) : Int =
-      g.findBeing(b.face)._2
+    def owner(g : Game) : Int = b.owner
+
   }
 }
 sealed abstract class Origin {
@@ -42,7 +42,7 @@ case class LookCard(target : Card, resource : Suit) extends Move[Boolean]
 
 case class PlaceBeing(being: Being, side : Int) extends Move[Unit]
 case class Bury(target : Card, order : List[Card]) extends Move[Unit]
-case class BuryRequest(target : Being, owner : Int) // do not extend Move, this is client communication, place somewhere else ?
+case class BuryRequest(target : Being) // do not extend Move, this is client communication, place somewhere else ?
 
 //delate Educate and make EducationType a move ??
 sealed abstract class Educate extends Move[Unit] {

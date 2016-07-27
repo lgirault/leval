@@ -1,5 +1,7 @@
 package leval.core
 
+import leval.core.Game.StarIdx
+
 import scala.collection.immutable.SortedSet
 
 /**
@@ -29,7 +31,8 @@ object Being {
 }
 
 case class Being
-(face : Card,
+(owner : StarIdx,
+ face : Card,
  resources : Map[Suit, Card],
  lover : Boolean = false){
 
@@ -46,9 +49,9 @@ case class Being
 
   //a being cannot be educated to become messianic or possessed so no ambiguity here
   def educateWith(card : C) : (Being, Card) = card match {
-    case C(King | Queen , _) => (copy(face, resources + (Heart -> card), lover = true), resources(Heart))
-    case C(_ , Heart) => (copy(face, resources + (Heart -> card), lover = false), resources(Heart))
-    case C(_, suit) => (copy(face, resources + (suit -> card)), resources(suit))
+    case C(King | Queen , _) => (copy(resources = resources + (Heart -> card), lover = true), resources(Heart))
+    case C(_ , Heart) => (copy(resources = resources + (Heart -> card), lover = false), resources(Heart))
+    case C(_, suit) => (copy(resources = resources + (suit -> card)), resources(suit))
   }
 
   def educateWith(e : Educate) : Being = e match {
@@ -119,17 +122,16 @@ case object Spectre extends Formation
 case object Shadow extends Formation
 
 object Star {
-  def apply(id : PlayerId, hand : Seq[Card], beings : Map[Card, Being] = Map()) : Star = {
+  def apply(id : PlayerId, hand : Seq[Card]) : Star = {
     val s : Set[Card] = SortedSet.empty(Card.cardOrdering)
-    new Star(id, 25, s ++ hand, beings)
+    new Star(id, 25, s ++ hand)
   }
 }
 
 case class Star
 (id : PlayerId,
  majesty : Int,
- hand : Set[Card],
- beings : Map[Card, Being]){
+ hand : Set[Card]){
   def name = id.name
 }
 

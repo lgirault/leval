@@ -209,8 +209,8 @@ class TwoPlayerGamePane
 
   private [gameScreen] val beingPanesMap = mutable.Map[Card, BeingPane]()
 
-  controller.game.stars(controller.opponentId).beings.values foreach addOpponentBeingPane
-  controller.game.stars(controller.playerGameId).beings.values foreach addPlayerBeingPane
+  controller.game beingsOwnBy controller.opponentId foreach addOpponentBeingPane
+  controller.game beingsOwnBy controller.playerGameIdx foreach addPlayerBeingPane
 
 
   def beingPanes : Iterable[BeingPane] = beingPanesMap.values
@@ -223,8 +223,7 @@ class TwoPlayerGamePane
     else opponentBeingsPane
 
   def beingPanes(sideId : Int) : Iterable[BeingPane] =
-    game.stars(sideId).beings map {case (face, _) => beingPanesMap(face)}
-
+    beingPanesMap.values filter (_.being.owner == sideId)
 
   def addOpponentBeingPane(b : Being) : Unit = {
     val bp = new BeingPane(controller, b, cardWidth, cardHeight, Opponent)
@@ -248,7 +247,7 @@ class TwoPlayerGamePane
 
   val statusPane = new StatusPane()
 
-  statusPane.star = game.stars(game.currentStarId).name
+  statusPane.star = game.stars(game.currentStarIdx).name
 
   val leftColumn = Seq(
     statusPane,

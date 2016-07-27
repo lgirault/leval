@@ -44,7 +44,7 @@ object Fr extends ValText {
   val twilight_ceremony : String = "Cérémonie du crépuscule"
 
   val end_of_act_phase : String = "Fin de la phase des actes"
-  val every_being_has_acted : String = "Tous les êtres ont agits"
+  val every_being_has_acted : String = "Tous les êtres ont agi"
 
   val educate : String = "Éduquer"
   val do_end_act_phase = "Terminer la phase des Actes"

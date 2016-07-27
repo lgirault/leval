@@ -1,6 +1,7 @@
 package leval.gui.gameScreen
 
 //import cats._
+import leval.core.Game.StarIdx
 import leval.core.{Being, Card, Game, Move, MutableGame, Phase, Star, Suit}
 
 import scala.collection.mutable
@@ -15,14 +16,15 @@ trait GameObserver {
 
 class ObservableGame(g : Game) extends MutableGame(g){
   def stars : Seq[Star] = game.stars
-  def currentStarId : Int = game.currentStarId
+  def currentStarId : Int = game.currentStarIdx
   def currentPhase : Phase = game.currentPhase
   def deathRiver: List[Card] = game.deathRiver
   def currentRound : Int = game.currentRound
   def currentStar : Star = game.currentStar
   def ended : Boolean = game.ended
   def result = game.result
-  def findBeing(face : Card) = game.findBeing(face)
+  def beings = game.beings
+  def beingsOwnBy(idx: StarIdx) = game.beingsOwnBy(idx)
 
   def nextPhase = game.nextPhase
 
@@ -32,7 +34,7 @@ class ObservableGame(g : Game) extends MutableGame(g){
 
   def rules = game.rules
 
-  def value(b : Being, s : Suit ) = g.beingValue(b, s)
+  def value(b : Being, s : Suit) = g.beingValue(b, s)
 
   val observers : mutable.ListBuffer[GameObserver] = new mutable.ListBuffer[GameObserver]
 
