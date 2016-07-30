@@ -2,7 +2,7 @@ package leval
 
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.TestActorRef
-import leval.core.{AttackBeing, Being, Bury, C, Card, Club, Diamond, Formation, Game, Heart, InfluencePhase, Joker, King, Move, Numeric, PlayerId, Queen, Spade, Star, Suit}
+import leval.core._
 import leval.gui.gameScreen.{BurialDialog, CardImg, GameScreenControl, ObservableGame}
 import leval.gui.text.Fr
 
@@ -29,7 +29,7 @@ class ControllerMockup
     case InfluencePhase(opponentId) => leval.ignore(oGame(InfluencePhase(playerId)))
     case m @ AttackBeing(_,target,_) =>
       leval.ignore(oGame(m))
-      val b = oGame.game.beings(target)
+      val b = oGame.game.beings(target.face)
       if(b.owner == opponentId && (
         b match {
         case Formation(_) => false
@@ -48,6 +48,10 @@ object TestScene extends JFXApp  {
   def initGame : Game = {
 
 
+    val child = new Being(1,
+      C(Jack, Spade),
+      Map(Heart -> ((2, Heart)))
+    )
     val fool = new Being(1,
       C(Queen, Spade),
       Map(Club -> ((8, Club)),
@@ -71,7 +75,11 @@ object TestScene extends JFXApp  {
     val (d3, hand2) = d2.pick(9)
 
     Game(Star(p1, hand1 :+ Joker.Red :+ Joker.Black),
-      Star(p2, hand2), d3).copy(beings = Map(fool.face -> fool, spectre.face -> spectre))
+      Star(p2, hand2), d3).
+      copy(beings =
+        Map(fool.face -> fool,
+          spectre.face -> spectre,
+          child.face -> child))
   }
 
 

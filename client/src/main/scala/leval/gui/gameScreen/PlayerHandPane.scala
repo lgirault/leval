@@ -1,6 +1,6 @@
 package leval.gui.gameScreen
 
-import leval.core.{Card, Origin}
+import leval.core.{Card, CardOrigin}
 
 import scalafx.Includes._
 import scalafx.geometry.Pos
@@ -36,7 +36,7 @@ class PlayerHandPane
         img.handleEvent(MouseEvent.Any) {
           new CardDragAndDrop(controller,
             controller.canDragAndDropOnInfluencePhase,
-            Origin.Hand(img.card))()
+            CardOrigin.Hand(controller.playerGameIdx, img.card))()
         }
     }
     imgs

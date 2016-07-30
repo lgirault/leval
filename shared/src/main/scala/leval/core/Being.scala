@@ -34,7 +34,12 @@ case class Being
 (owner : StarIdx,
  face : Card,
  resources : Map[Suit, Card],
- lover : Boolean = false){
+ lover : Boolean = false,
+ hasDrawn : Boolean = false //for Helios rule
+ ){
+
+  def -( s :Suit) = copy(resources = resources - s)
+  def +( kv : (Suit, Card)) = copy(resources = resources + kv)
 
   def heart : Option[Card] = resources get Heart
   def weapon : Option[Card] = resources get Spade
@@ -49,7 +54,8 @@ case class Being
 
   //a being cannot be educated to become messianic or possessed so no ambiguity here
   def educateWith(card : C) : (Being, Card) = card match {
-    case C(King | Queen , _) => (copy(resources = resources + (Heart -> card), lover = true), resources(Heart))
+    case C(King | Queen, _)
+    | C(Jack, Heart) => (copy(resources = resources + (Heart -> card), lover = true), resources(Heart))
     case C(_ , Heart) => (copy(resources = resources + (Heart -> card), lover = false), resources(Heart))
     case C(_, suit) => (copy(resources = resources + (suit -> card)), resources(suit))
   }
@@ -59,7 +65,11 @@ case class Being
 
     case Rise(`face`, cards) =>
       val kvs = cards map (c => c.suit -> c)
-      copy(resources = kvs.foldLeft(resources)(_ + _))
+      val b1 = copy(resources = kvs.foldLeft(resources)(_ + _), hasDrawn = false)
+      b1.resources get Heart match {
+        case Some(C(King | Queen | Jack, _)) if ! b1.lover => b1.copy(lover = true)
+        case _ => b1
+      }
     case _ => this
   }
 
@@ -68,16 +78,10 @@ case class Being
   def formationBonus(resource : Suit) = (resource, this) match {
     case (Heart, Formation(Child)) => 1
     case (Club, Formation(Fool)) => 1
-    case (Diamond, Formation(Wizard)) => 1
-    case (Spade, Formation(Knight)) => 1
-    case (_, Formation(Spectre)) if lover =>
-      (face, resource) match {
-        case (C(King | Queen,_), Diamond) => 1
-        case (C(King,_), Club) => 3
-        case (C(Queen,_), Club) => 2
-        case (C(King,_), Spade) => 1
-        case _ => 0
-      }
+    case (Club, Spectre(BlackLady)) => 2
+    case (Club, Spectre(Royal)) => 3
+    case (Diamond, Formation(Wizard) | Spectre(Royal|BlackLady)) => 1
+    case (Spade, Formation(Knight)| Spectre(Royal)) => 1
     case _ => 0
   }
 
@@ -111,15 +115,26 @@ object Formation {
     case _ => None
   }
 }
-
 sealed abstract class Formation
 case object Accomplished extends Formation
 case object Fool extends Formation
 case object Knight extends Formation
 case object Child extends Formation
 case object Wizard extends Formation
-case object Spectre extends Formation
 case object Shadow extends Formation
+case object Spectre extends Formation {
+  def unapply(b: Being): Option[Spectre] = (b, b.lover, b.face) match {
+    case (Formation(Spectre), false, _) => Some(Regular)
+    case (Formation(Spectre), true, C(King, _)) => Some(Royal)
+    case (Formation(Spectre), true, C(Queen, _)) => Some(BlackLady)
+    case _ => None
+  }
+}
+
+sealed abstract class Spectre
+case object Regular extends Spectre
+case object Royal extends Spectre
+case object BlackLady extends Spectre
 
 object Star {
   def apply(id : PlayerId, hand : Seq[Card]) : Star = {
@@ -133,5 +148,14 @@ case class Star
  majesty : Int,
  hand : Set[Card]){
   def name = id.name
+
+  def +( i : Int) = copy(majesty = majesty + i)
+  def -( i : Int) = copy(majesty = majesty - i)
+
+  def +(c : Card) = copy(hand = hand + c)
+  def -(c : Card) = copy(hand = hand - c)
+  def ++(cs : Iterable[Card]) = copy(hand = hand ++ cs)
+  def --(cs : Iterable[Card]) = copy(hand = hand -- cs)
+
 }
 

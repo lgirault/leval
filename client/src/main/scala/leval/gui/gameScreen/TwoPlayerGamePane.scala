@@ -3,6 +3,7 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
+import leval.ignore
 import leval.core._
 import leval.gui.gameScreen.being._
 
@@ -18,7 +19,7 @@ import scalafx.stage.Screen
 abstract class CardDropTarget(decorated : Node)
   extends HighlightableRegion(decorated)  {
 
-  def onDrop(origin : Origin) : Unit
+  def onDrop(origin : CardOrigin) : Unit
 }
 
 class RiverPane
@@ -91,6 +92,7 @@ class TwoPlayerGamePane
   import controller.{opponentId, txt}
   import oGame._
 
+  //style = "-fx-background : rgb(0,0,51)"
 
   def player = stars(playerGameId)
 
@@ -114,7 +116,7 @@ class TwoPlayerGamePane
 
   private [this] var highlightableRegions = Seq[CardDropTarget]()
   def highlightedTargets = highlightableRegions
-  def doHightlightTargets(origin : Origin): Unit = {
+  def doHightlightTargets(origin : CardOrigin): Unit = {
     val highlighteds =
       if(createBeeingPane.isOpen) createBeeingPane.targets(origin.card)
       else if(educateBeingPane.isOpen) origin.card match {
@@ -135,7 +137,7 @@ class TwoPlayerGamePane
             case _ => Seq()
           }
         origin match{
-          case Origin.Hand(_) =>
+          case CardOrigin.Hand(_, _) =>
             createBeeingPane.createBeingLabel +: highlighteds0
           case _ => highlighteds0
         }
@@ -163,13 +165,13 @@ class TwoPlayerGamePane
   playerStarPanel.alignmentInParent = Pos.TopCenter
 
   val deck = new CardDropTarget(CardImg.back(Some(cardHeight))){
-    def onDrop(origin: Origin): Unit =
+    def onDrop(origin: CardOrigin): Unit =
       controller.drawAndLook(origin)
   }
 
   val riverPane = new RiverPane(controller, cardHeight)
   val riverWrapper = new CardDropTarget(riverPane){
-    def onDrop(origin: Origin): Unit =
+    def onDrop(origin: CardOrigin): Unit =
       controller.drawAndLook(origin)
   }
 
@@ -234,7 +236,7 @@ class TwoPlayerGamePane
   def addPlayerBeingPane(b : Being) : Unit = {
     val bp = new BeingPane(controller, b, cardWidth, cardHeight, Player)
     beingPanesMap += (b.face -> bp)
-    playerBeingsPane.children add bp
+    ignore(playerBeingsPane.children add bp)
   }
 
   val playerArea = new BorderPane() {

@@ -13,7 +13,7 @@ trait ValText {
   val majesty : String
 
   val end_of_act_phase : String
-  val every_being_has_acted : String
+  val every_beings_have_acted : String
 
   val twilight_ceremony : String
 
@@ -29,6 +29,13 @@ trait ValText {
 
   val burying : String
   val wait_end_burial : String
+
+  val forbidden : String
+  val cannot_attack_on_first_round : String
+
+  val both_lose : String
+  val wins : String
+  val game_over : String
 }
 
 object Fr extends ValText {
@@ -44,7 +51,7 @@ object Fr extends ValText {
   val twilight_ceremony : String = "Cérémonie du crépuscule"
 
   val end_of_act_phase : String = "Fin de la phase des actes"
-  val every_being_has_acted : String = "Tous les êtres ont agi"
+  val every_beings_have_acted : String = "Tous les êtres ont agi"
 
   val educate : String = "Éduquer"
   val do_end_act_phase = "Terminer la phase des Actes"
@@ -58,6 +65,14 @@ object Fr extends ValText {
 
   val burying : String = "Enterrement"
   val wait_end_burial : String = "Attendez la fin de l'enterrement"
+
+  val forbidden : String = "Interdit"
+  val cannot_attack_on_first_round : String =
+      "Vous ne pouvez attaquer au premier tour"
+
+  val both_lose : String = "Levé de Soleil. Les deux étoiles perdent"
+  val wins : String = " gagne !"
+  val game_over : String = "Fin du jeu"
 }
 
 object Eng extends ValText {
@@ -72,8 +87,8 @@ object Eng extends ValText {
 
   val twilight_ceremony : String = "Twilight ceremony"
 
-  val end_of_act_phase : String = "Fin de la phase des actes"
-  val every_being_has_acted : String = "Tous les êtres ont agi"
+  val end_of_act_phase : String = "End of act phase"
+  val every_beings_have_acted : String = "Every beings have acted"
 
   val educate : String = "Educate"
   val do_end_act_phase = "End Act phase"
@@ -88,4 +103,12 @@ object Eng extends ValText {
   val burying : String = "Burying"
 
   val wait_end_burial : String = "Wait end of burial"
+
+  val forbidden : String = "Forbidden"
+  val cannot_attack_on_first_round : String =
+    "You cannot attack during the first round"
+
+  val both_lose : String = "The sun rise. Both stars lose."
+  val wins : String = " wins !"
+  val game_over : String = "Game over"
 }

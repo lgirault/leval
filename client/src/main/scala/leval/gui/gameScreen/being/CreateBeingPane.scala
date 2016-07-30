@@ -17,7 +17,7 @@ class CreateBeingTile
 (val pane : CreateBeingPane,
  val tile : Pane,
  val hand : PlayerHandPane,
- doCardDragAndDrop: Origin => CardDragAndDrop )
+ doCardDragAndDrop: CardOrigin => CardDragAndDrop )
   extends CardDropTarget(tile) {
 
   var cardImg0 : Option[(CardImageView, CardDragAndDrop)] = None
@@ -37,7 +37,7 @@ class CreateBeingTile
     cardImg = sc map {
       c =>
         val ci = CardImg(c, Some(tile.prefHeight.value))
-        (ci, doCardDragAndDrop(Origin.Hand(c)))
+        (ci, doCardDragAndDrop(CardOrigin.Hand(pane.playerGameIdx , c)))
     }
 
 
@@ -50,7 +50,7 @@ class CreateBeingTile
 
   def pos : Option[Suit] = pane.mapTiles.find( _._2 == this) map (_._1)
 
-  def onDrop(origin : Origin) : Unit = {
+  def onDrop(origin : CardOrigin) : Unit = {
     (pane.tiles find( p => p != this && (p.card contains origin.card) ), card) match {
       case (Some(otherPane), Some(thisCard)) => //card comes from othePane
 
@@ -58,7 +58,7 @@ class CreateBeingTile
           case None => //other pane is face
             pane.rules.checkLegalLover(origin.card, thisCard)
           case Some(otherPos) =>
-            pane.rules.validResource(thisCard, otherPos)
+            pane.rules.validResource(pane.face.card getOrElse Joker.Black, thisCard, otherPos)
         }
 
         if(switch)
@@ -94,6 +94,8 @@ class CreateBeingPane
 
   def isOpen = open0
 
+  def playerGameIdx = controller.playerGameIdx
+
   val okButton = okCanvas(cardWidth)
   okButton.visible = false
 
@@ -102,7 +104,7 @@ class CreateBeingPane
       being foreach controller.placeBeing
   }
 
-  def editMode(origin: Origin) : Unit = {
+  def editMode(origin: CardOrigin) : Unit = {
     children = Seq(face, mind, power, heart, weapon,
       okButton, closeButton/*buttonWrapper*/)
     defaultPos(origin.card).onDrop(origin)
@@ -118,7 +120,7 @@ class CreateBeingPane
 
   val createBeingLabel =
     new CardDropTarget(cardRectangle(txt.create_being, cardWidth, cardHeight)) {
-      def onDrop(origin: Origin) =
+      def onDrop(origin: CardOrigin) =
         editMode(origin)
     }
 
@@ -163,7 +165,7 @@ class CreateBeingPane
     val m =  weapon.card map (c => m3 + (Spade -> c)) getOrElse m3
 
     face.card map {
-      case fc : Card => new Being(controller.playerGameIdx,
+      case fc : Card => new Being(playerGameIdx,
         fc, m,
         heart.card exists {
           case C(King | Queen, _) => true
@@ -213,7 +215,7 @@ class CreateBeingPane
   def targets(c : Card ): Seq[CardDropTarget] = {
 
     val allowedTiles : Seq[CardDropTarget] = defaultPos(c) :: (mapTiles filter {
-      case (pos, tile) => rules.validResource(c, pos)
+      case (pos, tile) => rules.validResource(face.card getOrElse Joker.Black, c, pos)
     } values).toList
 
     (face.card , c) match {

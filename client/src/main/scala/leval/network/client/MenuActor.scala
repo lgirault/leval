@@ -40,12 +40,10 @@ trait Scheduler {
   def scheduler(players : Seq[NetPlayerId],
                 observableGame: ObservableGame,
                 control : GameScreenControl) : Actor.Receive = {
-    case BuryRequest(target) =>
+    case br @ BuryRequest(target, _) =>
       if(context.sender() == context.system.deadLetters) {
         val ownerId = observableGame.stars(target.owner).id.uuid
-        players.find(_.id.uuid == ownerId) foreach {
-          _.actor ! BuryRequest(target)
-        }
+        players.find(_.id.uuid == ownerId) foreach (_.actor ! br)
       }
       else
         control.burry(target)

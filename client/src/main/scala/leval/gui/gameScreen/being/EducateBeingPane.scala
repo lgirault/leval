@@ -1,5 +1,6 @@
 package leval.gui.gameScreen.being
 
+import leval.ignore
 import leval.core._
 import leval.gui.gameScreen._
 import leval.gui.text.ValText
@@ -66,7 +67,7 @@ class EducateBeingTile
     hand.update(pane.cards)
   }
 
-  def onDrop(origin : Origin) : Unit =
+  def onDrop(origin : CardOrigin) : Unit =
   origin.card match {
     case c : C =>
 
@@ -81,19 +82,19 @@ class EducateBeingTile
         pane.sEducation = Some(Switch(tgt, c2))
         doOnDrop(c2)
       case Some(Switch(tgt, c2))  =>
-        new Alert(AlertType.Information) {
+        ignore(new Alert(AlertType.Information) {
           delegate.initOwner(pane.scene().getWindow)
           title = "Education"
           headerText = s"Only one switch at a time"
-        }.showAndWait()
+        }.showAndWait())
 
       case Some(Rise(tgt, s)) =>
         if((pane.being.resources get suit ).nonEmpty)
-          new Alert(AlertType.Information) {
+          ignore(new Alert(AlertType.Information) {
             delegate.initOwner(pane.scene().getWindow)
             title = "Education"
             headerText = s"Switch or rise not both at the same time"
-          }.showAndWait()
+          }.showAndWait())
         else {
           val newS = c +: s.filterNot(_.suit == c.suit)
           pane.sEducation = Some(Rise(tgt, newS))
@@ -230,7 +231,7 @@ class EducateBeingPane
   def targets(c : C): Seq[CardDropTarget] ={
 
     val allowedTiles : Seq[CardDropTarget] = (mapTiles filter {
-      case (pos, tile) => rules.validResource(c, pos)
+      case (pos, tile) => rules.validResource(being.face, c, pos)
     } values).toList
     (being.face, c) match {
       case (C(lover@(King | Queen), fsuit), C(r : Face, s))

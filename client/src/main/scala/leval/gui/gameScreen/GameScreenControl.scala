@@ -1,6 +1,7 @@
 package leval.gui.gameScreen
 
 import akka.actor.ActorRef
+import leval.ignore
 import leval.core.Game.StarIdx
 import leval.core._
 import leval.gui.text
@@ -24,19 +25,17 @@ object MoveSeq {
           ActPhase(Set()))
     }
 
-
   def placeBeing(b: Being, side : Int): Seq[Move[_]] = {
     val s = Seq(PlaceBeing(b, side), ActPhase(Set()))
     b match {
       case Formation(Spectre) => MajestyEffect(-5, side) +: s
       case _ => s
     }
-
   }
 
-  def end(origin: Origin) : Seq[Move[_]] = origin match {
-    case Origin.Hand(c) =>  fromHand(c)
-    case Origin.BeingPane(b, s) => Seq(ActivateBeing(b.face))
+  def end(origin: CardOrigin) : Seq[Move[_]] = origin match {
+    case CardOrigin.Hand(_,c) =>  fromHand(c)
+    case CardOrigin.Being(b, s) => Seq(ActivateBeing(b.face))
   }
 
 }
@@ -64,21 +63,22 @@ class GameScreenControl
   def numResourcesCardinal =
     game.beings.values.map(_.cards.size).sum
 
-  def forbiddenOnFirstRound(origin: Origin) : Boolean =
+  def forbiddenOnFirstRound(origin: CardOrigin) : Boolean =
     origin match {
-      case Origin.Hand(C(_, Diamond | Spade))
-           | Origin.BeingPane(_, Diamond | Spade) => true
+      case CardOrigin.Hand(_, C(_, Diamond | Spade))
+           | CardOrigin.Hand(_, Joker(_))
+           | CardOrigin.Being(_, Diamond | Spade) => true
       case _ => false
     }
 
   def cannotAttackAlert() : Unit =
-    new Alert(AlertType.Information){
+    ignore(new Alert(AlertType.Information){
       delegate.initOwner(pane.scene().getWindow)
-      title = "Forbidden"
-      headerText = "You cannot attack during the first round"
-    }.showAndWait()
+      title = txt.forbidden
+      headerText = txt.cannot_attack_on_first_round
+    }.showAndWait())
 
-  def directEffect(origin: Origin) : Unit =
+  def directEffect(origin: CardOrigin) : Unit =
     if(game.currentRound == 1 && forbiddenOnFirstRound(origin))
       cannotAttackAlert()
     else {
@@ -90,11 +90,11 @@ class GameScreenControl
         }
 
       origin match {
-        case Origin.Hand(Joker(j)) =>
+        case CardOrigin.Hand(_, Joker(j)) =>
           jokerEffectFromHand(j)
-        case Origin.Hand(c @ C(_, suit)) =>
+        case CardOrigin.Hand(_, c @ C(_, suit)) =>
           actor ! effect(Card.value(c), suit)
-        case Origin.BeingPane(b, s)=>
+        case CardOrigin.Being(b, s)=>
           actor ! Reveal(b.face, s)
           actor ! effect(b.value(s, Card.value).get, s)
       }
@@ -111,11 +111,9 @@ class GameScreenControl
     MoveSeq.placeBeing(b, playerGameIdx) foreach (actor ! _)
   }
 
-  def collectFromSource() : Unit =
-    actor ! CollectFromSource(playerGameIdx)
+  def collect(origin : Origin, target : CollectTarget) : Unit =
+    actor ! Collect(origin, target)
 
-  def collectFromRiver() : Unit =
-    actor ! CollectFromRiver(playerGameIdx)
 
   def endPhase() : Unit =
     actor ! game.nextPhase
@@ -126,18 +124,16 @@ class GameScreenControl
     case _ => false
   }
 
-  def drawAndLook(origin: Origin) : Unit = {
-    def doDrawAndLook() = {
-      val (numDraw, numLook) = drawAndLookValues(origin)
-      new DrawAndLookAction(this, numDraw, numLook, canCollectFromRiver,
+  def drawAndLook(origin: CardOrigin) : Unit = {
+    def doDrawAndLook() = ignore(
+      new DrawAndLookAction(this, origin,
         () => MoveSeq.end(origin) foreach (actor ! _)
-      ).apply()
-    }
+      ).apply())
     origin match {
-      case Origin.BeingPane(b, s) =>
+      case CardOrigin.Being(b, s) =>
         actor !  Reveal(b.face, s)
         doDrawAndLook()
-      case Origin.Hand(Joker(j)) =>
+      case CardOrigin.Hand(_, Joker(j)) =>
         jokerEffectFromHand(j)
       case _ => doDrawAndLook()
     }
@@ -156,45 +152,38 @@ class GameScreenControl
           headerText = "Click on a card or the opponent star to attack"
           //contentText = "Every being has acted"
         }.showAndWait()
-        new JokerMindEffectTargetSelector(this)
+        ignore(new JokerMindEffectTargetSelector(this))
       case Joker.Black =>
-        new BlackJokerEffect(this)
+        ignore(new BlackJokerEffect(this))
     }
   }
 
   //(num draw, num look)
-  def drawAndLookValues(origin : Origin) : (Int, Int) =
-    origin match {
-      case Origin.Hand(C(King, _)) => (1, 3)
-      case Origin.Hand(C(Queen, _)) => (1, 2)
-      case Origin.Hand(_) => (1, 1)
-      case Origin.BeingPane(Formation(Fool), _)=> (2, 1)
-      case _ => (1, 1)
-    }
 
 
-  def playOnBeing(origin : Origin,
+
+  def playOnBeing(origin : CardOrigin,
                   target : Being,
                   targetSuit : Suit) = {
     //targetSuit needed if club played from hand
     //heart are not played on being
     val moves : Seq[Move[_]] = origin match {
-      case Origin.Hand(Joker(clr)) =>
+      case CardOrigin.Hand(_, Joker(clr)) =>
         jokerEffectFromHand(clr)
         MoveSeq.fromHand(clr)
 
-      case Origin.Hand(c @ C(_, Diamond | Spade)) =>
+      case CardOrigin.Hand(_, c @ C(_, Diamond | Spade)) =>
         Seq(AttackBeing(origin,
-          target.face, targetSuit),
+          target, targetSuit),
           ActPhase(Set()))
 
-      case Origin.BeingPane(b, s @ (Diamond | Spade)) =>
+      case CardOrigin.Being(b, s @ (Diamond | Spade)) =>
         Seq(AttackBeing(origin,
-          target.face, targetSuit),
+          target, targetSuit),
           ActivateBeing(b.face))
 
-      case Origin.Hand( C(_, Club) )|
-           Origin.BeingPane(_, Club) =>
+      case CardOrigin.Hand(_,  C(_, Club) ) |
+           CardOrigin.Being(_, Club) =>
         drawAndLook(origin)
         Seq()
       case _ => leval.error()
@@ -216,15 +205,14 @@ class GameScreenControl
     }
 
   def endGame(): Unit = {
-    val txt = game.result match {
-      case None => "Draw !"
-      case Some((winner, loser)) =>
-        winner.name + " wins !"
-    }
     new Alert(AlertType.Information){
       delegate.initOwner(pane.scene().getWindow)
-      title = "Game Over"
-      headerText = txt
+      title = txt.game_over
+      headerText = game.result match {
+        case None => txt.both_lose
+        case Some((winner, loser)) =>
+          winner.name + txt.wins
+      }
       //contentText = "Every being has acted"
     }.showAndWait()
     actor ! StartScreen
@@ -238,7 +226,7 @@ class GameScreenControl
           new Alert(AlertType.Information) {
             delegate.initOwner(pane.scene().getWindow)
             title = txt.end_of_act_phase
-            headerText = txt.every_being_has_acted
+            headerText = txt.every_beings_have_acted
             //contentText = "Every being has acted"
           }.showAndWait()
 
@@ -276,22 +264,22 @@ class GameScreenControl
           handPane.update()
           opponentHandPane.update()
 
-        case CollectFromRiver(side) =>
-          if (playerGameIdx == side)
-            new CardDialog(res, pane).showAndWait()
+        case Collect(origin, tgt) =>
 
-          riverPane.update()
-          handPane.update()
-          opponentHandPane.update()
+          if(tgt == DeathRiver)
+            riverPane.update()
 
-        case CollectFromSource(side) =>
-          if (playerGameIdx == side)
-            new CardDialog(res, pane).showAndWait()
+          if (playerGameIdx == origin.owner) {
+            for(c <- res)
+              new CardDialog(c, pane).showAndWait()
 
-          handPane.update()
-          opponentHandPane.update()
+            handPane.update()
+          }
+          else
+            opponentHandPane.update()
 
-        case LookCard(fc, s) =>
+
+        case LookCard(_, fc, s) =>
           beingPanesMap get fc foreach (_ update s)
           if(res) riverPane.update()
 
@@ -314,36 +302,31 @@ class GameScreenControl
             checkEveryBeingHasActedAndEndPhase()
 
         case AttackBeing(origin, target, targetSuit) =>
-          println("AttackBeing " + game.beings(target))
-          game.beings(target) match {
-            case (Formation(f)) =>
-              beingPanesMap get target foreach (_ update targetSuit)
+          println("AttackBeing " + game.beings(target.face))
+          game.beings(target.face) match {
+            case Formation(f) =>
+              beingPanesMap get target.face foreach (_ update targetSuit)
             case b =>
               if(b.owner != playerGameIdx) {
-                origin match {
-                  case Origin.BeingPane(Formation(Wizard), _) =>
-                    new DrawAndLookAction(this,
-                      collect = game.rules.wizardCollect,
-                      look = 0, canCollectFromRiver,
-                      () => MoveSeq.end(origin) foreach (actor ! _)
-                    ).apply()
-                  case _ => ()
-                }
-                if(b.cards.size > 1) {
-                  actor ! BuryRequest(b)
+                val (toBury, toDraw) = res
+                if(toDraw > 0)
+                  new DrawAndLookAction(this, origin,
+                    () => MoveSeq.end(origin) foreach (actor ! _)
+                  ).apply()
+
+                if(toBury.size > 1) {
+                  actor ! BuryRequest(target, toBury)
                   alertWaitEndOfBurial()
                 }
                 else {
-                  actor ! Bury(b.face, b.cards)
+                  actor ! Bury(target.face, toBury.toList)
                 }
               }
               if(b.cards.size > 1)
                 burialOnGoing = true
-
-            case _ => ()
           }
           origin match {
-            case Origin.Hand(_) =>
+            case CardOrigin.Hand(_,_) =>
               riverPane.update()
               handPane.update()
               opponentHandPane.update()
@@ -378,7 +361,7 @@ class GameScreenControl
 
         case SourcePhase =>
           if (isCurrentPlayer)
-            new DrawAndLookAction(this, 1, 0, canCollectFromRiver,
+            new DrawAndLookAction(this, Origin.Star(playerGameIdx),
               () => actor ! game.nextPhase
             ).apply()
           else
@@ -408,9 +391,9 @@ class GameScreenControl
       }
   }
   def showTwilight(t : Twilight) : Unit =
-    new TwilightDialog(this, t){
+    ignore(new TwilightDialog(this, t){
       delegate.initOwner(pane.scene().getWindow)
-    }.showAndWait()
+    }.showAndWait())
 
   def canDragAndDropOnInfluencePhase() : Boolean =
     game.currentPhase match {
@@ -419,7 +402,8 @@ class GameScreenControl
     }
 
   private [this] var burialOnGoing = false
-  def alertWaitEndOfBurial() : Unit = {
+  def alertWaitEndOfBurial() : Unit =
+  ignore {
       new Alert(AlertType.Information) {
         delegate.initOwner(pane.scene().getWindow)
         title = txt.burying

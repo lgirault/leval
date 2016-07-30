@@ -84,8 +84,8 @@ class JokerMindEffectTargetSelector
 
 
   def onClick(brp: BeingResourcePane): Unit = {
-    Seq(AttackBeing(Origin.Hand(Joker.Red),
-      brp.being.face, brp.position),
+    val origin = CardOrigin.Hand(controller.playerGameIdx, Joker.Red)
+    Seq(AttackBeing(origin, brp.being, brp.position),
     ActPhase(Set())) foreach (controller.actor ! _)
     unsuscribe()
   }
@@ -100,6 +100,7 @@ class JokerWeaponEffectTargetSelector
  onFinish : () => Unit)
   extends ResourceSelector {
   import controller.pane
+
 
   val subscriptions : Either[Iterable[(BeingResourcePane, Subscription)], Subscription] = {
     val brps = controller.pane.targetBeingResource(Heart, Seq(controller.opponentId))
@@ -126,8 +127,8 @@ class JokerWeaponEffectTargetSelector
 
 
   def onClick(brp: BeingResourcePane): Unit = {
-    controller.actor ! AttackBeing(Origin.Hand(Joker.Black),
-      brp.being.face, brp.position)
+    val origin = CardOrigin.Hand(controller.playerGameIdx, Joker.Black)
+    controller.actor ! AttackBeing(origin, brp.being, brp.position)
     unsuscribeAndFinish()
   }
 
@@ -160,19 +161,19 @@ class BlackJokerEffect(val controller: GameScreenControl) {
       //contentText = "Every being has acted"
     }.showAndWait()
 
+  val origin = CardOrigin.Hand(controller.playerGameIdx, Joker.Black)
   result match {
     case Some(`attack`) =>
       alertAttack()
       new JokerWeaponEffectTargetSelector(controller,
-        () => new DrawAndLookAction(controller, 1, 1, controller.canCollectFromRiver,
-          end ).apply()
+        new DrawAndLookAction(controller, origin, end).apply
       )
     case Some(`collectAndLook`) =>
 
-      new DrawAndLookAction(controller, 1, 1, controller.canCollectFromRiver,
-        () => {alertAttack()
-          new JokerWeaponEffectTargetSelector(controller,
-          end )}).apply()
+      new DrawAndLookAction(controller, origin,
+        () => { alertAttack()
+          new JokerWeaponEffectTargetSelector(controller, end)
+        }).apply()
 
 
   }

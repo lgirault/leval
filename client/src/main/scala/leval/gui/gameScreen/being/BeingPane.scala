@@ -1,6 +1,6 @@
 package leval.gui.gameScreen.being
 
-import leval.core.{Being, Card, Club, Diamond, Heart, Origin, Spade, Suit}
+import leval.core.{Being, Card, Club, Diamond, Heart, CardOrigin, Spade, Suit}
 import leval.gui.gameScreen._
 import leval.gui.text.ValText
 
@@ -108,7 +108,7 @@ class BeingResourcePane
       else eyeImg.visible()
   }
 
-  def onDrop(origin : Origin) : Unit =
+  def onDrop(origin : CardOrigin) : Unit =
     bp.control.playOnBeing(origin, bp.being, position)
 
   def update() : Unit = {
@@ -183,7 +183,7 @@ class BeingPane
     val sCardDragAndDrop = orientation match {
       case Player => Some(new CardDragAndDrop(control,
         control.canDragAndDropOnActPhase(being.face),
-        Origin.BeingPane(being, pos))(CardImg(c, front = false)))
+        CardOrigin.Being(being, pos))(CardImg(c, front = false)))
       case Opponent => None
     }
 

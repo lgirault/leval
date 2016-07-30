@@ -18,6 +18,8 @@ class CardImageView(override val delegate: JFXCardImageView)
   def card : Card = delegate.card
 }
 
+
+
 object CardImg {
 
   val url = this.getClass.getResource("/svg-z-cards.png").toExternalForm

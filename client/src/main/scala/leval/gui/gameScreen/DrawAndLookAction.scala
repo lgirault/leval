@@ -1,13 +1,12 @@
 package leval.gui.gameScreen
 
-import leval.core.{Being, Card, LookCard, Suit}
+import leval.ignore
+import leval.core._
 import leval.gui.gameScreen.being.BeingResourcePane
 
 import scalafx.Includes._
-import scalafx.event.subscriptions.Subscription
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.control.{Alert, ButtonType, Dialog}
-import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.Pane
 
 /**
@@ -24,12 +23,13 @@ class CardDialog( c : Card, p : Pane) extends Dialog[Card] {
 }
 
 class DrawAndLookAction
-( val controller : GameScreenControl,
-  var collect : Int = 1,
-  var look : Int = 1,
-  canCollectFromRiver : Boolean,
-  onFinish : () => Unit)
+(val controller : GameScreenControl,
+ origin : Origin,
+ onFinish : () => Unit)
   extends ResourceSelector {
+
+  var (collect, look) = controller.game.rules.drawAndLookValues(origin)
+  import controller.canCollectFromRiver
 
   import controller.pane
 
@@ -61,7 +61,8 @@ class DrawAndLookAction
     if (!(controller.game.lookedCards contains ((brp.being.face, brp.position))) ) {
       new CardDialog(brp.card, pane).showAndWait() match {
         case Some(_) =>
-          controller.actor ! LookCard(brp.being.face, brp.position)
+          controller.actor ! LookCard(origin.asInstanceOf[CardOrigin],
+            brp.being.face, brp.position)
         case None => leval.error()
       }
       this.apply()
@@ -97,20 +98,20 @@ class DrawAndLookAction
       result match {
         case Some(`collectFromSource`) =>
           collect -= 1
-          controller.collectFromSource()
+          controller.collect(origin, Source)
           this.apply()
         case Some(`collectFromRiver`) =>
           collect -= 1
-          controller.collectFromRiver()
+          controller.collect(origin, DeathRiver)
           this.apply()
         case Some(`lookCard`) =>
           look -= 1
-          new Alert(AlertType.Information){
+          ignore(new Alert(AlertType.Information){
             delegate.initOwner(pane.scene().getWindow)
             title = "Look Action"
             headerText = "Click on a card to look at it"
             //contentText = "Every being has acted"
-          }.showAndWait()
+          }.showAndWait())
         case _ => leval.error()
       }
     }

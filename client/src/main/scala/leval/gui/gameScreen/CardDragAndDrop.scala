@@ -25,7 +25,7 @@ import leval.gui.gameScreen.CardDragAndDrop.NodeOps
 class CardDragAndDrop
 ( control: GameScreenControl,
   canDragAndDrop : () => Boolean,
-  origin : Origin)
+  origin : CardOrigin)
 ( val cardImageView : ImageView = CardImg(origin.card))
   extends (MouseEvent => Unit) {
 
