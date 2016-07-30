@@ -22,55 +22,49 @@ class CardImageView(override val delegate: JFXCardImageView)
 
 object CardImg {
 
-  val url = this.getClass.getResource("/svg-z-cards.png").toExternalForm
-  val img = new Image(url)
-  val width : Double = 167.552 //167.552307692
-  val height : Double = 243.238
+  val width : Double = 208
+  val height : Double = 303
 
-  val backCoord : (Double, Double) = (width * 2, height * 4)
-
-  def line(suit : Suit) : Int = suit match {
-    case Club => 0
-    case Diamond => 1
-    case Heart => 2
-    case Spade => 3
+  val backUrl = this.getClass.getResource("/cards/back.png").toExternalForm
+  val backImg = new Image(backUrl)
+  private def suit2string(s : Suit) = s match {
+    case Club => "clubs"
+    case Heart => "hearts"
+    case Diamond => "diamonds"
+    case Spade => "spades"
   }
-  def column(r : Rank) : Int = r match {
-    case Numeric(i) => i - 1
-    case Jack => 10
-    case Queen => 11
-    case King => 12
-    case _ => throw new Error()
+  private def rank2string(s : Rank) = s match {
+    case Numeric(i) => i.toString
+    case Jack => "Jack"
+    case Queen => "Queen"
+    case King => "King"
   }
 
-  def coord(card : Card) : (Double, Double) = {
-    val (x, y) =  card match {
-      case Joker(Joker.Black) => (0, 4)
-      case Joker(Joker.Red) => (1, 4)
-      case C(r, s) => (column(r), line(s))
-    }
-    (x * width, y * height)
+  def cardBaseFileName(c : Card): String = c match {
+    case Joker.Black => "Joker_black"
+    case Joker.Red => "Joker_red"
+    case C(r, s) => s"${rank2string(r)}_of_${suit2string(s)}"
   }
+
+  def cardUrl(c : Card) =
+    this.getClass.getResource(s"/cards/${cardBaseFileName(c)}.png").toExternalForm
+
+  def cardImg(c : Card) = new Image(cardUrl(c))
 
   def imageView(card : Card,
                 width : Double,
                 height : Double,
-                front : Boolean) = {
-    val cc: (Double, Double) =
-      if(front) coord(card)
-      else backCoord
-
-    new CardImageView(card, img) {
+                front : Boolean) =
+    new CardImageView(card, if(front) cardImg(card) else backImg){
       preserveRatio = true
-      viewport = new Rectangle2D(cc._1, cc._2, width = width, height = height)
+      viewport = new Rectangle2D(0, 0, width = width, height = height)
     }
-  }
+
 
 
   def back(sfitHeight : Option[Double] = None): ImageView =
-    new ImageView(img){
+    new ImageView(backImg){
       preserveRatio = true
-      viewport = new Rectangle2D(backCoord._1, backCoord._2, width = width, height = height)
       sfitHeight foreach fitHeight_=
     }
 
@@ -79,13 +73,12 @@ object CardImg {
                sfitHeight : Option[Double] = None,
                front : Boolean = true): CardImageView = {
 
-    val cc: (Double, Double) =
-      if(front) coord(card)
-      else backCoord
+    val img = if(front) cardImg(card)
+    else backImg
     val delta = ((cut - 1) / cut) * width
     val civ = new CardImageView(card, img) {
       preserveRatio = true
-      viewport = new Rectangle2D(cc._1 + delta,  cc._2,
+      viewport = new Rectangle2D(delta, 0,
         width = width / cut, height = height)
     }
 
@@ -112,16 +105,12 @@ object CardImg {
 
   private def bottomHalfView(card : Card,
                              width : Double,
-                             front : Boolean) = {
-    val cc: (Double, Double) =
-      if(front) coord(card)
-      else backCoord
-
-    new CardImageView(card, img) {
+                             front : Boolean) =
+    new CardImageView(card, if(front) cardImg(card) else backImg) {
       preserveRatio = true
-      viewport = new Rectangle2D(cc._1, cc._2 + height/2, width = width, height = height/2)
+      viewport = new Rectangle2D(0, height/2, width = width, height = height/2)
     }
-  }
+
 
   def bottomHalf(card : Card,
                  front : Boolean = true): CardImageView =

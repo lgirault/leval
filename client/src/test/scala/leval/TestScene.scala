@@ -65,16 +65,18 @@ object TestScene extends JFXApp  {
         Spade -> ((3, Spade))
       ))
 
+    val inHandForTest : Seq[Card] = Seq(Joker.Red, Joker.Black, (3, Spade))
+
     val (p1, p2) = (PlayerId(69, "Betelgeuse"), PlayerId(42, "AlphaCentauri"))
 
-    val usedCards : Set[Card] = fool.cards.toSet ++ spectre.cards + Joker.Red + Joker.Black
+    val usedCards : Set[Card] = fool.cards.toSet ++ spectre.cards ++ inHandForTest
 
     val deck = core.deck54() filterNot usedCards.contains
 
     val (d2, hand1) = deck.pick(9)
     val (d3, hand2) = d2.pick(9)
 
-    Game(Star(p1, hand1 :+ Joker.Red :+ Joker.Black),
+    Game(Star(p1, hand1 ++ inHandForTest),
       Star(p2, hand2), d3).
       copy(beings =
         Map(fool.face -> fool,
