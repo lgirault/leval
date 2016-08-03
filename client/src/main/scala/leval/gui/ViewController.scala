@@ -1,7 +1,6 @@
 package leval.gui
 
-import leval.core.PlayerId
-import leval.network.client.BeforeWaitingRoom.MaxPlayer
+import leval.core.{PlayerId, Rules}
 import leval.network.client._
 
 //import scalafx.Includes._
@@ -22,9 +21,9 @@ trait ViewController  {
   }
 
   def waitingOtherPlayerScreen
-  ( maker : PlayerId, maxNumPlayer :MaxPlayer ) : WaitingRoom = {
+  ( maker : PlayerId, rules : Rules ) : WaitingRoom = {
     println("Displaying waiting room ...")
-    val wr =  new WaitingRoom(this, maker.name, maxNumPlayer)
+    val wr =  new WaitingRoom(this, maker.name, rules)
     wr.addPlayer(maker)
     scene.root = wr
     wr

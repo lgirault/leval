@@ -38,7 +38,7 @@ object GUIClient extends JFXApp {
 
   def config(port: Int): Config = {
     val configStr =
-     "akka.loglevel = OFF\n"+
+     //"akka.loglevel = OFF\n"+
      "javafx-dispatcher.type = Dispatcher\n" +
      "javafx-dispatcher.executor = " +
        "akka.dispatch.gui.JavaFXEventThreadExecutorServiceConfigurator\n" +
@@ -50,7 +50,9 @@ object GUIClient extends JFXApp {
     ConfigFactory.parseString(configStr)
   }
 
-  val conf = config(port)
+
+  //val conf = config(port)
+  val conf = ConfigFactory.load("client")
 
   //conf.atKey("port")
 
@@ -72,5 +74,6 @@ object GUIClient extends JFXApp {
     println("Shutting down !!")
     system.terminate()
     println("Bye bye !!")
+    System.exit(0)
   }
 }

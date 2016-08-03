@@ -1,5 +1,6 @@
 package leval.gui.gameScreen
 
+import leval.ignore
 import leval.core._
 import leval.gui.gameScreen.being.BeingResourcePane
 
@@ -172,7 +173,7 @@ class BlackJokerEffect(val controller: GameScreenControl) {
 
       new DrawAndLookAction(controller, origin,
         () => { alertAttack()
-          new JokerWeaponEffectTargetSelector(controller, end)
+          ignore(new JokerWeaponEffectTargetSelector(controller, end))
         }).apply()
 
 

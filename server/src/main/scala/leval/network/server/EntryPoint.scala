@@ -15,6 +15,7 @@ class EntryPoint extends Actor {
 
   //val gameMakers : ListBuffer[ActorRef] = ListBuffer()
 
+  println("EntryPoint = " + self.path)
 
   val playersDB =
     Map(("toto", "1234") -> 0,
@@ -31,10 +32,10 @@ class EntryPoint extends Actor {
           sender() ! ConnectNack("unknown couple login password")
       }
 
-    case cg : CreateGame =>
+    case CreateGame(desc) =>
       println("Receive create game request")
-      val gameMaker = context.actorOf(Props(classOf[GameMaker]))
-      gameMaker.! (cg) (sender())
+      leval.ignore(context.actorOf(GameMaker.props(desc)))
+
 
     case ListGame =>
       //TODO be more subtle, (manage a gameMakers list ?)

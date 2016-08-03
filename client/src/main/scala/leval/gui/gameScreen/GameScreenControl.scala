@@ -148,9 +148,8 @@ class GameScreenControl
         actor ! MajestyEffect(1, playerGameIdx) // heart effect
         new Alert(AlertType.Information){
           delegate.initOwner(pane.scene().getWindow)
-          title = "Mind Action"
-          headerText = "Click on a card or the opponent star to attack"
-          //contentText = "Every being has acted"
+          title = txt.mind
+          headerText = txt.select_to_attack
         }.showAndWait()
         ignore(new JokerMindEffectTargetSelector(this))
       case Joker.Black =>
@@ -217,6 +216,15 @@ class GameScreenControl
     }.showAndWait()
     actor ! StartScreen
 
+  }
+
+  def disconnectedPlayerAlert(name : String) : Unit = {
+    new Alert(AlertType.Information) {
+      delegate.initOwner(pane.scene().getWindow)
+      title = txt.game_over
+      headerText = txt.disconnected(name)
+    }.showAndWait()
+    actor ! StartScreen
   }
 
   def checkEveryBeingHasActedAndEndPhase() =

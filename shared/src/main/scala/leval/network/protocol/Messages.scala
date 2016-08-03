@@ -1,7 +1,7 @@
 package leval.network.protocol
 
 import akka.actor.ActorRef
-import leval.core.PlayerId
+import leval.core.{PlayerId, Rules}
 
 case class NetPlayerId
 ( actor : ActorRef,
@@ -9,7 +9,7 @@ case class NetPlayerId
 
 case class GameDescription
 (owner : NetPlayerId,
- maxPlayer : Int)
+ rules : Rules)
 
 trait EntryPointRequest
 case object ListGame extends EntryPointRequest
@@ -46,3 +46,5 @@ case class GameCreated( desc : GameDescription ) extends GameMakerAnswer
 //case object GameReady extends MapMakerAnswer
 case class AckJoin(desc : GameDescription) extends GameMakerAnswer
 case object NackJoin extends GameMakerAnswer
+
+case class Disconnected(ref : NetPlayerId)

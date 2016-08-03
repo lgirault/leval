@@ -36,6 +36,12 @@ trait ValText {
   val both_lose : String
   val wins : String
   val game_over : String
+
+  val select_to_attack : String
+
+  val information : String
+  val owner_exit : String
+  def disconnected( name : String) : String
 }
 
 object Fr extends ValText {
@@ -73,6 +79,16 @@ object Fr extends ValText {
   val both_lose : String = "Levé de Soleil. Les deux étoiles perdent"
   val wins : String = " gagne !"
   val game_over : String = "Fin du jeu"
+
+  val select_to_attack : String =
+    "Sélectionner une carte ou l'étoile adverse pour attaquer"
+
+  val information : String = "Info"
+
+  val owner_exit : String = "Le créateur de la partie s'est déconnecté"
+
+  def disconnected( name : String) : String =
+    name + " s'est déconnecté(e)"
 }
 
 object Eng extends ValText {
@@ -111,4 +127,16 @@ object Eng extends ValText {
   val both_lose : String = "The sun rise. Both stars lose."
   val wins : String = " wins !"
   val game_over : String = "Game over"
+
+  val select_to_attack : String =
+    "Click on a card or the opponent star to attack"
+
+  val information : String =
+    "Info"
+
+  val owner_exit : String =
+    "The game owner as exited"
+
+  def disconnected( name : String) : String =
+    name + " is disconnected"
 }

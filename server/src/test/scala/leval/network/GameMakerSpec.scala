@@ -1,10 +1,10 @@
 package leval.network
 
-import akka.testkit.{TestProbe, TestActorRef}
+import akka.testkit.{TestActorRef, TestProbe}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import leval.AcceptanceSpec
-import leval.core.PlayerId
+import leval.core.{PlayerId, Sinnlos}
 import leval.network.protocol._
 import leval.network.server.GameMaker
 
@@ -24,7 +24,8 @@ class GameMakerSpec
   val titiId = PlayerId(1, "Titi")
   val tutuId = PlayerId(2, "Tutu")
 
-  val gameMakerRef = TestActorRef(new GameMaker)
+  val gameMakerRef = TestActorRef(new GameMaker(GameDescription(
+    NetPlayerId(???, totoId), Sinnlos)))
   val gameMaker = gameMakerRef.underlyingActor
 
   val mapSize = 5
@@ -33,7 +34,6 @@ class GameMakerSpec
 
   override def beforeEach() : Unit = {
     gameMaker.players.clear()
-    gameMaker.maxNumPlayer = maxPlayer
   }
 
 //  override def afterEach() {
@@ -64,13 +64,13 @@ class GameMakerSpec
       val totoNetId= NetPlayerId(ownerProbe.ref, totoId)
       gameMaker.players append totoNetId
 
-      gameMaker.gameOwner shouldBe totoNetId
+     // gameMaker.owner shouldBe totoNetId
 
       val titiNetId = NetPlayerId(joinerProbe.ref, titiId)
 
       gameMakerRef ! Join(titiNetId)
 
-      gameMaker.gameOwner shouldBe totoNetId
+      //gameMaker.gameOwner shouldBe totoNetId
 
     }
 
@@ -88,7 +88,6 @@ class GameMakerSpec
     }
 
     "given a join request answer NackJoin if there is *NO* remaining places" in {
-      gameMaker.maxNumPlayer = 0
       val joinerProbe = TestProbe()
 
       val titiNetId = NetPlayerId(joinerProbe.ref, titiId)

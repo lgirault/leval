@@ -9,7 +9,7 @@ import scalafx.scene.layout.{VBox, BorderPane}
 
 class ConnectScene
 ( network : NetWorkController
-  ) extends BorderPane() {
+  ) extends BorderPane {
 
   val loginTextField = new TextField()
   val passWordTextField = new TextField()

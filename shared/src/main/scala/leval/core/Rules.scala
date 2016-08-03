@@ -15,6 +15,7 @@ trait Rules {
   val losingMajesty : Int = 0
   val winningMajesty : Int = 100
 
+  val maxPlayer : Int = 2
 
   //way to specific
   //we could generalize that with a (situation, being)=> effect kind of function
@@ -32,8 +33,8 @@ trait Rules {
       case CardOrigin.Hand(_, C(King, _)) => (1, 3)
       case CardOrigin.Hand(_, C(Queen, _)) => (1, 2)
       case CardOrigin.Hand(_, _) => (1, 1)
-      case o @ CardOrigin.Being(b, _) =>
-        (b, o.card) match {
+      case co @ CardOrigin.Being(b, _) =>
+        (b, co.card) match {
           case (Formation(Fool), C(Jack, _)) => (3, 3)
           case (Formation(Fool), _) => (2, 1)
           case (Formation(Wizard), C(_, Diamond)) => (wizardCollect, 0) // draw on kill
@@ -254,6 +255,7 @@ object Sinnlos
     with SinnlosAntaresCommon
     with Serializable {
 
+  override val toString = "Sinnlos"
   def legalLoverFormationAtCreation(c : Formation) : Boolean =
     c == Accomplished
 
@@ -278,12 +280,17 @@ object Antares
   extends Rules
     with SinnlosAntaresCommon
     with AntaresHeliosCommon
-    with Serializable
+    with Serializable{
+  override val toString = "Antarès"
+}
 
 object Helios
   extends Rules
     with AntaresHeliosCommon
     with Serializable {
+
+  override val toString = "Hélios"
+
   def value(c: Card): Int = Card.value(c)
 
   val startingMajesty : Int = 36

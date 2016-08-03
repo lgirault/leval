@@ -6,7 +6,6 @@ package client
 
 
 object BeforeWaitingRoom{
-  type MaxPlayer = Int
   type CurrentNumPlayer = Int
 }
 

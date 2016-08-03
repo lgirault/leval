@@ -23,7 +23,16 @@ class GameListPane
     children = vbox
   }
   center = centerPane
-  vbox.children = new Label("Game list :")
+  top = new HBox(){
+    children += new Label("Game list :")
+    children += (new Button("Refresh"){
+      handleEvent(MouseEvent.MouseClicked) {
+        () =>
+          vbox.children.clear()
+          control.fetchGameList()
+      }
+    } : Node)
+  }
 
   def appendGameToList: (GameDescription, CurrentNumPlayer, JoinAction) => Unit = {
     case (GameDescription(creator, maxNumPlayer), currentPlayer , join) =>
@@ -37,6 +46,7 @@ class GameListPane
 
       val _ = vbox.children += hbox
   }
+
   bottom = new Button("Back"){
     handleEvent(MouseEvent.MouseClicked) {
       () => control.displayStartScreen()

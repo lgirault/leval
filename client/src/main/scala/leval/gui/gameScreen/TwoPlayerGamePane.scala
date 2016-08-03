@@ -47,14 +47,6 @@ class RiverPane
 
 object TwoPlayerGamePane {
 
-  //val screenHeight = Screen.primary.visualBounds.getHeight
-
-  //  {
-  //    val screens = Screen.screensForRectangle(0,0,10,10)
-  //    screens.map(_.visualBounds.getHeight).min
-  //  }
-
-
   val screenHeight = Screen.primary.visualBounds.getHeight
 
   val cardHeight = screenHeight / 10
