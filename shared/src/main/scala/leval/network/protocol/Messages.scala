@@ -25,26 +25,20 @@ case class Connect
 case class ConnectAck(id : PlayerId)
 case class ConnectNack(msg : String)
 
-trait GameMakerRequest
-
-case class Join(id : NetPlayerId) extends GameMakerRequest
-case object GameStart extends GameMakerRequest
+case class Join(id : NetPlayerId)
+case object GameStart
 
 
-trait GameMakerAnswer
-case object GameReady extends GameMakerAnswer
+case object GameReady
 
 case class WaitingPlayersGameInfo
 ( //makerRef : ActorRef,
   desc : GameDescription,
   currentNumPlayer : Int)
-  extends GameMakerAnswer
 
-case class NewPlayer(ref : NetPlayerId) extends GameMakerAnswer
-//case class GameCreationUpdate() extends ServerAnswer
-case class GameCreated( desc : GameDescription ) extends GameMakerAnswer
+case class GameCreated( desc : GameDescription )
 //case object GameReady extends MapMakerAnswer
-case class AckJoin(desc : GameDescription) extends GameMakerAnswer
-case object NackJoin extends GameMakerAnswer
+case class AckJoin(desc : GameDescription)
+case object NackJoin
 
 case class Disconnected(ref : NetPlayerId)

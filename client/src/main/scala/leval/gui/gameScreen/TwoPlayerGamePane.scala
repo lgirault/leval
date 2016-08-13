@@ -170,7 +170,7 @@ class TwoPlayerGamePane
   val handPane = new PlayerHandPane(controller)
 
   val endPhaseButton =
-    new Button(txt.do_end_act_phase){
+    new Button(txt.do_end_phase){
       onMouseClicked = {
         me : MouseEvent =>
           controller.endPhase()

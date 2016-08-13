@@ -3,6 +3,7 @@ package leval
 import akka.actor.{ActorRef, ActorSystem}
 import com.typesafe.config.{Config, ConfigFactory}
 import leval.gui.SearchingServerScene
+import leval.network.Settings
 import leval.network.client.{IdentifyingActor, NetWorkController}
 
 import scalafx.application.JFXApp
@@ -25,49 +26,27 @@ object GUIClient extends JFXApp {
     scalafx.application.Platform.exit()
   }
 
-  val port = parameters.unnamed.head.toInt
-
-//  val (confFile, systemName, actorName) =
-//      ("client", "ClientSystem", "IdentifyingActor")
-//  println("using confFile " + confFile)
-//  val conf = ConfigFactory.load(confFile)
-
   val (systemName, actorName) =
-    (s"ClientSystem$port", "IdentifyingActor")
+    ("ClientSystem", "IdentifyingActor")
 
-
-  def config(port: Int): Config = {
-    val configStr =
-     //"akka.loglevel = OFF\n"+
-     "javafx-dispatcher.type = Dispatcher\n" +
-     "javafx-dispatcher.executor = " +
-       "akka.dispatch.gui.JavaFXEventThreadExecutorServiceConfigurator\n" +
-     "javafx-dispatcher.throughput = 1\n" +
-      "akka.actor.provider = akka.remote.RemoteActorRefProvider \n" +
-        "akka.remote.netty.tcp.hostname = 127.0.0.1\n" +
-        "akka.remote.netty.tcp.port = " + port + "\n"
-
-    ConfigFactory.parseString(configStr)
-  }
-
-
-  //val conf = config(port)
   val conf = ConfigFactory.load("client")
+/*  val defaultConf = ConfigFactory.load("client")
 
-  //conf.atKey("port")
+  val combinedConf = ConfigFactory.load() withFallback defaultConf
+
+  val conf = ConfigFactory.load(combinedConf)*/
 
   val system = ActorSystem(systemName, conf)
 
+  val serverPath = Settings.remotePath(parameters.unnamed.head)
   def clientActor(netControl : NetWorkController) : ActorRef = {
-    system.actorOf(IdentifyingActor.props(netControl), actorName)
+    system.actorOf(IdentifyingActor.props(netControl, serverPath), actorName)
   }
 
   val control = new NetWorkController {
       val scene = stageScene
       clientActor(this)
   }
-
-
 
   override def stopApp() : Unit = {
     control.disconnect()

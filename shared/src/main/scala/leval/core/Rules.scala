@@ -209,7 +209,7 @@ trait Rules {
     case Queen => King
   }
 
-  def checkLegalLover(face : Card, heart : Card) =
+  def checkLegalLover(face : Card, heart : Card) : Boolean =
     (face, heart) match {
       case (C(fr @ (King | Queen), fs), C(hr, hs)) =>
         hr == otherLover(fr) && fs == hs
@@ -266,8 +266,17 @@ object Sinnlos
 
 }
 
-trait AntaresHeliosCommon {
+trait AntaresHeliosCommon extends Rules {
+
   def legalLoverFormationAtCreation(c : Formation) : Boolean = true
+
+  override def checkLegalLover(face : Card, heart : Card) : Boolean =
+    super.checkLegalLover(face, heart) || {
+      (face, heart) match {
+        case (C(fr@(King | Queen), Heart), C(Jack, Heart)) => true
+        case _ => false
+      }
+    }
 
   def validResource(face : Card, c : Card, pos : Suit) = (c, face) match {
     case (C(Numeric(_), `pos`) | Joker(_), _)
@@ -277,16 +286,14 @@ trait AntaresHeliosCommon {
 }
 
 object Antares
-  extends Rules
+  extends AntaresHeliosCommon
     with SinnlosAntaresCommon
-    with AntaresHeliosCommon
     with Serializable{
   override val toString = "Antarès"
 }
 
 object Helios
-  extends Rules
-    with AntaresHeliosCommon
+  extends AntaresHeliosCommon
     with Serializable {
 
   override val toString = "Hélios"

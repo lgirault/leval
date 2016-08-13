@@ -18,7 +18,7 @@ trait ValText {
   val twilight_ceremony : String
 
   val educate : String
-  val do_end_act_phase : String
+  val do_end_phase : String
 
   val face : String
   val mind : String
@@ -60,7 +60,7 @@ object Fr extends ValText {
   val every_beings_have_acted : String = "Tous les êtres ont agi"
 
   val educate : String = "Éduquer"
-  val do_end_act_phase = "Terminer la phase des Actes"
+  val do_end_phase = "Terminer la phase"
 
   val face : String = "Figure"
   val mind : String = "Esprit"
@@ -107,7 +107,7 @@ object Eng extends ValText {
   val every_beings_have_acted : String = "Every beings have acted"
 
   val educate : String = "Educate"
-  val do_end_act_phase = "End Act phase"
+  val do_end_phase = "End phase"
 
   val face : String = "Face"
   val mind : String = "Mind"

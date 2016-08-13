@@ -52,13 +52,11 @@ trait Scheduler {
       else
         gameControl.burry(target)
 
+    case m : Move[_]  if context.sender() == context.system.deadLetters =>
+      players foreach (_.actor ! m)
     case m : Move[_] =>
       println(m + " received from " + context.sender())
-
-      observableGame(m)
-
-      if(context.sender() == context.system.deadLetters)
-        players foreach (_.actor ! m)
+      leval.ignore(observableGame(m))
 
     case Terminated(ref) =>
       println()
@@ -84,10 +82,10 @@ trait WaitinPlayers extends Scheduler {
     val players = ListBuffer[NetPlayerId]()
 
     {
-      case NewPlayer(npid @ NetPlayerId(ref, pid)) =>
+      case Join(npid @ NetPlayerId(ref, pid)) =>
         players append npid
         println(s"new player : $npid")
-        waitingScreen.addPlayer(pid)
+        waitingScreen addPlayer pid
 
       case GameReady =>
         val status =
@@ -113,8 +111,7 @@ trait WaitinPlayers extends Scheduler {
         else {
           players.remove(players.indexOf(netId))
           waitingScreen.clearPlayers()
-          waitingScreen.addPlayer(owner.id)
-          players foreach (nid => waitingScreen.addPlayer(nid.id))
+          players map (_.id) foreach waitingScreen.addPlayer
         }
 
       case StartScreen =>
@@ -148,7 +145,6 @@ class MenuActor private
   def listing( gameListScreen : GameListPane ) : Actor.Receive = {
     case WaitingPlayersGameInfo(desc, currentNumPlayer) =>
       println(s"client receive game info from ${sender()}")
-      //sender() ! Join(thisPlayer)
 
       val answer : JoinAction = {
         val s = sender()
@@ -193,7 +189,6 @@ class MenuActor private
 
     case GameCreated(GameDescription(creator, rules)) =>
       val waitingScreen = control.waitingOtherPlayerScreen(creator.id, rules)
-      println("thisPlayer = " + thisPlayer + ", creator = " + creator+ ", equals ? = " + (creator == thisPlayer))
       context.become(waitingPlayers( sender(), waitingScreen, creator ) )
 
     case StartScreen => ()

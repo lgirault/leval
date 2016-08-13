@@ -55,6 +55,9 @@ class GameScreenControl
   val pane : TwoPlayerGamePane =
     new TwoPlayerGamePane(game, playerGameIdx, this)
 
+  if(isCurrentPlayer)
+    pane.endPhaseButton.visible = true
+
   game.observers += this
 
   def numLookedCards : Int =
@@ -120,7 +123,8 @@ class GameScreenControl
 
 
   def canCollectFromRiver = game.beings.values exists {
-    case b @ Formation(Spectre) if b.owner == game.currentStarId => true
+    case b @ Formation(Spectre) if b.owner == game.currentStarId =>
+      game.deathRiver.nonEmpty
     case _ => false
   }
 
@@ -172,13 +176,12 @@ class GameScreenControl
         MoveSeq.fromHand(clr)
 
       case CardOrigin.Hand(_, c @ C(_, Diamond | Spade)) =>
-        Seq(AttackBeing(origin,
-          target, targetSuit),
+        Seq(AttackBeing(origin,target, targetSuit),
           ActPhase(Set()))
 
       case CardOrigin.Being(b, s @ (Diamond | Spade)) =>
-        Seq(AttackBeing(origin,
-          target, targetSuit),
+        Seq(Reveal(b.face, s),
+          AttackBeing(origin, target, targetSuit),
           ActivateBeing(b.face))
 
       case CardOrigin.Hand(_,  C(_, Club) ) |
@@ -229,8 +232,12 @@ class GameScreenControl
 
   def checkEveryBeingHasActedAndEndPhase() =
     game.currentPhase match {
-      case ap: ActPhase =>
-        if (ap.activatedBeings.size == game.beings.values.count(_.owner == currentStar)) {
+      case ActPhase(activatedBeings) =>
+        println("checking it !")
+        if (activatedBeings.size == game.beingsOwnBy(currentStarId).size &&
+          isCurrentPlayer) {
+          println("EveryBeingHasActedAndEndPhase !")
+
           new Alert(AlertType.Information) {
             delegate.initOwner(pane.scene().getWindow)
             title = txt.end_of_act_phase
@@ -238,8 +245,8 @@ class GameScreenControl
             //contentText = "Every being has acted"
           }.showAndWait()
 
-          if(isCurrentPlayer)
-            controller.endPhase()
+
+          controller.endPhase()
         }
       case _ => leval.error()
     }
@@ -292,6 +299,7 @@ class GameScreenControl
           if(res) riverPane.update()
 
         case Reveal(fc, s) =>
+          println(s"reveal ($fc, $s)")
           beingPanesMap get fc foreach (_ update s)
           if(res) riverPane.update()
 
@@ -311,6 +319,12 @@ class GameScreenControl
 
         case AttackBeing(origin, target, targetSuit) =>
           println("AttackBeing " + game.beings(target.face))
+          origin match {
+            case CardOrigin.Being(b, s) =>
+              beingPanesMap get b.face foreach (_ update s)
+            case _ =>()
+          }
+          println("revealed = " + game.revealedCard)
           game.beings(target.face) match {
             case Formation(f) =>
               beingPanesMap get target.face foreach (_ update targetSuit)
@@ -322,6 +336,7 @@ class GameScreenControl
                     () => MoveSeq.end(origin) foreach (actor ! _)
                   ).apply()
 
+                println("toBury = " + toBury)
                 if(toBury.size > 1) {
                   actor ! BuryRequest(target, toBury)
                   alertWaitEndOfBurial()
@@ -353,18 +368,16 @@ class GameScreenControl
           statusPane.star = game.stars(newPlayer).name
           statusPane.round = game.currentRound
           statusPane.phase = game.currentPhase
+          if (isCurrentPlayer) {
+            endPhaseButton.visible = true
+          }
+
 
         case ActPhase(_) =>
           beingPanesMap.values foreach {
             _.educateButton.visible = false
           }
           statusPane.phase = game.currentPhase
-          if (isCurrentPlayer) {
-            //do not end phase automatically if no beings
-            //to let the player see cards potentially
-            // revealed during influence phase
-            endPhaseButton.visible = true
-          }
           statusPane.phase = game.currentPhase
 
         case SourcePhase =>

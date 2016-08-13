@@ -229,8 +229,9 @@ class CreateBeingPane
   def legalFormation : Boolean =
     being match {
       case None => false
-      case Some(b @ Formation(f))=>
-      rules.validBeing(b) && !(b.lover ||
+      case Some(b @ Formation(f)) =>
+        println(s"is $b legal ? = " + rules.validBeing(b))
+      rules.validBeing(b) && (!b.lover ||
         rules.legalLoverFormationAtCreation(f)) && {
 
         val playerBeings = controller.game beingsOwnBy controller.playerGameIdx
@@ -239,7 +240,7 @@ class CreateBeingPane
           case Formation(`f`) => true
           case _ => false
         }
-
+        println(s"hasSameFormation $hasSameFormation")
         !hasSameFormation
       }
       case _ => false

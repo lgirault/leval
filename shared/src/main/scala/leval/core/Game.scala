@@ -165,8 +165,7 @@ case class Game
   }
 
   def revealCard (targetfc : Card, s : Suit) : (Game, Boolean) = {
-    val(g, cardRemoved) =
-      revealAndLookLoverCheck(targetfc, s, _ => true)
+    val(g, cardRemoved) =  revealAndLookLoverCheck(targetfc, s, _ => true)
     (g.copy(revealedCard = revealedCard + ((targetfc, s))),
       cardRemoved)
   }

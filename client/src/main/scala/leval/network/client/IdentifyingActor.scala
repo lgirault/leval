@@ -7,17 +7,19 @@ import scala.concurrent.duration._
 
 
 object IdentifyingActor {
-  def props(netHandle : NetWorkController) =
-    Props(new IdentifyingActor(netHandle)).withDispatcher("javafx-dispatcher")
+  def props(netHandle : NetWorkController,
+            serverPath : String) =
+    Props(new IdentifyingActor(netHandle, serverPath)).withDispatcher("javafx-dispatcher")
 }
 class IdentifyingActor private
-( netHandle : NetWorkController)
+( netHandle : NetWorkController,
+  val serverPath : String)
   extends Actor {
 
-  val path = Settings.remotePath
+
 
   def sendIdentifyRequest() : Unit = {
-    context.actorSelection(path) ! Identify(path)
+    context.actorSelection(serverPath) ! Identify(serverPath)
     import context.dispatcher
     val _ = context.system.scheduler.scheduleOnce(3.seconds, self, ReceiveTimeout)
   }
@@ -27,7 +29,7 @@ class IdentifyingActor private
   def receive = identifying
 
   def identifying: Actor.Receive = {
-    case ActorIdentity(`path`, Some(server)) =>
+    case ActorIdentity(`serverPath`, Some(server)) =>
       println("In liaison with server")
       context.watch(server)
 
@@ -38,7 +40,7 @@ class IdentifyingActor private
       context.become(active(server))
 
 
-    case ActorIdentity(`path`, None) => println(s"Server not available: $path")
+    case ActorIdentity(`serverPath`, None) => println(s"Server not available: $serverPath")
     case ReceiveTimeout              => sendIdentifyRequest()
     case _                           => println("Not ready yet")
   }

@@ -24,7 +24,7 @@ class GameMaker
   def currentNumPlayer : Int = players.size
   context watch owner.actor
   owner.actor ! GameCreated(description)
-
+  owner.actor ! Join(owner)
 
   def disconnect(ref : ActorRef) : Unit = {
     val idx = players.indexWhere(_.actor == ref)
@@ -45,18 +45,20 @@ class GameMaker
       println("GameMaker receives ListGame request")
       sender() ! WaitingPlayersGameInfo(description, currentNumPlayer)
 
-    case Join(npid) =>
-      //println(s"$npid wants to join")
+    case j @ Join(newPlayerId) =>
+      println(s"$newPlayerId wants to join")
       if(currentNumPlayer >= rules.maxPlayer)
-        npid.actor ! NackJoin
+        newPlayerId.actor ! NackJoin
       else{
-        npid.actor ! AckJoin(description)
+        newPlayerId.actor ! AckJoin(description)
         players.foreach {
           pid =>
-            pid.actor ! NewPlayer(npid)
-            npid.actor ! NewPlayer(pid)
+            pid.actor ! j
+            newPlayerId.actor ! Join(pid)
         }
-        players.append(npid)
+        players append newPlayerId
+        newPlayerId.actor ! j
+
         if(currentNumPlayer == rules.maxPlayer){
           players.foreach {
             _.actor ! GameReady
