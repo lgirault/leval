@@ -202,7 +202,6 @@ class BeingPane
   def bottomCard  = being.resources get bottomResource
 
   def update(b : Being) : Unit = {
-    println("update being pane with " + b)
     being = b
 
     leftCard foreach { c =>

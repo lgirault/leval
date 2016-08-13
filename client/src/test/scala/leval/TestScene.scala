@@ -28,16 +28,16 @@ class ControllerMockup
   override def receive: Receive = {
     case InfluencePhase(opponentId) => leval.ignore(oGame(InfluencePhase(playerId)))
     case m @ AttackBeing(_,target,_) =>
-      leval.ignore(oGame(m))
+      val (toBury, _) = oGame(m)
       val b = oGame.game.beings(target.face)
       if(b.owner == opponentId && (
         b match {
         case Formation(_) => false
         case _ => true //dead being
       }))
-        oGame(Bury(b.face, b.cards))
+        oGame(Bury(b.face, toBury.toList))
     case m : Move[_] =>
-      println("Controller Mockup receives" + m)
+      //println("Controller Mockup receives" + m)
       leval.ignore(oGame(m))
 
   }
@@ -52,17 +52,18 @@ object TestScene extends JFXApp  {
       C(Jack, Spade),
       Map(Heart -> ((2, Heart)))
     )
-    val fool = new Being(1,
-      C(Queen, Spade),
+    val wizard = new Being(1,
+      C(Queen, Heart),
       Map(Club -> ((8, Club)),
-        Heart -> ((1, Heart)),
-        Spade -> ((1, Spade))
+        Heart -> C(King, Heart),
+        //Spade -> ((1, Spade)),
+        Diamond -> ((1, Diamond))
       ))
-    val spectre = new Being(1,
+    val spectre = new Being(0,
       C(King, Spade),
       Map(Club -> ((1, Club)),
         Diamond -> ((6, Diamond)),
-        Spade -> ((3, Spade))
+        Spade -> C(Jack, Spade)
       ))
 
     val inHandForTest : Seq[Card] = Seq(Joker.Red, Joker.Black,
@@ -70,7 +71,7 @@ object TestScene extends JFXApp  {
 
     val (p1, p2) = (PlayerId(69, "Betelgeuse"), PlayerId(42, "AlphaCentauri"))
 
-    val usedCards : Set[Card] = fool.cards.toSet ++ spectre.cards ++ inHandForTest
+    val usedCards : Set[Card] = wizard.cards.toSet ++ spectre.cards ++ inHandForTest
 
     val deck = core.deck54() filterNot usedCards.contains
 
@@ -78,9 +79,9 @@ object TestScene extends JFXApp  {
     val (d3, hand2) = d2.pick(9)
 
     Game(Star(p1, hand1 ++ inHandForTest),
-      Star(p2, hand2), d3).
+      Star(p2, hand2), d3, Antares).
       copy(beings =
-        Map(fool.face -> fool,
+        Map(wizard.face -> wizard,
           spectre.face -> spectre,
           child.face -> child))
   }
@@ -116,10 +117,11 @@ object BurialTestScene extends JFXApp {
     }
   }
 
-  new BurialDialog(Being(0,
-      C(King, Spade),
-      Map[Suit, Card](Heart ->C(Numeric(5), Heart),
-      Diamond -> C(Numeric(7), Diamond))),
+  val b = Being(0,
+    C(King, Spade),
+    Map[Suit, Card](Heart -> ((5, Heart)),
+      Diamond -> ((7, Diamond))))
+  new BurialDialog(BuryRequest(b, b.cards.toSet),
     CardImg.width, CardImg.height,
     fp).showAndWait()
 }

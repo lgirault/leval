@@ -116,9 +116,9 @@ class GameMakerSpec
 
       joinerProbe.expectMsg(100 millis, AckJoin)
 
-      ownerProbe expectMsg (100 millis, NewPlayer(titiNetId))
+      ownerProbe expectMsg (100 millis, Join(titiNetId))
 
-      otherPlayerProbe expectMsg (100 millis, NewPlayer(titiNetId))
+      otherPlayerProbe expectMsg (100 millis, Join(titiNetId))
 
       ()
     }

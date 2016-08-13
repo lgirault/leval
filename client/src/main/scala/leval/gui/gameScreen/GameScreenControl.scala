@@ -197,8 +197,8 @@ class GameScreenControl
   import pane._
   import game._
 
-  def burry(b : Being) : Unit =
-    new BurialDialog(b,
+  def burry(br : BuryRequest) : Unit =
+    new BurialDialog(br,
       CardImg.width,
       CardImg.height,
       pane).showAndWait() match {
@@ -251,18 +251,20 @@ class GameScreenControl
       case _ => leval.error()
     }
 
+  def updateStarPanels() = {
+    playerStarPanel.majestyValueLabel.text =
+      stars(playerGameIdx).majesty.toString
+    opponentStarPanel.majestyValueLabel.text =
+      stars(opponentId).majesty.toString
+  }
+
   def notify[A](m: Move[A], res: A): Unit = {
     println(game.stars(playerGameIdx).name +"'s controller notified of " + m)
 
     if(game.ended) endGame()
     else
       m match {
-        case MajestyEffect(_, _) =>
-
-          playerStarPanel.majestyValueLabel.text =
-            stars(playerGameIdx).majesty.toString
-          opponentStarPanel.majestyValueLabel.text =
-            stars(opponentId).majesty.toString
+        case MajestyEffect(_, _) => updateStarPanels()
 
         case PlaceBeing(b, side) =>
           if (playerGameIdx == side) {
@@ -318,17 +320,16 @@ class GameScreenControl
             checkEveryBeingHasActedAndEndPhase()
 
         case AttackBeing(origin, target, targetSuit) =>
-          println("AttackBeing " + game.beings(target.face))
           origin match {
             case CardOrigin.Being(b, s) =>
               beingPanesMap get b.face foreach (_ update s)
             case _ =>()
           }
-          println("revealed = " + game.revealedCard)
+          beingPanesMap get target.face foreach (_ update targetSuit)
           game.beings(target.face) match {
-            case Formation(f) =>
-              beingPanesMap get target.face foreach (_ update targetSuit)
+            case Formation(f) => ()
             case b =>
+              riverPane.update()
               if(b.owner != playerGameIdx) {
                 val (toBury, toDraw) = res
                 if(toDraw > 0)
@@ -336,7 +337,7 @@ class GameScreenControl
                     () => MoveSeq.end(origin) foreach (actor ! _)
                   ).apply()
 
-                println("toBury = " + toBury)
+                println(s"toBury = $toBury")
                 if(toBury.size > 1) {
                   actor ! BuryRequest(target, toBury)
                   alertWaitEndOfBurial()
@@ -347,6 +348,8 @@ class GameScreenControl
               }
               if(b.cards.size > 1)
                 burialOnGoing = true
+
+              updateStarPanels()
           }
           origin match {
             case CardOrigin.Hand(_,_) =>

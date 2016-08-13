@@ -50,7 +50,7 @@ trait Scheduler {
         players.find(_.id.uuid == ownerId) foreach (_.actor ! br)
       }
       else
-        gameControl.burry(target)
+        gameControl burry br
 
     case m : Move[_]  if context.sender() == context.system.deadLetters =>
       players foreach (_.actor ! m)

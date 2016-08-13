@@ -82,7 +82,7 @@ case class Game
 
 
     val (g0, removed0)  = rules.onAttack(this, origin, target).
-      revealCard(target.face, targetedSuit)
+      revealCard(target.face, targetedSuit, Some(origin))
 
     val (g1, removed1) =
       if(removed0) (g0, removed0)
@@ -109,14 +109,14 @@ case class Game
 
     val g2 = origin match {
       case CardOrigin.Hand(_, c) =>
-        g1.copy(deathRiver = g1.deathRiver)
-          .removeFromHand(c)
+        g1.removeFromHand(c)
       case CardOrigin.Being(_, _) => g1
     }
 
+
     if(removed1) target - targetedSuit match {
       case Formation(_) => (g2, Set(), 0)
-      case b => rules.onDeath(g2, origin, b)
+      case b => rules.onDeath(g2, origin, target, targetedSuit)
     }
     else (g2, Set(), 0)
   }
@@ -147,25 +147,26 @@ case class Game
 
   def revealAndLookLoverCheck(targetfc : Card,
                               s : Suit,
+                              sAttacker : Option[CardOrigin],
                               removeGard : Int => Boolean) : (Game, Boolean) = {
     val targetB = beings(targetfc)
     val looked = targetB resources s
     looked match {
       case C(Queen | King, _) if removeGard(targetB.owner)  =>
-        (rules.removeArcanumFromBeing(this, None, targetB, Heart), true)
+        (rules.removeArcanumFromBeing(this, sAttacker, targetB, Heart), true)
       case _ => (this, false)
     }
   }
 
   def lookCard (o : CardOrigin, targetfc : Card, s : Suit) : (Game, Boolean) = {
     val(g, cardRemoved) =
-      revealAndLookLoverCheck(targetfc, s, _ != o.owner)
+      revealAndLookLoverCheck(targetfc, s, None, _ != o.owner)
     (g.copy(lookedCards = lookedCards + ((targetfc, s))),
       cardRemoved)
   }
 
-  def revealCard (targetfc : Card, s : Suit) : (Game, Boolean) = {
-    val(g, cardRemoved) =  revealAndLookLoverCheck(targetfc, s, _ => true)
+  def revealCard (targetfc : Card, s : Suit, sAttacker : Option[CardOrigin]) : (Game, Boolean) = {
+    val(g, cardRemoved) =  revealAndLookLoverCheck(targetfc, s, sAttacker, _ => true)
     (g.copy(revealedCard = revealedCard + ((targetfc, s))),
       cardRemoved)
   }
@@ -195,21 +196,21 @@ object Game {
 
   type StarIdx = Int
 
-  def apply(s1 : Star, s2 : Star, src : Deck) =
-    new Game(Seq(s1, s2), 0, InfluencePhase(0), src, Sinnlos)
+  def apply(s1 : Star, s2 : Star, src : Deck, rule : Rules) =
+    new Game(Seq(s1, s2), 0, InfluencePhase(0), src, rule)
 
-  def apply(players : Seq[PlayerId]) : Game = players match {
-    case p1 +: p2 +: Nil => this.apply(p1, p2)
+  def apply(players : Seq[PlayerId], rule : Rules) : Game = players match {
+    case p1 +: p2 +: Nil => this.apply(p1, p2, rule)
     case _ => leval.error("two players only")
   }
-  def apply(pid1 : PlayerId, pid2 : PlayerId) : Game = {
+  def apply(pid1 : PlayerId, pid2 : PlayerId, rule : Rules) : Game = {
     val deck = deck54()
 
     // on pioche 9 carte
     val (d2, hand1) = deck.pick(9)
     val (d3, hand2) = d2.pick(9)
 
-    Game(Star(pid1, hand1), Star(pid2, hand2), d3)
+    Game(Star(pid1, hand1), Star(pid2, hand2), d3, rule)
   }
 
 
@@ -268,9 +269,9 @@ object Game {
     g.stars.exists (s => ! hasFace(s.hand))
 
 
-  def gameWithoutMulligan(players : Seq[PlayerId]) : (Twilight, Game) = {
-    val (t, g) = twilight(Game(players))
-    if(mulligan(g)) gameWithoutMulligan(players)
+  def gameWithoutMulligan(players : Seq[PlayerId], rules: Rules) : (Twilight, Game) = {
+    val (t, g) = twilight(Game(players, rules))
+    if(mulligan(g)) gameWithoutMulligan(players, rules)
     else (t, g)
   }
 
@@ -297,7 +298,7 @@ class MutableGame(var game : Game) /*extends (Move ~> Id)*/ {
       game = g
       cardRemoved
     case Reveal(target, resource) =>
-      val (g, cardRemoved) = game.revealCard(target, resource)
+      val (g, cardRemoved) = game.revealCard(target, resource, None)
       game = g
       cardRemoved
 

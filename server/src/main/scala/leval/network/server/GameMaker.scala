@@ -39,8 +39,6 @@ class GameMaker
 
     case t @ Terminated(ref) => disconnect(ref)
     case Disconnected(netId) => disconnect(netId.actor)
-
-
     case ListGame =>
       println("GameMaker receives ListGame request")
       sender() ! WaitingPlayersGameInfo(description, currentNumPlayer)
@@ -67,7 +65,7 @@ class GameMaker
       }
 
     case GameStart =>
-      val g = Game.gameWithoutMulligan(players map (_.id))
+      val g = Game.gameWithoutMulligan(players map (_.id), description.rules)
 
       players.foreach {
         _.actor ! g

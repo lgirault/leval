@@ -76,7 +76,7 @@ trait Rules {
 
   def removeArcanumFromBeing
   (g : Game,
-   sAttacker : Option[CardOrigin], //no attacker on reveal
+   sAttacker : Option[CardOrigin],
    attacked : Being,
    targetedSuit : Suit) : Game = {
     val removedArcana = attacked resources targetedSuit
@@ -105,12 +105,14 @@ trait Rules {
   def onDeath
   (g : Game,
    killer : CardOrigin,
-   killed : Being
+   killed : Being,
+   targetedSuit : Suit
   ) : (Game, Set[Card], Int) = {
     val g2 = childAndDauphinEffect(g, killer, killed)
     val g3 = spectreEffectOnDeath(g2, killed)
     val (g4, toBurry) = butcherEffect(g3, killer, killed)
-    (g4, toBurry, wizardOrEminenceGrise(killer))
+    val removedCard = killed.resources(targetedSuit)
+    (g4, toBurry - removedCard, wizardOrEminenceGrise(killer))
   }
 
 
@@ -125,6 +127,8 @@ trait Rules {
       case _ => false
     }
     val (kept, toBury) = killed.cards.toSet partition f
+    println("river = " + g.deathRiver)
+    println(s"butcher effect : kept = $kept, toBury = $toBury")
     (g.setStar(killer.owner, _ ++ kept), toBury)
   }
   else (g, killed.cards.toSet)

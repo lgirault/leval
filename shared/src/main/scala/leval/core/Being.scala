@@ -31,11 +31,11 @@ object Being {
 }
 
 case class Being
-(owner : StarIdx,
- face : Card,
- resources : Map[Suit, Card],
- lover : Boolean = false,
- hasDrawn : Boolean = false //for Helios rule
+( owner : StarIdx,
+  face : Card,
+  resources : Map[Suit, Card],
+  lover : Boolean = false,
+  hasDrawn : Boolean = false //for Helios rule
  ){
 
   def -( s :Suit) = copy(resources = resources - s)
