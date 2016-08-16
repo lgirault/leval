@@ -31,13 +31,14 @@ class IdentifyingActor private
   def identifying: Actor.Receive = {
     case ActorIdentity(`serverPath`, Some(server)) =>
       println("In liaison with server")
-      context.watch(server)
+      //context.watch(server)
 
       val menuProps =
         MenuActor.props(server, netHandle)
           .withDispatcher("javafx-dispatcher")
       netHandle.actor = context.actorOf(menuProps)
-      context.become(active(server))
+      context become passive
+      //context.become(active(server))
 
 
     case ActorIdentity(`serverPath`, None) => println(s"Server not available: $serverPath")
@@ -46,10 +47,11 @@ class IdentifyingActor private
   }
 
 
+  def passive : Actor.Receive = {
+    case _ => ()
+  }
 
   def active(server: ActorRef): Actor.Receive = {
-
-    //TODO !!!
     case Disconnect =>
       print("Unwatching server ... ")
       context.unwatch(server)
