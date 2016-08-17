@@ -48,7 +48,7 @@ trait ResourceSelector {
 class JokerMindEffectTargetSelector
 (val controller: GameScreenControl)
   extends ResourceSelector {
-  import controller.pane
+  val pane =  controller.pane
 
   println("JokerMindEffectTargetSelector")
 
@@ -100,7 +100,7 @@ class JokerWeaponEffectTargetSelector
 (val controller: GameScreenControl,
  onFinish : () => Unit)
   extends ResourceSelector {
-  import controller.pane
+  val pane = controller.pane
 
 
   val subscriptions : Either[Iterable[(BeingResourcePane, Subscription)], Subscription] = {

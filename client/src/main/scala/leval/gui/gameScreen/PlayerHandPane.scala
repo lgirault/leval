@@ -12,11 +12,10 @@ import scalafx.scene.layout.{FlowPane, HBox}
   */
 
 class PlayerHandPane
-( controller : GameScreenControl) extends FlowPane {
-
+( controller : GameScreenControl,
+  height : Double) extends FlowPane {
+  //style = "-fx-border-width: 1; -fx-border-color: black;"
   def hand = controller.game.stars(controller.playerGameIdx).hand
-
-
 
   private def images(hide : Seq[Card] = Seq()) : Seq[CardImageView]= {
 
@@ -24,9 +23,9 @@ class PlayerHandPane
 
     val imgs =
       if(cards.isEmpty) Seq[CardImageView]()
-      else cards.tail.foldLeft(Seq(CardImg.topHalf(cards.head))) {
+      else cards.tail.foldLeft(Seq(CardImg.topHalf(cards.head, Some(height)))) {
         case (acc, c) =>
-          val ci = CardImg.cutTopHalf(c)
+          val ci = CardImg.cutTopHalf(c, Some(height))
           ci.alignmentInParent = Pos.BottomCenter
           ci +: acc
       }
@@ -36,7 +35,7 @@ class PlayerHandPane
         img.handleEvent(MouseEvent.Any) {
           new CardDragAndDrop(controller,
             controller.canDragAndDropOnInfluencePhase,
-            CardOrigin.Hand(controller.playerGameIdx, img.card))()
+            CardOrigin.Hand(controller.playerGameIdx, img.card))
         }
     }
     imgs
@@ -54,15 +53,16 @@ class PlayerHandPane
 }
 
 class OpponnentHandPane
-( controller : GameScreenControl) extends FlowPane {
-
+( controller : GameScreenControl,
+  height : Double) extends FlowPane {
+ // style = "-fx-border-width: 1; -fx-border-color: black;"
   def hand = controller.game.stars(controller.opponentId).hand
 
   private def images : Seq[CardImageView]=
       if(hand.isEmpty) Seq[CardImageView]()
-      else hand.tail.foldLeft(Seq(CardImg.bottomHalf(hand.head, front = false))) {
+      else hand.tail.foldLeft(Seq(CardImg.bottomHalf(hand.head, Some(height), front = false))) {
         case (acc, c) =>
-          val ci = CardImg.cutBottomHalf(c, front = false)
+          val ci = CardImg.cutBottomHalf(c, Some(height), front = false)
           ci.alignmentInParent = Pos.BottomCenter
           ci +: acc
       }

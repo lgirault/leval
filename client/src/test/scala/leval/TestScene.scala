@@ -1,5 +1,8 @@
 package leval
 
+import javafx.beans.value.{ChangeListener, ObservableValue}
+import javafx.scene.transform.Scale
+
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.TestActorRef
 import leval.core._
@@ -7,8 +10,8 @@ import leval.gui.gameScreen.{BurialDialog, CardImg, GameScreenControl, Observabl
 import leval.gui.text.Fr
 
 import scalafx.application.JFXApp
-import scalafx.scene.Scene
-import scalafx.scene.layout.FlowPane
+import scalafx.scene.{Group, Scene}
+import scalafx.scene.layout.{FlowPane, Pane, StackPane}
 
 /**
   * Created by lorilan on 7/4/16.
@@ -32,9 +35,9 @@ class ControllerMockup
       val b = oGame.game.beings(target.face)
       if(b.owner == opponentId && (
         b match {
-        case Formation(_) => false
-        case _ => true //dead being
-      }))
+          case Formation(_) => false
+          case _ => true //dead being
+        }))
         oGame(Bury(b.face, toBury.toList))
     case m : Move[_] =>
       //println("Controller Mockup receives" + m)
@@ -92,18 +95,22 @@ object TestScene extends JFXApp  {
 
   implicit val system = ActorSystem()
   //  val _ = system.actorOf(ControlerMockup.props(game))
-  val control = new GameScreenControl(game, 0, TestActorRef(ControllerMockup.props(game)))
+
+
+
+  val stageScene =  new Scene(800, 600)
 
   stage = new JFXApp.PrimaryStage {
     title = "Test"
 
     implicit val txt = Fr
-    scene = new Scene {
-      root = control.pane
-    }
+    scene = stageScene
+
   }
 
- // control showTwilight twilight
+  val control = new GameScreenControl(stageScene, game, 0, TestActorRef(ControllerMockup.props(game)))
+
+  // control showTwilight twilight
 }
 
 object BurialTestScene extends JFXApp {

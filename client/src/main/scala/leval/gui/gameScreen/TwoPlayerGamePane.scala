@@ -3,6 +3,8 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
+import javafx.beans.value.{ChangeListener, ObservableValue}
+
 import leval.ignore
 import leval.core._
 import leval.gui.gameScreen.being._
@@ -14,7 +16,6 @@ import scalafx.scene.Node
 import scalafx.scene.control.Button
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout._
-import scalafx.stage.Screen
 
 abstract class CardDropTarget(decorated : Node)
   extends HighlightableRegion(decorated)  {
@@ -45,46 +46,65 @@ class RiverPane
 
 }
 
-object TwoPlayerGamePane {
+class TwoPlayerGamePane
+( val oGame : ObservableGame,
+  val playerGameId : Int,
+  val controller : GameScreenControl,
+  val widthInit : Double,
+  val heightInit : Double)
+  extends GridPane {
+  pane =>
 
-  val screenHeight = Screen.primary.visualBounds.getHeight
 
-  val cardHeight = screenHeight / 10
+
+
+  val cardHeight = heightInit / 10
   val cardResizeRatio = cardHeight / CardImg.height
 
   val cardWidth = CardImg.width * cardResizeRatio
 
-  val leftColumnInfo = new ColumnConstraints {
-    percentWidth = 10
-  }
-  val gameAreaInfo = new ColumnConstraints {
-    percentWidth = 90
-  }
-  val riverSepInfo = new RowConstraints {
-    percentHeight = 15
-  }
-  val playerAreaInfo = new RowConstraints {
-    percentHeight = 32.5
-  }
-  val handAreaInfo = new RowConstraints {
-    percentHeight = 10
-  }
 
-}
+  val riverAreaHeight = (0.1 * heightInit).ceil
 
-import leval.gui.gameScreen.TwoPlayerGamePane._
+  val playerAreaHeight = (0.325 * heightInit).ceil
 
-class TwoPlayerGamePane
-( val oGame : ObservableGame,
-  val playerGameId : Int,
-  val controller : GameScreenControl)
-  extends GridPane {
-  pane =>
+  val handAreaHeight = ((heightInit - riverAreaHeight - (2 * playerAreaHeight))/2).floor
+      //= ~ 0.15 * heightInit
+
+
+  val leftColumnInfo = new ColumnConstraints(0.1 * widthInit)
+  val gameAreaInfo = new ColumnConstraints(0.9 * widthInit)
+
+  println(s"width init = $widthInit, height init = $heightInit")
+//  println(s"cardWidth = $cardWidth, cardHeight = $cardHeight")
+//  println(s"riverAreaHeight = $riverAreaHeight, playerAreaHeight = $playerAreaHeight, handAreaHeight = $handAreaHeight")
+//  println(s"left column width = ${0.1 * widthInit}, game area width = ${0.9 * widthInit}")
+
+
+  Seq(new RowConstraints(handAreaHeight),
+    new RowConstraints(playerAreaHeight),
+    new RowConstraints(riverAreaHeight),
+    new RowConstraints(playerAreaHeight),
+    new RowConstraints(handAreaHeight)) foreach (rowConstraints.add(_))
+
+  columnConstraints add leftColumnInfo
+  columnConstraints add gameAreaInfo
+
+  prefWidth = widthInit
+  prefHeight = heightInit
+
+  maxWidth = widthInit
+  maxHeight = heightInit
+
+  minWidth = widthInit
+  minHeight = heightInit
 
   import controller.{opponentId, txt}
   import oGame._
 
   //style = "-fx-background : rgb(0,0,51)"
+
+  style = "-fx-background-color: white"
 
   def player = stars(playerGameId)
 
@@ -167,7 +187,7 @@ class TwoPlayerGamePane
       controller.drawAndLook(origin)
   }
 
-  val handPane = new PlayerHandPane(controller)
+  val handPane = new PlayerHandPane(controller, handAreaHeight)
 
   val endPhaseButton =
     new Button(txt.do_end_phase){
@@ -191,7 +211,7 @@ class TwoPlayerGamePane
       handPane,
       cardWidth, cardHeight)
 
-  val opponentHandPane = new OpponnentHandPane(controller)
+  val opponentHandPane = new OpponnentHandPane(controller, handAreaHeight)
   //style = "-fx-border-width: 1; -fx-border-color: black;"
   val opponentBeingsPane = new FlowPane()
 
@@ -232,7 +252,7 @@ class TwoPlayerGamePane
   }
 
   val playerArea = new BorderPane() {
-//    style = "-fx-border-width: 1; -fx-border-color: black;"
+    //style = "-fx-border-width: 1; -fx-border-color: black;"
     center = playerBeingsPane
     right = createBeeingPane
   }
@@ -266,17 +286,7 @@ class TwoPlayerGamePane
     case (area, index) => GridPane.setConstraints(area, 1, index)
   }
 
-
-  rowConstraints add handAreaInfo
-  rowConstraints add playerAreaInfo
-  rowConstraints add riverSepInfo
-  rowConstraints add playerAreaInfo
-  rowConstraints add handAreaInfo
-  columnConstraints add leftColumnInfo
-  columnConstraints add gameAreaInfo
-
   children = leftColumn ++: gameAreas
-
 
 }
 

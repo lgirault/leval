@@ -24,11 +24,7 @@ class WaitingRoom
 
   def gameScreen(game : ObservableGame) : GameScreenControl ={
     val pidx = game.stars.indexWhere(_.id == control.thisPlayer)
-    val gcontrol =
-      new GameScreenControl(game, pidx, control.actor)
-
-    control.scene.root = gcontrol.pane
-    gcontrol
+    new GameScreenControl(control.scene, game, pidx, control.actor)
   }
   val label = new Label(s"$partyName - $rules - Waiting for players ...")
 

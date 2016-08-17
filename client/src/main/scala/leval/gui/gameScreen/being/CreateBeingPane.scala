@@ -130,7 +130,7 @@ class CreateBeingPane
       cardRectangle(txt, cardWidth, cardHeight),
       hand,
       new CardDragAndDrop(controller,
-        controller.canDragAndDropOnInfluencePhase, _)())
+        controller.canDragAndDropOnInfluencePhase, _))
 
   GridPane.setConstraints(createBeingLabel, 1, 1)
   children = createBeingLabel

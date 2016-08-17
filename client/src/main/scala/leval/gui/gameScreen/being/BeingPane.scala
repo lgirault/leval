@@ -144,7 +144,6 @@ class BeingPane
   val orientation: Orientation)
 ( implicit txt : ValText) extends BeingGrid {
 
-
   private [this] var resourcePanes0 = Map[Suit, BeingResourcePane]()
   def resourcePanes = resourcePanes0.values
 
@@ -166,14 +165,14 @@ class BeingPane
     resourcePane(s) foreach (_.update())
   }
 
-  import control.pane.educateBeingPane
+  import control.pane
 
 
   val educateButton = new Button(txt.educate){
     visible = false
     onMouseClicked = {
       me : MouseEvent =>
-        educateBeingPane.beingPane = BeingPane.this
+        pane.educateBeingPane.beingPane = BeingPane.this
 
     }
   }
@@ -183,7 +182,7 @@ class BeingPane
     val sCardDragAndDrop = orientation match {
       case Player => Some(new CardDragAndDrop(control,
         control.canDragAndDropOnActPhase(being.face),
-        CardOrigin.Being(being, pos))(CardImg(c, front = false)))
+        CardOrigin.Being(being, pos), showFront = false))
       case Opponent => None
     }
 

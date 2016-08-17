@@ -2,7 +2,7 @@ package leval.gui.gameScreen
 
 import javafx.geometry.Bounds
 
-import leval.core.{Being, Bury, BuryRequest, Card}
+import leval.core.{Bury, BuryRequest, Card}
 import CardDragAndDrop.NodeOps
 
 import scalafx.Includes._

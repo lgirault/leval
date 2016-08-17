@@ -1,14 +1,19 @@
 package leval.gui.gameScreen
 
+import javafx.beans.value.ObservableValue
+
 import akka.actor.ActorRef
 import leval.ignore
 import leval.core.Game.StarIdx
 import leval.core._
-import leval.gui.text
+import leval.gui.{SceneSizeChangeListener, text}
 import leval.network.client.StartScreen
 
+import scalafx.geometry.Pos
+import scalafx.scene.{Group, Scene}
 import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
+import scalafx.scene.layout._
 
 
 /**
@@ -41,10 +46,16 @@ object MoveSeq {
 }
 
 class GameScreenControl
-(val game : ObservableGame,
+(val scene : Scene,
+ val game : ObservableGame,
  val playerGameIdx : StarIdx,
  val actor : ActorRef)
-  extends  GameObserver {
+  extends GameObserver
+    with SceneSizeChangeListener{
+
+  val widthRatio: Double = 16d
+  val heightRatio: Double = 9d
+
 
   implicit val txt = text.Fr
   val opponentId = (playerGameIdx + 1) % 2
@@ -52,8 +63,36 @@ class GameScreenControl
   def isCurrentPlayer =
     game.currentStarId == playerGameIdx
 
-  val pane : TwoPlayerGamePane =
-    new TwoPlayerGamePane(game, playerGameIdx, this)
+  private [this] var pane0 : TwoPlayerGamePane = _
+  val rootPane = new StackPane() {
+    style = "-fx-background-color: midnightblue"
+  }
+  private [this] var topPadding0 : Double = _
+  private [this] var leftPadding0 : Double = _
+  def topPadding : Double = topPadding0
+  def leftPadding : Double = leftPadding0
+  def setPane(): Unit = {
+    val (w,h) = contentPaneDimention()
+
+    topPadding0 = (scene.height() - h) /2
+    leftPadding0 = (scene.width() - w) /2
+
+    pane0 = new TwoPlayerGamePane(game, playerGameIdx, this, w, h)
+    pane0.alignmentInParent = Pos.Center
+    rootPane.children.clear()
+    leval.ignore(rootPane.children.add(pane0))
+  }
+  setPane()
+  def pane : TwoPlayerGamePane = pane0
+
+  override def changed(observableValue: ObservableValue[_ <: Number],
+                       oldValue: Number, newValue: Number) : Unit =
+    setPane()
+
+  scene.root = rootPane
+  scene.widthProperty.addListener(this)
+  scene.heightProperty.addListener(this)
+
 
   if(isCurrentPlayer)
     pane.endPhaseButton.visible = true
@@ -194,7 +233,6 @@ class GameScreenControl
     moves foreach (actor ! _)
   }
 
-  import pane._
   import game._
 
   def burry(br : BuryRequest) : Unit =
@@ -245,16 +283,15 @@ class GameScreenControl
             //contentText = "Every being has acted"
           }.showAndWait()
 
-
-          controller.endPhase()
+          endPhase()
         }
       case _ => leval.error()
     }
 
   def updateStarPanels() = {
-    playerStarPanel.majestyValueLabel.text =
+    pane.playerStarPanel.majestyValueLabel.text =
       stars(playerGameIdx).majesty.toString
-    opponentStarPanel.majestyValueLabel.text =
+    pane.opponentStarPanel.majestyValueLabel.text =
       stars(opponentId).majesty.toString
   }
 
@@ -268,51 +305,51 @@ class GameScreenControl
 
         case PlaceBeing(b, side) =>
           if (playerGameIdx == side) {
-            addPlayerBeingPane(b)
-            createBeeingPane.menuMode()
+            pane.addPlayerBeingPane(b)
+            pane.createBeeingPane.menuMode()
           } else {
-            addOpponentBeingPane(b)
-            opponentHandPane.update()
+            pane.addOpponentBeingPane(b)
+            pane.opponentHandPane.update()
           }
 
         case RemoveFromHand(_) =>
           println(game.deathRiver)
-          riverPane.update()
-          handPane.update()
-          opponentHandPane.update()
+          pane.riverPane.update()
+          pane.handPane.update()
+          pane.opponentHandPane.update()
 
         case Collect(origin, tgt) =>
 
           if(tgt == DeathRiver)
-            riverPane.update()
+            pane.riverPane.update()
 
           if (playerGameIdx == origin.owner) {
             for(c <- res)
               new CardDialog(c, pane).showAndWait()
 
-            handPane.update()
+            pane.handPane.update()
           }
           else
-            opponentHandPane.update()
+            pane.opponentHandPane.update()
 
 
         case LookCard(_, fc, s) =>
-          beingPanesMap get fc foreach (_ update s)
-          if(res) riverPane.update()
+          pane.beingPanesMap get fc foreach (_ update s)
+          if(res) pane.riverPane.update()
 
         case Reveal(fc, s) =>
           println(s"reveal ($fc, $s)")
-          beingPanesMap get fc foreach (_ update s)
-          if(res) riverPane.update()
+          pane.beingPanesMap get fc foreach (_ update s)
+          if(res) pane.riverPane.update()
 
         case Bury(target, _) =>
           burialOnGoing = false
-          beingPanesMap get target foreach {
+          pane.beingPanesMap get target foreach {
             bp =>
-              beingsPane(bp.orientation).children.remove(bp.delegate)
+              pane.beingsPane(bp.orientation).children.remove(bp.delegate)
           }
-          beingPanesMap -= target
-          riverPane.update()
+          pane.beingPanesMap -= target
+          pane.riverPane.update()
           checkEveryBeingHasActedAndEndPhase()
 
         case ActivateBeing(fc) =>
@@ -322,14 +359,14 @@ class GameScreenControl
         case AttackBeing(origin, target, targetSuit) =>
           origin match {
             case CardOrigin.Being(b, s) =>
-              beingPanesMap get b.face foreach (_ update s)
+              pane.beingPanesMap get b.face foreach (_ update s)
             case _ =>()
           }
-          beingPanesMap get target.face foreach (_ update targetSuit)
+          pane.beingPanesMap get target.face foreach (_ update targetSuit)
           game.beings(target.face) match {
             case Formation(f) => ()
             case b =>
-              riverPane.update()
+              pane.riverPane.update()
               if(b.owner != playerGameIdx) {
                 val (toBury, toDraw) = res
                 if(toDraw > 0)
@@ -353,9 +390,9 @@ class GameScreenControl
           }
           origin match {
             case CardOrigin.Hand(_,_) =>
-              riverPane.update()
-              handPane.update()
-              opponentHandPane.update()
+              pane.riverPane.update()
+              pane.handPane.update()
+              pane.opponentHandPane.update()
             case _ => ()
           }
 
@@ -363,25 +400,25 @@ class GameScreenControl
 
         case InfluencePhase(newPlayer) =>
           if(isCurrentPlayer)
-            beingPanesMap.values foreach { bp =>
-              if(playerBeingsPane.children contains bp)
+            pane.beingPanesMap.values foreach { bp =>
+              if(pane.playerBeingsPane.children contains bp)
                 bp.educateButton.visible = true
             }
 
-          statusPane.star = game.stars(newPlayer).name
-          statusPane.round = game.currentRound
-          statusPane.phase = game.currentPhase
+          pane.statusPane.star = game.stars(newPlayer).name
+          pane.statusPane.round = game.currentRound
+          pane.statusPane.phase = game.currentPhase
           if (isCurrentPlayer) {
-            endPhaseButton.visible = true
+            pane.endPhaseButton.visible = true
           }
 
 
         case ActPhase(_) =>
-          beingPanesMap.values foreach {
+          pane.beingPanesMap.values foreach {
             _.educateButton.visible = false
           }
-          statusPane.phase = game.currentPhase
-          statusPane.phase = game.currentPhase
+          pane.statusPane.phase = game.currentPhase
+          pane.statusPane.phase = game.currentPhase
 
         case SourcePhase =>
           if (isCurrentPlayer)
@@ -396,20 +433,20 @@ class GameScreenControl
               //contentText = "Every being has acted"
             }.showAndWait()
 
-          beingPanesMap.values foreach (_.update())
-          endPhaseButton.visible = false
+          pane.beingPanesMap.values foreach (_.update())
+          pane.endPhaseButton.visible = false
 
-          statusPane.phase = game.currentPhase
+          pane.statusPane.phase = game.currentPhase
 
         case e : Educate =>
           println("Educate update pane !")
-          val bp = beingPanesMap(e.target)
+          val bp = pane.beingPanesMap(e.target)
           val b = game.beings(e.target)
           bp.update(b)
           if(isCurrentPlayer)
-            handPane.update()
+            pane.handPane.update()
           else
-            opponentHandPane.update()
+            pane.opponentHandPane.update()
 
         case _ => ()
       }
@@ -427,14 +464,14 @@ class GameScreenControl
 
   private [this] var burialOnGoing = false
   def alertWaitEndOfBurial() : Unit =
-  ignore {
+    ignore {
       new Alert(AlertType.Information) {
         delegate.initOwner(pane.scene().getWindow)
         title = txt.burying
         headerText = txt.wait_end_burial
         //contentText = "Every being has acted"
       }.showAndWait()
-  }
+    }
 
 
   def canDragAndDropOnActPhase(fc : Card)() : Boolean =

@@ -52,12 +52,14 @@ object CardImg {
   def cardImg(c : Card) = new Image(cardUrl(c))
 
   def imageView(card : Card,
-                width : Double,
-                height : Double,
+                minX : Double, minY : Double,
+                width : Double, height : Double,
+                sfitHeight : Option[Double],
                 front : Boolean) =
     new CardImageView(card, if(front) cardImg(card) else backImg){
       preserveRatio = true
-      viewport = new Rectangle2D(0, 0, width = width, height = height)
+      viewport = new Rectangle2D(minX, minY, width = width, height = height)
+      sfitHeight foreach fitHeight_=
     }
 
 
@@ -72,61 +74,47 @@ object CardImg {
   def cutRight(card : Card, cut : Double,
                sfitHeight : Option[Double] = None,
                front : Boolean = true): CardImageView = {
-
-    val img = if(front) cardImg(card)
-    else backImg
     val delta = ((cut - 1) / cut) * width
-    val civ = new CardImageView(card, img) {
-      preserveRatio = true
-      viewport = new Rectangle2D(delta, 0,
-        width = width / cut, height = height)
-    }
-
-    sfitHeight foreach civ.fitHeight_=
-
-    civ
+    imageView(card, delta, 0, width / cut, height, sfitHeight, front)
   }
 
   def cutLeft(card : Card, cut : Double,
               sfitHeight : Option[Double] = None,
-              front : Boolean = true): CardImageView = {
-    val civ = imageView(card, width/ cut, height, front)
-    sfitHeight foreach civ.fitHeight_=
-    civ
-  }
+              front : Boolean = true): CardImageView =
+    imageView(card, 0, 0, width/ cut, height, sfitHeight, front)
+
   def apply(card : Card,
             sfitHeight : Option[Double] = None,
-            front : Boolean = true): CardImageView = {
-    val civ = imageView(card, width, height, front)
-    sfitHeight foreach civ.fitHeight_=
-    civ
-  }
+            front : Boolean = true): CardImageView =
+    imageView(card, 0, 0, width, height, sfitHeight, front)
+
 
 
   private def bottomHalfView(card : Card,
                              width : Double,
+                             sfitHeight : Option[Double],
                              front : Boolean) =
-    new CardImageView(card, if(front) cardImg(card) else backImg) {
-      preserveRatio = true
-      viewport = new Rectangle2D(0, height/2, width = width, height = height/2)
-    }
-
+    imageView(card, 0, height/2, width, height/2, sfitHeight, front)
 
   def bottomHalf(card : Card,
+                 sfitHeight : Option[Double],
                  front : Boolean = true): CardImageView =
-    bottomHalfView(card, width, front)
+    bottomHalfView(card, width, sfitHeight, front)
 
   def cutBottomHalf(card : Card,
+                    sfitHeight : Option[Double],
                     front : Boolean = true): CardImageView =
-    bottomHalfView(card, width/3, front)
+    bottomHalfView(card, width/3, sfitHeight, front)
 
   def topHalf(card : Card,
+              sfitHeight : Option[Double],
               front : Boolean = true): CardImageView =
-    imageView(card, width, height/2, front)
+    imageView(card, 0, 0, width, height/2, sfitHeight, front)
 
   def cutTopHalf(card : Card,
+                 sfitHeight : Option[Double],
                  front : Boolean = true): CardImageView =
-    imageView(card, width/3, height/2, front)
+    imageView(card, 0, 0, width/3, height/2, sfitHeight, front)
 
 
 

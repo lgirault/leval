@@ -6,7 +6,6 @@ import leval.core._
 
 import scalafx.geometry.Point2D
 import scalafx.scene.Node
-import scalafx.scene.image.ImageView
 import scalafx.scene.input.MouseEvent
 
 /**
@@ -25,26 +24,42 @@ import leval.gui.gameScreen.CardDragAndDrop.NodeOps
 class CardDragAndDrop
 ( control: GameScreenControl,
   canDragAndDrop : () => Boolean,
-  origin : CardOrigin)
-( val cardImageView : ImageView = CardImg(origin.card))
-  extends (MouseEvent => Unit) {
+  origin : CardOrigin,
+  showFront : Boolean = true)extends (MouseEvent => Unit) {
+
+
 
   import control.pane
+
+
+  lazy val cardImageView : CardImageView = {
+    val height = pane.handAreaHeight * 2
+
+    val img = CardImg(origin.card,
+      sfitHeight = Some(height),
+      showFront)
+    img.managed = false
+    img
+  }
 
   var anchorPt: Point2D = new Point2D(0,0)
   var previousLocation: Point2D = anchorPt
 
-  cardImageView.managed = false
-
   def updateCoord(me : MouseEvent) : Unit = {
-    cardImageView.x = me.sceneX - (CardImg.width / 2)
-    cardImageView.y = me.sceneY - (CardImg.height / 5)
+
+    val cardWidth = cardImageView.getBoundsInLocal.getWidth
+    cardImageView.x = me.sceneX - control.leftPadding - (cardWidth / 2)
+    cardImageView.y = me.sceneY - control.topPadding - (cardImageView.fitHeight() / 5)
   }
 
 
 
   def apply(me : MouseEvent) : Unit = me.eventType match {
     case MouseEvent.MousePressed if canDragAndDrop() =>
+
+      val xy = (me.getX,  me.getY)
+      val sxy = ( me.sceneX,  me.sceneY)
+      println(s"xy = $xy, scene xy = $sxy"  )
 
       pane.doHightlightTargets(origin)
       anchorPt = new Point2D(me.sceneX, me.sceneY)
@@ -68,6 +83,9 @@ class CardDragAndDrop
 
     case MouseEvent.MouseDragged =>
 
+      val xy = (me.getX,  me.getY)
+      val sxy = ( me.sceneX,  me.sceneY)
+      println(s"xy = $xy, scene xy = $sxy"  )
         previousLocation = anchorPt
         anchorPt = new Point2D(me.sceneX, me.sceneY)
 

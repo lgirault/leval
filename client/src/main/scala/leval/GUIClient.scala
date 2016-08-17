@@ -1,7 +1,7 @@
 package leval
 
 import akka.actor.{ActorRef, ActorSystem}
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.ConfigFactory
 import leval.gui.SearchingServerScene
 import leval.network.Settings
 import leval.network.client.{IdentifyingActor, NetWorkController}
@@ -17,10 +17,19 @@ object GUIClient extends JFXApp {
   val stageScene =  new Scene{
     root = new SearchingServerScene()
   }
+
+  val (widthRatio, heightRatio)  = (16d,9d)
+  //val (widthRatio, heightRatio)  = (4d,3d)
+
   stage = new PrimaryStage {
-    title = "Le Val"
+    title = "Le Val des Étoiles"
     scene = stageScene
+    minHeight = 800
+    minWidth = 600
   }
+
+  stage.minWidthProperty bind stageScene.heightProperty.multiply(widthRatio/heightRatio)
+  stage.minHeightProperty bind stageScene.widthProperty.divide(heightRatio/widthRatio)
 
   if(parameters.unnamed.isEmpty){
     scalafx.application.Platform.exit()
