@@ -14,6 +14,7 @@ object Server {
   def start() : Unit = {
     val system = ActorSystem(Settings.systemName,
       ConfigFactory.load("server"))
+
     val _ = system.actorOf(EntryPoint.props, Settings.serverName)
   }
 }

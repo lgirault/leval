@@ -22,6 +22,9 @@ trait NetWorkController extends ViewController {
 
   lazy val netId = NetPlayerId(actor, thisPlayer)
 
+  def guestConnect(login : String) : Unit =
+    actor ! GuestConnection(login)
+
   def connect(login : String, passWord : String) : Unit =
     actor ! Connect(login, passWord)
 

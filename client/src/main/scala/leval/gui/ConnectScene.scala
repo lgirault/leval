@@ -12,18 +12,23 @@ class ConnectScene
   ) extends BorderPane {
 
   val loginTextField = new TextField()
-  val passWordTextField = new TextField()
-
+  //val passWordTextField = new TextField()
 
   val startButton = new Button("Connect"){
+    handleEvent(MouseEvent.MouseClicked) {
+      () => network guestConnect loginTextField.text.value
+    }
+  }
+
+  /*val startButton = new Button("Connect"){
     handleEvent(MouseEvent.MouseClicked) {
       () => network.connect(loginTextField.text.value,
       passWordTextField.text.value)
     }
-  }
+  }*/
   //padding = Insets(25)
   center = new VBox(loginTextField,
-    passWordTextField,
+    //passWordTextField,
     startButton)
 
 }

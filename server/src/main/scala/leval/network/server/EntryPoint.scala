@@ -23,14 +23,18 @@ class EntryPoint extends Actor {
         ("Antares", "1234") -> 4,
         ("Sinnlos", "1234") -> 5)
 
+  var id = 0
   override def receive: Receive = {
-    case Connect(login, pass) =>
+    case GuestConnection(login) =>
+      id += 1
+      sender() ! ConnectAck(PlayerId(id, login))
+   /* case Connect(login, pass) =>
       playersDB get((login, pass)) match {
         case Some(id) =>
           sender() ! ConnectAck(PlayerId(id, login))
         case None =>
           sender() ! ConnectNack("unknown couple login password")
-      }
+      }*/
 
     case CreateGame(desc) =>
       println("Receive create game request")

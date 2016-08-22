@@ -28,26 +28,18 @@ object GUIClient extends JFXApp {
     minWidth = 600
   }
 
-  stage.minWidthProperty bind stageScene.heightProperty.multiply(widthRatio/heightRatio)
-  stage.minHeightProperty bind stageScene.widthProperty.divide(heightRatio/widthRatio)
-
-  if(parameters.unnamed.isEmpty){
-    scalafx.application.Platform.exit()
-  }
-
   val (systemName, actorName) =
     ("ClientSystem", "IdentifyingActor")
 
   val conf = ConfigFactory.load("client")
-/*  val defaultConf = ConfigFactory.load("client")
-
-  val combinedConf = ConfigFactory.load() withFallback defaultConf
-
-  val conf = ConfigFactory.load(combinedConf)*/
+  val server = System getProperty "leval.server.hostname"
+  val serverPort = System getProperty "leval.server.port"
 
   val system = ActorSystem(systemName, conf)
 
-  val serverPath = Settings.remotePath(parameters.unnamed.head)
+  val serverPath = Settings.remotePath(server, serverPort)
+  println(s"connecting to $serverPath")
+
   def clientActor(netControl : NetWorkController) : ActorRef = {
     system.actorOf(IdentifyingActor.props(netControl, serverPath), actorName)
   }
