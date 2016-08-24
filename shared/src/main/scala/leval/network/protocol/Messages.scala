@@ -3,15 +3,17 @@ package leval.network.protocol
 import akka.actor.ActorRef
 import leval.core.{PlayerId, Rules}
 
+abstract class Message
+
 case class NetPlayerId
 ( actor : ActorRef,
-  id : PlayerId)
+  id : PlayerId) extends Message
 
 case class GameDescription
 (owner : NetPlayerId,
- rules : Rules)
+ rules : Rules) extends Message
 
-trait EntryPointRequest
+sealed abstract class EntryPointRequest extends Message
 case object ListGame extends EntryPointRequest
 case class CreateGame
 ( desc : GameDescription)
@@ -26,23 +28,23 @@ case class Connect
   extends EntryPointRequest
 
 
-case class ConnectAck(id : PlayerId)
-case class ConnectNack(msg : String)
+case class ConnectAck(id : PlayerId) extends Message
+case class ConnectNack(msg : String) extends Message
 
-case class Join(id : NetPlayerId)
-case object GameStart
+case class Join(id : NetPlayerId) extends Message
+case object GameStart extends Message
 
 
-case object GameReady
+case object GameReady extends Message
 
 case class WaitingPlayersGameInfo
 ( //makerRef : ActorRef,
   desc : GameDescription,
-  currentNumPlayer : Int)
+  currentNumPlayer : Int) extends Message
 
-case class GameCreated( desc : GameDescription )
+case class GameCreated( desc : GameDescription ) extends Message
 //case object GameReady extends MapMakerAnswer
-case class AckJoin(desc : GameDescription)
-case object NackJoin
+case class AckJoin(desc : GameDescription) extends Message
+case object NackJoin extends Message
 
-case class Disconnected(ref : NetPlayerId)
+case class Disconnected(ref : NetPlayerId) extends Message

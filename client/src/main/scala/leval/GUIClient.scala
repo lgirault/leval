@@ -1,8 +1,9 @@
 package leval
 
 import java.io.{BufferedReader, InputStreamReader}
-import java.net.{InetAddress, NetworkInterface, URL}
+import java.net.{InetAddress, NetworkInterface, ServerSocket, URL}
 
+import com.typesafe.config.Config
 import akka.actor.{ActorRef, ActorSystem}
 import com.typesafe.config.ConfigFactory
 import leval.gui.SearchingServerScene
@@ -13,10 +14,7 @@ import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.Scene
 
-
-
-object GUIClient extends JFXApp {
-
+object ConnectionHelper {
   def findIP() : Unit = {
     val interfaces = NetworkInterface.getNetworkInterfaces
     while(interfaces.hasMoreElements) {
@@ -28,21 +26,56 @@ object GUIClient extends JFXApp {
       }
     }
   }
+  def findPort() : Int = {
+    val s = new ServerSocket(0)
+    val p = s.getLocalPort
+    s.close()
+    p
+  }
+
+  def localIp = InetAddress.getLocalHost.getHostAddress
+
+  def publicIp = {
+    val whatismyip = new URL("http://checkip.amazonaws.com")
+    val in = new BufferedReader(new InputStreamReader(whatismyip.openStream()))
+    val ip = in.readLine() //you get the IP as a String
+    in.close()
+    ip
+  }
+
+  def myConfig(hostname : String, port : Int,
+               bindHostname : String, bindPort : Int) =
+    ConfigFactory.parseString("akka.remote.netty.tcp {\n" +
+      s"hostname=$hostname\n"  +
+      s"bind-hostname=$bindHostname\n" +
+      s"port=$port\n" +
+      s"bind-port=$bindPort\n" +
+      "}"
+    )
+
+
+  def conf(confFileName : String) : Config = {
+
+    val port = findPort()
+
+    val regularConfig = ConfigFactory.load(confFileName)
+    // override regular stack with myConfig
+    val combined =
+        myConfig(publicIp, port,
+          localIp, port).withFallback(regularConfig)
+
+    ConfigFactory.load(combined)
+  }
+
+}
+
+object GUIClient extends JFXApp {
 
   val server = System getProperty "leval.server.hostname"
   val serverPort = System getProperty "leval.server.port"
 
   println(s"server = $server")
   println(s"serverPort = $serverPort")
-
-  findIP()
-  println("private ip = " + InetAddress.getLocalHost.getHostAddress)
-
-  //public ip
-  val whatismyip = new URL("http://checkip.amazonaws.com")
-  val in = new BufferedReader(new InputStreamReader(whatismyip.openStream()))
-  val ip = in.readLine() //you get the IP as a String
-  println("public ip = " + ip)
 
   val stageScene =  new Scene{
     root = new SearchingServerScene()
@@ -58,14 +91,14 @@ object GUIClient extends JFXApp {
     minWidth = 600
   }
 
-
-
   val (systemName, actorName) =
     ("ClientSystem", "IdentifyingActor")
 
-  val conf = ConfigFactory.load("client")
+  //val conf = ConfigFactory.load("client")
 
-   val system = ActorSystem(systemName, conf)
+  val conf = ConnectionHelper.conf("client")
+
+  val system = ActorSystem(systemName, conf)
 
   val serverPath = Settings.remotePath(server, serverPort)
   println(s"connecting to $serverPath")
@@ -75,8 +108,8 @@ object GUIClient extends JFXApp {
   }
 
   val control = new NetWorkController {
-      val scene = stageScene
-      clientActor(this)
+    val scene = stageScene
+    clientActor(this)
   }
 
   override def stopApp() : Unit = {

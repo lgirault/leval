@@ -81,7 +81,7 @@ lazy val client = (project
   packageSummary := "leval software client",
   packageDescription := "Software to play Le Val online",
 
-  jdkPackagerType := "installerG",
+  jdkPackagerType := "exe",
   jdkPackagerProperties := Map("app.name" -> name.value, "app.version" -> version.value),
   jdkPackagerAppArgs := Seq(maintainer.value, packageSummary.value, packageDescription.value),
 
