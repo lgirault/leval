@@ -25,9 +25,9 @@ def classPathFileNameTask(cfg : Configuration): Def.Initialize[Task[File]] = Def
 def commonSettings(module: String) = Seq[Setting[_]](
   organization := "",
   name := s"leval-$module",
-  version := "1.0-SNAPSHOT",
+  version := "0.8",
   scalaVersion := "2.12.0-M4",
-  maintainer := "Loïc Girault ( loic.girault@gmail.com )",
+  maintainer := "L. Girault ( loic.girault@gmail.com )",
 
   classPathFileName := "CLASSPATH",
 
@@ -70,7 +70,9 @@ lazy val client = (project
   settings commonSettings("client")
 
   enablePlugins JDKPackagerPlugin
-
+  
+  enablePlugins JavaAppPackaging
+  
   settings (
   name := "leval", //overrides commonSettings name value
 
@@ -81,13 +83,14 @@ lazy val client = (project
   packageSummary := "leval software client",
   packageDescription := "Software to play Le Val online",
 
-  jdkPackagerType := "exe",
+  jdkPackagerType := "installer",
   jdkPackagerProperties := Map("app.name" -> name.value, "app.version" -> version.value),
   jdkPackagerAppArgs := Seq(maintainer.value, packageSummary.value, packageDescription.value),
 
   (javaHome in JDKPackager) := (javaHome in JDKPackager).value orElse {
     for {
-      f <- Some(file("/usr/lib/jvm/java-8-jdk/")) if f.exists()
+      f <- Some(file("C:\\Program Files\\Java\\jdk1.8.0_102\\")) if f.exists()
+      //f <- Some(file("/usr/lib/jvm/java-8-jdk/")) if f.exists()
     } yield f
   }
 
