@@ -71,12 +71,6 @@ object ConnectionHelper {
 
 object GUIClient extends JFXApp {
 
-  val server = System getProperty "leval.server.hostname"
-  val serverPort = System getProperty "leval.server.port"
-
-  println(s"server = $server")
-  println(s"serverPort = $serverPort")
-
   val stageScene =  new Scene{
     root = new SearchingServerScene()
   }
@@ -97,6 +91,12 @@ object GUIClient extends JFXApp {
   //val conf = ConfigFactory.load("client")
 
   val conf = ConnectionHelper.conf("client")
+
+  val server = conf getString "leval.server.hostname"
+  val serverPort = conf getString "leval.server.port"
+
+  println(s"server = $server")
+  println(s"serverPort = $serverPort")
 
   val system = ActorSystem(systemName, conf)
 
