@@ -22,10 +22,7 @@ class WaitingRoom
   pane =>
 
 
-  def gameScreen(game : ObservableGame) : GameScreenControl ={
-    val pidx = game.stars.indexWhere(_.id == control.thisPlayer)
-    new GameScreenControl(control.scene, game, pidx, control.actor)
-  }
+
   val label = new Label(s"$partyName - $rules - Waiting for players ...")
 
   val players = ListBuffer[PlayerId]()

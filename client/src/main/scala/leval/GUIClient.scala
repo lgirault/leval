@@ -4,7 +4,7 @@ import java.io.{BufferedReader, InputStreamReader}
 import java.net._
 
 import com.typesafe.config.Config
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor. ActorSystem
 import com.typesafe.config.ConfigFactory
 import leval.gui.SearchingServerScene
 import leval.network.Settings
@@ -153,13 +153,9 @@ object GUIClient extends JFXApp {
   val serverPath = Settings.remotePath(server, serverPort)
   println(s"connecting to $serverPath")
 
-  def clientActor(netControl : NetWorkController) : ActorRef = {
-    system.actorOf(IdentifyingActor.props(netControl, serverPath), actorName)
-  }
-
   val control = new NetWorkController {
     val scene = stageScene
-    clientActor(this)
+    system.actorOf(IdentifyingActor.props(serverPath, startMenuActor), actorName)
   }
 
   override def stopApp() : Unit = {

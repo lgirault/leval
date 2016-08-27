@@ -74,8 +74,7 @@ trait Rules {
     remainingDrawAction : Int) : Int = {
     (origin, target) match {
       case (CardOrigin.Being(Spectre(BlackLady), _), DeathRiver)
-        if remainingDrawAction == 2 =>
-        2
+        if remainingDrawAction == 2 => 2
       case _ => 1
     }
   }

@@ -1,7 +1,10 @@
 package leval.gui
 
 import leval.core.{PlayerId, Rules}
+import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
 import leval.network.client._
+
+import scalafx.scene.control
 
 //import scalafx.Includes._
 import scalafx.scene.Scene
@@ -26,6 +29,11 @@ trait ViewController  {
     val wr =  new WaitingRoom(this, maker.name, rules)
     scene.root = wr
     wr
+  }
+
+  def gameScreen(game : ObservableGame) : GameScreenControl ={
+    val pidx = game.stars.indexWhere(_.id == thisPlayer)
+    new GameScreenControl(scene, game, pidx, actor)
   }
 
   def gameListScreen() : GameListPane  = {

@@ -205,6 +205,10 @@ object Game {
   }
   def apply(pid1 : PlayerId, pid2 : PlayerId, rule : Rules) : Game = {
     val deck = deck54()
+    println("!!!!!!!!!!!!!!! 54 = " + deck.size)
+
+    val (dtest, htest) = deck.pick(54)
+    println(s"dtest.size = ${dtest.size}, htest.size = ${htest.size}")
 
     // on pioche 9 carte
     val (d2, hand1) = deck.pick(9)
@@ -251,7 +255,7 @@ object Game {
 
       case Nil | Seq(_)=> ???
     }
-    val (s1, s2) = (s01.copy(hand = s01.hand ++ h1), s02.copy(hand = s02.hand ++ h2))
+    val (s1, s2) = (s01 ++ h1, s02 ++ h2)
 
     if(Card.value(h1.head) > Card.value(h2.head))
       (Twilight(Seq(h1, h2)), g.copy(stars = Seq(s1, s2), source = d))

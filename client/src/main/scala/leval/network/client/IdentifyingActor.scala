@@ -7,16 +7,16 @@ import scala.concurrent.duration._
 
 
 object IdentifyingActor {
-  def props(netHandle : NetWorkController,
-            serverPath : String) =
-    Props(new IdentifyingActor(netHandle, serverPath)).withDispatcher("javafx-dispatcher")
+  type IdReaction = (ActorContext, ActorRef) => Unit
+  def props(serverPath : String,
+            onIdentification : IdReaction) =
+    Props(new IdentifyingActor(serverPath, onIdentification)).withDispatcher("javafx-dispatcher")
+
 }
 class IdentifyingActor private
-( netHandle : NetWorkController,
-  val serverPath : String)
+( val serverPath : String,
+  onIdentification : (ActorContext, ActorRef) => Unit)
   extends Actor {
-
-
 
   def sendIdentifyRequest() : Unit = {
     context.actorSelection(serverPath) ! Identify(serverPath)
@@ -31,25 +31,16 @@ class IdentifyingActor private
   def identifying: Actor.Receive = {
     case ActorIdentity(`serverPath`, Some(server)) =>
       println("In liaison with server")
+      onIdentification(context, server)
       //context.watch(server)
-
-      val menuProps =
-        MenuActor.props(server, netHandle)
-          .withDispatcher("javafx-dispatcher")
-      netHandle.actor = context.actorOf(menuProps)
-      context become passive
       //context.become(active(server))
-
-
     case ActorIdentity(`serverPath`, None) => println(s"Server not available: $serverPath")
     case ReceiveTimeout              => sendIdentifyRequest()
     case _                           => println("Not ready yet")
   }
 
 
-  def passive : Actor.Receive = {
-    case _ => ()
-  }
+
 
   def active(server: ActorRef): Actor.Receive = {
     case Disconnect =>

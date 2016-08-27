@@ -1,6 +1,6 @@
 package leval.network.client
 
-import akka.actor.{Actor, ActorRef, Props, Terminated}
+import akka.actor.{Actor, ActorContext, ActorRef, Props, Terminated}
 import leval.core.{BuryRequest, Game, Move, PlayerId, Rules, Twilight}
 import leval.gui.{GameListPane, ViewController, WaitingRoom}
 import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
@@ -16,11 +16,23 @@ case object Disconnect
 trait NetWorkController extends ViewController {
 
   var thisPlayer : PlayerId = _
-  var actor : ActorRef = _
+  private [this] var actor0 : ActorRef = _
+  def actor : ActorRef = actor0
+  def actor_=(r : ActorRef) = {
+    actor0 = r
+  }
 
   implicit val text : ValText = Fr
 
-  lazy val netId = NetPlayerId(actor, thisPlayer)
+  def netId = NetPlayerId(actor, thisPlayer)
+
+  def startMenuActor(context : ActorContext, serverRef: ActorRef) : Unit = {
+    val menuProps =
+      MenuActor.props(serverRef, this)
+        .withDispatcher("javafx-dispatcher")
+    this.actor = context.actorOf(menuProps)
+    context become passive
+  }
 
   def guestConnect(login : String) : Unit =
     actor ! GuestConnection(login)
@@ -102,9 +114,14 @@ trait WaitinPlayers extends Scheduler {
       case (t @ Twilight(_), g : Game) =>
         val og = new ObservableGame(g)
         players map (_.actor) foreach context.watch
-        val control = waitingScreen.gameScreen(og)
-        control.showTwilight(t)
-        context.become(scheduler(players, og, control))
+        val gameControl = control.gameScreen(og)
+
+        val numCards = og.stars.foldLeft(og.game.source.length){
+          case (acc, s) => acc + s.hand.size
+        }
+
+        gameControl.showTwilight(t)
+        context.become(scheduler(players, og, gameControl))
 
       case Disconnected(netId)  =>
         if(netId == owner) {
@@ -129,14 +146,13 @@ trait WaitinPlayers extends Scheduler {
 }
 
 object MenuActor {
-  def props(serverEntryPoint : ActorRef,
+  def props(serverRef : ActorRef,
             networkHandle : NetWorkController) =
-    Props(new MenuActor(serverEntryPoint,
-      networkHandle))
+    Props(new MenuActor(serverRef, networkHandle))
 }
 
 class MenuActor private
-(serverEntryPoint : ActorRef,
+(serverRef : ActorRef,
  val control : NetWorkController)
   extends Actor
     with WaitinPlayers {
@@ -165,7 +181,7 @@ class MenuActor private
 
     case StartScreen => context.unbecome()
 
-    case ListGame => serverEntryPoint ! ListGame
+    case ListGame => serverRef ! ListGame
 
     case msg => println(s"Listing state : msg $msg unhandled")
   }
@@ -173,9 +189,6 @@ class MenuActor private
 
 
   def receive : Actor.Receive = {
-
-    case ct : Connect =>
-      serverEntryPoint ! ct
 
     case ConnectAck(pid) =>
       control.thisPlayer = pid
@@ -186,9 +199,9 @@ class MenuActor private
 
     case ListGame =>
       context.become( listing( control.gameListScreen() ) )
-      serverEntryPoint ! ListGame
+      serverRef ! ListGame
 
-    case cg : CreateGame => serverEntryPoint ! cg
+    case cg : CreateGame => serverRef ! cg
 
     case GameCreated(GameDescription(creator, rules)) =>
       val waitingScreen = control.waitingOtherPlayerScreen(creator.id, rules)
@@ -196,7 +209,7 @@ class MenuActor private
 
     case StartScreen => ()
 
-    case req : EntryPointRequest => serverEntryPoint ! req
+    case req : EntryPointRequest => serverRef ! req
 
   }
 

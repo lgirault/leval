@@ -65,10 +65,17 @@ class GameMaker
       }
 
     case GameStart =>
-      val g = Game.gameWithoutMulligan(players map (_.id), description.rules)
+      val tg = Game.gameWithoutMulligan(players map (_.id), description.rules)
+      val (t,g) = tg
+      val numCards = g.stars.foldLeft(g.source.length){
+        case (acc, s) => acc + s.hand.size
+      }
+      val tcards = t.cards.map(_.size).sum
+      println("!!!!!!!!!!!!!!!!!! game cards = " + numCards)
+      println("!!!!!!!!!!!!!!!!!! twilight cards = " + tcards)
 
       players.foreach {
-        _.actor ! g
+        _.actor ! tg
       }
       println("Gamestart : GameMaker stopping")
       context stop self
