@@ -1,7 +1,7 @@
 package leval
 
 import java.io.{BufferedReader, InputStreamReader}
-import java.net.{InetAddress, NetworkInterface, ServerSocket, URL}
+import java.net._
 
 import com.typesafe.config.Config
 import akka.actor.{ActorRef, ActorSystem}
@@ -9,20 +9,45 @@ import com.typesafe.config.ConfigFactory
 import leval.gui.SearchingServerScene
 import leval.network.Settings
 import leval.network.client.{IdentifyingActor, NetWorkController}
+import java.util
 
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.Scene
 
 object ConnectionHelper {
+
+  def findIP4(addresses : util.Enumeration[InetAddress]) : Option[String] =
+    if(!addresses.hasMoreElements) None
+    else {
+      val address = addresses.nextElement()
+      if(address.isInstanceOf[Inet4Address]) Some(address.getHostAddress)
+      else findIP4(addresses)
+    }
+
+  def findLocalIP : Option[String] = {
+    def aux(interfaces : util.Enumeration[NetworkInterface]) : Option[String] =
+      if(!interfaces.hasMoreElements) None
+      else {
+        val interface : NetworkInterface = interfaces.nextElement()
+        if(interface.isLoopback) aux(interfaces)
+        else findIP4(interface.getInetAddresses) match {
+          case None => aux(interfaces)
+          case sa => sa
+        }
+      }
+    aux(NetworkInterface.getNetworkInterfaces)
+  }
+
   def findIP() : Unit = {
     val interfaces = NetworkInterface.getNetworkInterfaces
     while(interfaces.hasMoreElements) {
       val interface : NetworkInterface = interfaces.nextElement()
+      println(interface.getDisplayName)
       val addresses = interface.getInetAddresses
       while (addresses.hasMoreElements) {
         val address : InetAddress = addresses.nextElement
-        println(address.getHostAddress)
+        println("\t" + address.getHostName + " " + address.getHostAddress)
       }
     }
   }
@@ -60,13 +85,33 @@ object ConnectionHelper {
 
     val regularConfig = ConfigFactory.load(confFileName)
     // override regular stack with myConfig
-    val combined =
-        myConfig(publicIp, port,
-          localIp, port).withFallback(regularConfig)
+    val pIp = publicIp
+    val lIp = findLocalIP getOrElse error("cannot find local ip")
+    println("public ip = " + pIp)
+    println("private ip = " + lIp)
+    val combined = myConfig(pIp, port, lIp, port).withFallback(regularConfig)
 
     ConfigFactory.load(combined)
   }
 
+  def main(args : Array[String]) : Unit = {
+    println("--------findIP--------")
+    findIP()
+    println("#############")
+    //val conf = ConfigFactory.load("client")
+    val conf = ConnectionHelper.conf("client")
+
+    val server = conf getString "leval.server.hostname"
+    val serverPort = conf getString "leval.server.port"
+
+    println(s"hostname = ${conf getString "akka.remote.netty.tcp.hostname"}")
+    println(s"port = ${conf getString "akka.remote.netty.tcp.port"}")
+    println(s"bind-hostname = ${conf getString "akka.remote.netty.tcp.bind-hostname"}")
+    println(s"bind-port = ${conf getString "akka.remote.netty.tcp.bind-port"}")
+
+    println(s"server = $server")
+    println(s"serverPort = $serverPort")
+  }
 }
 
 object GUIClient extends JFXApp {
@@ -88,12 +133,17 @@ object GUIClient extends JFXApp {
   val (systemName, actorName) =
     ("ClientSystem", "IdentifyingActor")
 
-  //val conf = ConfigFactory.load("client")
+  val conf = ConfigFactory.load("client")
 
-  val conf = ConnectionHelper.conf("client")
+  //val conf = ConnectionHelper.conf("client")
 
   val server = conf getString "leval.server.hostname"
   val serverPort = conf getString "leval.server.port"
+
+  println(s"hostname = ${conf getString "akka.remote.netty.tcp.hostname"}")
+  println(s"port = ${conf getString "akka.remote.netty.tcp.port"}")
+  println(s"bind-hostname = ${conf getString "akka.remote.netty.tcp.bind-hostname"}")
+  println(s"bind-port = ${conf getString "akka.remote.netty.tcp.bind-port"}")
 
   println(s"server = $server")
   println(s"serverPort = $serverPort")

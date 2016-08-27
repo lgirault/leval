@@ -37,7 +37,8 @@ trait Rules {
         (b, co.card) match {
           case (Formation(Fool), C(Jack, _)) => (3, 3)
           case (Formation(Fool), _) => (2, 1)
-          case (Formation(Wizard), C(_, Diamond)) => (wizardCollect, 0) // draw on kill
+          case (Formation(Wizard), _)
+            if co.suit == Diamond => (wizardCollect, 0) // draw on kill
           case (_, C(Jack, _)) => (2, 2)
           case _ => (1, 1)
         }
@@ -64,13 +65,18 @@ trait Rules {
   else g
 
 
-  def collect(g: Game, origin: Origin, target: CollectTarget) : (Game,Seq[Card]) = {
-      val (g1, c) = g.collect(target)
+  //when the dark lady draw a card to the river, she collect two cards instead of one
+  //but if she can draw an additional card thanks to an Eminence Grise,
+  //even in the river she will draw only a third card
+  def numCardDrawPerAction
+  ( origin: Origin,
+    target: CollectTarget,
+    remainingDrawAction : Int) : Int = {
     (origin, target) match {
-      case (CardOrigin.Being(Spectre(BlackLady), _), DeathRiver) =>
-        val (g2, c2) = g1.collect(DeathRiver)
-        (g2.setStar(origin.owner, _ + c + c2), Seq(c, c2))
-      case _ => (g1.setStar(origin.owner, _ + c), Seq(c))
+      case (CardOrigin.Being(Spectre(BlackLady), _), DeathRiver)
+        if remainingDrawAction == 2 =>
+        2
+      case _ => 1
     }
   }
 
@@ -88,16 +94,16 @@ trait Rules {
     }
 
     (Game.goesToRiver(removedArcana), sAttacker exists isButcher) match {
-        case (false, _) => g1
-        case (_, false) => g1.copy(deathRiver = removedArcana :: g.deathRiver)
-        case (true, true) =>
-          removedArcana match {
-            case c @ (C( King | Queen | Jack , _) | Joker(_)) =>
-              g1.setStar(sAttacker.get.owner, _ + removedArcana)
-            case _ =>
-              g1.copy(deathRiver = removedArcana :: g.deathRiver)
-          }
-      }
+      case (false, _) => g1
+      case (_, false) => g1.copy(deathRiver = removedArcana :: g.deathRiver)
+      case (true, true) =>
+        removedArcana match {
+          case c @ (C( King | Queen | Jack , _) | Joker(_)) =>
+            g1.setStar(sAttacker.get.owner, _ + removedArcana)
+          case _ =>
+            g1.copy(deathRiver = removedArcana :: g.deathRiver)
+        }
+    }
   }
 
 
@@ -120,18 +126,18 @@ trait Rules {
   (g : Game,
    killer : CardOrigin,
    killed : Being ) : (Game, Set[Card]) =
-  if(isButcher(killer)){
-    val f : Card => Boolean = {
-      case c @ (C( King | Queen | Jack , _) | Joker(_)) =>
-        Game.goesToRiver(c)
-      case _ => false
+    if(isButcher(killer)){
+      val f : Card => Boolean = {
+        case c @ (C( King | Queen | Jack , _) | Joker(_)) =>
+          Game.goesToRiver(c)
+        case _ => false
+      }
+      val (kept, toBury) = killed.cards.toSet partition f
+      println("river = " + g.deathRiver)
+      println(s"butcher effect : kept = $kept, toBury = $toBury")
+      (g.setStar(killer.owner, _ ++ kept), toBury)
     }
-    val (kept, toBury) = killed.cards.toSet partition f
-    println("river = " + g.deathRiver)
-    println(s"butcher effect : kept = $kept, toBury = $toBury")
-    (g.setStar(killer.owner, _ ++ kept), toBury)
-  }
-  else (g, killed.cards.toSet)
+    else (g, killed.cards.toSet)
 
 
   def wizardOrEminenceGrise(killer : CardOrigin) : Int =
@@ -284,7 +290,7 @@ trait AntaresHeliosCommon extends Rules {
 
   def validResource(face : Card, c : Card, pos : Suit) = (c, face) match {
     case (C(Numeric(_), `pos`) | Joker(_), _)
-       | (C(Jack, `pos`), C(King|Queen, `pos`)) => true
+         | (C(Jack, `pos`), C(King|Queen, `pos`)) => true
     case _ => false
   }
 }

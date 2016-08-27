@@ -97,12 +97,12 @@ class DrawAndLookAction
 
       result match {
         case Some(`collectFromSource`) =>
+          controller.collect(origin, Source, collect)
           collect -= 1
-          controller.collect(origin, Source)
           this.apply()
         case Some(`collectFromRiver`) =>
+          controller.collect(origin, DeathRiver, collect)
           collect -= 1
-          controller.collect(origin, DeathRiver)
           this.apply()
         case Some(`lookCard`) =>
           look -= 1

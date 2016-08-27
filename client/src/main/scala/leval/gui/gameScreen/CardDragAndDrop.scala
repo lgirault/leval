@@ -57,10 +57,6 @@ class CardDragAndDrop
   def apply(me : MouseEvent) : Unit = me.eventType match {
     case MouseEvent.MousePressed if canDragAndDrop() =>
 
-      val xy = (me.getX,  me.getY)
-      val sxy = ( me.sceneX,  me.sceneY)
-      println(s"xy = $xy, scene xy = $sxy"  )
-
       pane.doHightlightTargets(origin)
       anchorPt = new Point2D(me.sceneX, me.sceneY)
       cardImageView.visible = true
@@ -83,9 +79,6 @@ class CardDragAndDrop
 
     case MouseEvent.MouseDragged =>
 
-      val xy = (me.getX,  me.getY)
-      val sxy = ( me.sceneX,  me.sceneY)
-      println(s"xy = $xy, scene xy = $sxy"  )
         previousLocation = anchorPt
         anchorPt = new Point2D(me.sceneX, me.sceneY)
 

@@ -58,14 +58,14 @@ case class Game
     else copy(stars = newStars)
   }
 
-  def collect(target: CollectTarget) : (Game, Card) =
-    target match {
+  def collect(origin: Origin, target: CollectTarget) : (Game, Card) = {
+    val (g1, c) = target match {
       case Source => (copy(source = source.tail), source.head)
       case DeathRiver => (copy(deathRiver = deathRiver.tail), deathRiver.head)
+    }
+    (g1.setStar(origin.owner, _ + c), c)
   }
 
-  def collect(origin: Origin, target: CollectTarget) : (Game, Seq[Card]) =
-    rules.collect(this, origin, target)
 
   def placeBeing(being : Being, side : StarIdx) : Game =
     setStar(side, _ -- being.cards)

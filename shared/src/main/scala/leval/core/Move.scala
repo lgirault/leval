@@ -41,7 +41,7 @@ case class RemoveFromHand(card : Card ) extends Move[Unit]
 case class ActivateBeing(card : Card ) extends Move[Unit]
 
 
-case class Collect(origin: Origin, target: CollectTarget) extends Move[Seq[Card]]
+case class Collect(origin: Origin, target: CollectTarget) extends Move[Card]
 //look card is a club effect and only the user see the card
 //reveal a card is an after effect of using a being resource
 //both player can see the card until the sourcePhase

@@ -1,8 +1,5 @@
 package leval
 
-import javafx.beans.value.{ChangeListener, ObservableValue}
-import javafx.scene.transform.Scale
-
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.TestActorRef
 import leval.core._
@@ -10,8 +7,8 @@ import leval.gui.gameScreen.{BurialDialog, CardImg, GameScreenControl, Observabl
 import leval.gui.text.Fr
 
 import scalafx.application.JFXApp
-import scalafx.scene.{Group, Scene}
-import scalafx.scene.layout.{FlowPane, Pane, StackPane}
+import scalafx.scene.Scene
+import scalafx.scene.layout.FlowPane
 
 /**
   * Created by lorilan on 7/4/16.

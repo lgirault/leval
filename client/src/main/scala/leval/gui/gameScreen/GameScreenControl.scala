@@ -10,7 +10,7 @@ import leval.gui.{SceneSizeChangeListener, text}
 import leval.network.client.StartScreen
 
 import scalafx.geometry.Pos
-import scalafx.scene.{Group, Scene}
+import scalafx.scene.Scene
 import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.layout._
@@ -153,8 +153,15 @@ class GameScreenControl
     MoveSeq.placeBeing(b, playerGameIdx) foreach (actor ! _)
   }
 
-  def collect(origin : Origin, target : CollectTarget) : Unit =
-    actor ! Collect(origin, target)
+  def collect(origin : Origin,
+              target : CollectTarget,
+              remainingDrawAction : Int ) : Unit = {
+    //remainingDrawAction BEFORE this collect
+    val n = game.rules.numCardDrawPerAction(origin, target, remainingDrawAction)
+    for(_ <- 0 until n) {
+      actor ! Collect(origin, target)
+    }
+  }
 
 
   def endPhase() : Unit =
@@ -324,8 +331,7 @@ class GameScreenControl
             pane.riverPane.update()
 
           if (playerGameIdx == origin.owner) {
-            for(c <- res)
-              new CardDialog(c, pane).showAndWait()
+            new CardDialog(res, pane).showAndWait()
 
             pane.handPane.update()
           }

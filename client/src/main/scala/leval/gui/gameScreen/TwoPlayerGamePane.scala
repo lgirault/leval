@@ -3,8 +3,6 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
-import javafx.beans.value.{ChangeListener, ObservableValue}
-
 import leval.ignore
 import leval.core._
 import leval.gui.gameScreen.being._
