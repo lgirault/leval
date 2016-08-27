@@ -188,6 +188,19 @@ case class Game
 
   def beingValue(b : Being, s : Suit ) = b.value(s, rules.value)
   def beingsOwnBy(idx: StarIdx) = beings.values filter (_.owner == idx)
+
+
+  def printNumCards() {
+    println("g.source.length = " + source.length)
+    stars.zipWithIndex.foreach {
+      case (s, idx) =>
+        println(s"hand $idx size = " + s.hand.size)
+    }
+    val numCards = stars.foldLeft(source.length) {
+      case (acc, s) => acc + s.hand.size
+    }
+    println("!!!!!!!!!!!!!!!!!! game cards = " + numCards)
+  }
 }
 
 
@@ -238,8 +251,6 @@ object Game {
 
   def twilight(g : Game) : (Twilight, Game) = {
     //tant qu'on a pas deux cartes égales, on continue de piocher (le val 1, p 20)
-
-
     val Seq(s01, s02) = g.stars
     var d = g.source
     var h1 = Seq(d.head)
@@ -253,14 +264,14 @@ object Game {
         h1 = c1 +: h1
         h2 = c2 +: h2
 
-      case Nil | Seq(_)=> ???
+      case Nil | Seq(_) => ???
     }
     val (s1, s2) = (s01 ++ h1, s02 ++ h2)
 
     if(Card.value(h1.head) > Card.value(h2.head))
       (Twilight(Seq(h1, h2)), g.copy(stars = Seq(s1, s2), source = d))
     else
-      (Twilight(Seq(h2, h1)), g.copy(stars = Seq(s2, s1)))
+      (Twilight(Seq(h2, h1)), g.copy(stars = Seq(s2, s1), source = d))
   }
 
   def hasFace(h : Set[Card]) =

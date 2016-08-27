@@ -1,6 +1,7 @@
 package leval.network.client
 
 import akka.actor.{Actor, ActorContext, ActorRef, Props, Terminated}
+import akka.event.Logging
 import leval.core.{BuryRequest, Game, Move, PlayerId, Rules, Twilight}
 import leval.gui.{GameListPane, ViewController, WaitingRoom}
 import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
@@ -56,6 +57,8 @@ trait Scheduler {
   this : Actor =>
   def control: NetWorkController
 
+  val log = Logging.getLogger(context.system, this)
+
   def scheduler(players : Seq[NetPlayerId],
                 observableGame: ObservableGame,
                 gameControl : GameScreenControl) : Actor.Receive = {
@@ -70,7 +73,7 @@ trait Scheduler {
     case m : Move[_]  if context.sender() == context.system.deadLetters =>
       players foreach (_.actor ! m)
     case m : Move[_] =>
-      println(m + " received from " + context.sender())
+      log debug  s"$m received from ${context.sender()}"
       leval.ignore(observableGame(m))
 
     case Terminated(ref) =>
@@ -99,7 +102,7 @@ trait WaitinPlayers extends Scheduler {
     {
       case Join(npid @ NetPlayerId(ref, pid)) =>
         players append npid
-        println(s"new player : $npid")
+        log info s"new player : $npid"
         waitingScreen addPlayer pid
 
       case GameReady =>
@@ -140,7 +143,7 @@ trait WaitinPlayers extends Scheduler {
         control.displayStartScreen()
 
 
-      case msg => println(s"Waiting players state : msg $msg unhandled")
+      case msg => log debug s"Waiting players state : msg $msg unhandled"
     }
   }
 }
@@ -163,7 +166,7 @@ class MenuActor private
 
   def listing( gameListScreen : GameListPane ) : Actor.Receive = {
     case WaitingPlayersGameInfo(desc, currentNumPlayer) =>
-      println(s"client receive game info from ${sender()}")
+      log info s"client receive game info from ${sender()}"
 
       val answer : JoinAction = {
         val s = sender()
@@ -174,7 +177,6 @@ class MenuActor private
 
     case AckJoin(GameDescription(creator, rules)) =>
       val waitingScreen = control.waitingOtherPlayerScreen(creator.id, rules)
-      println("thisPlayer = " + thisPlayer + ", creator = " + creator+ ", equals ? = " + (creator == thisPlayer))
       context.become( waitingPlayers( sender(), waitingScreen, creator ) )
 
     case NackJoin => println("Cannot join game")
@@ -183,7 +185,7 @@ class MenuActor private
 
     case ListGame => serverRef ! ListGame
 
-    case msg => println(s"Listing state : msg $msg unhandled")
+    case msg => log debug s"Listing state : msg $msg unhandled"
   }
 
 

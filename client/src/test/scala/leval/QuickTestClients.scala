@@ -27,7 +27,6 @@ trait WaitinPlayersTest
   def waitingPlayers(gameMaker : ActorRef,
                      owner : NetPlayerId) : Actor.Receive = {
     val players = ListBuffer[NetPlayerId]()
-    println("waitingPlayers ... ")
 
     {
       case Join(npid @ NetPlayerId(ref, pid)) =>
@@ -44,13 +43,6 @@ trait WaitinPlayersTest
         val og = new ObservableGame(g)
         players map (_.actor) foreach context.watch
         val gameControl = control.gameScreen(og)
-
-        val numCards = og.stars.foldLeft(og.game.source.length){
-          case (acc, s) => acc + s.hand.size
-        }
-
-        println("!! game received : " + numCards + " cards")
-
         gameControl.showTwilight(t)
         context.become(scheduler(players, og, gameControl))
 
@@ -136,10 +128,7 @@ abstract class QuickTestClient extends JFXApp {
   val ip ="127.0.0.1"
 
   val regularConfig = ConfigFactory.load("client")
-  val combined = ConnectionHelper.myConfig(ip, port, ip, port).withFallback(regularConfig)
-
-  val conf = ConfigFactory.load(combined)
-
+  val conf = ConnectionHelper.myConfig(ip, port, ip, port).withFallback(regularConfig)
 
   //val conf = ConnectionHelper.conf("client")
 
