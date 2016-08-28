@@ -36,21 +36,28 @@ class GameMaker
 
     {
       case m: Move[_] =>
+       log debug m.toString
         orderedPlayers map (_.actor) foreach {
           a => if (a != sender())
             a ! m
         }
 
       case br: BuryRequest =>
+        log debug br.toString
         orderedPlayers(br.target.owner).actor ! br
 
       case Disconnected(nid) =>
         disconnect(nid)
+
+        log debug s"Disconnected($nid) : GameMaker stopping"
+
         context stop self
 
       case t @ Terminated(ref) =>
         val sNetId = orderedPlayers find (_.actor == ref)
         sNetId foreach disconnect
+
+        log debug s"Terminated($ref) : GameMaker stopping"
 
         context stop self
     }
@@ -112,7 +119,6 @@ class GameMaker
         players.foreach {
           _.actor ! tg
         }
-        log info "Gamestart : GameMaker stopping"
 
         val orderedPlayers = g.stars map { s =>
           val Some(nid) = players.find(_.id == s.id)

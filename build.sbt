@@ -89,8 +89,8 @@ lazy val client = (project
 
   (javaHome in JDKPackager) := (javaHome in JDKPackager).value orElse {
     for {
-      f <- Some(file("C:\\Program Files\\Java\\jdk1.8.0_102\\")) if f.exists()
-      //f <- Some(file("/usr/lib/jvm/java-8-jdk/")) if f.exists()
+      //f <- Some(file("C:\\Program Files\\Java\\jdk1.8.0_102\\")) if f.exists()
+      f <- Some(file("/usr/lib/jvm/java-8-jdk/")) if f.exists()
     } yield f
   }
 
