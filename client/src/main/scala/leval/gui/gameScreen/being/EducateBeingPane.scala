@@ -194,7 +194,7 @@ class EducateBeingPane
 
   var sEducation : Option[Educate] = None
 
-  val okButton = okCanvas(cardWidth)
+  val okButton = okImage(cardWidth/3)
   okButton.visible = false
   okButton.onMouseClicked = {
     me : MouseEvent =>
@@ -204,15 +204,16 @@ class EducateBeingPane
 
   }
 
-  val closeButton : Node = closeCanvas(cardWidth)
+  val closeButton : Node = cancelImage(cardWidth/3)
   closeButton.onMouseClicked = {
     me : MouseEvent =>
       resetBeingPane()
       hand.update()
   }
 
-  GridPane.setConstraints(okButton, 0, 2)
-  GridPane.setConstraints(closeButton, 2, 2)
+  bottomLeftCenterConstraints(okButton)
+  bottomRightCenterConstraints(closeButton)
+
   children = Seq(face, mind, power, heart, weapon,
     okButton, closeButton)
 

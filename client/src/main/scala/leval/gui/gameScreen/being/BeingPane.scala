@@ -168,15 +168,13 @@ class BeingPane
   import control.pane
 
 
-  val educateButton = new Button(txt.educate){
-    visible = false
-    onMouseClicked = {
-      me : MouseEvent =>
-        pane.educateBeingPane.beingPane = BeingPane.this
-
-    }
+  val educateButton : Node = educateImage(cardWidth/3)//closeCanvas(cardWidth)
+  educateButton.visible = false
+  educateButton.onMouseClicked = {
+    me : MouseEvent =>
+      pane.educateBeingPane.beingPane = BeingPane.this
   }
-  GridPane.setConstraints(educateButton, 2, 2)
+  bottomRightCenterConstraints(educateButton)
 
   def placeResourcePane( c : Card, pos : Suit, place : Node => Unit) : Node ={
     val sCardDragAndDrop = orientation match {
@@ -220,7 +218,7 @@ class BeingPane
     }
 
     val faceImage = CardImg(being.face, Some(cardHeight))
-    GridPane.setConstraints(faceImage, 1, 1)
+    centerConstraints(faceImage)
     children = educateButton +: faceImage +: resourcePanes.toSeq
   }
 

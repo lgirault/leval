@@ -4,41 +4,76 @@ import leval.core.CardOrigin
 import leval.gui.text.ValText
 
 import scalafx.geometry.Pos
+import scalafx.scene.{Group, Scene}
 import scalafx.scene.control.Label
-import scalafx.scene.layout.VBox
-import scalafx.scene.text.Text
+import scalafx.scene.image.{ImageView, WritableImage}
+import scalafx.scene.layout._
 
 /**
   * Created by Loïc Girault on 06/07/16.
   */
 
 object StarPanel {
-  def apply(ogame : ObservableGame,
-    numStar : Int,
-    controller : GameScreenControl)
-   (implicit txt : ValText): StarPanel = {
-    val star = ogame.stars(numStar)
+  def apply(controller : GameScreenControl,
+            width : Double,
+            numStar : Int)
+           (implicit txt : ValText): StarPanel = {
+    val star = controller.game.stars(numStar)
 
-    new StarPanel(numStar, controller,
-      star.id.name, new Label(star.majesty.toString))
+    new StarPanel(controller, width, numStar , star.id.name)
   }
+
+  def image
+  ( starName : String,
+    majesty : Int)(implicit txt : ValText) = {
+    val w = CardImg.width * 1.5
+    val h = CardImg.height
+
+    val text = s"$starName\n${txt.majesty}\n$majesty"
+
+    val label = new Label(text) {
+      minWidth = w
+      minHeight = h
+      maxWidth = w
+      maxHeight = h
+      prefWidth = w
+      prefHeight = h
+      alignment = Pos.Center
+      style =
+        "-fx-border-insets: 2;" +
+        "-fx-font-size: 40;" +
+        "-fx-text-alignment: center;"
+    }
+    val scene = new Scene(new Group(label))
+    val img = new WritableImage(w.toInt, h.toInt)
+    scene.snapshot(img)
+    img
+  }
+
+
 }
 
 class StarPanel
-( val numStar : Int,
-  controller : GameScreenControl,
+( controller : GameScreenControl,
+  width : Double,
+  val numStar : Int,
   val starName : String,
-  val majestyValueLabel : Label = new Label())
+  val wrapper : BorderPane = new BorderPane())
 (implicit txt : ValText)
-  extends CardDropTarget(new VBox {
-  spacing = 10
-  alignment = Pos.Center
-  children = Seq(
-  new Text(starName),
-  new Text(txt.majesty),
-  majestyValueLabel
-  )
-}) {
+  extends CardDropTarget(wrapper) {
+  def majesty : Int = controller.game.stars(numStar).majesty
+
+  def update() = {
+    wrapper.children.clear()
+    val img = StarPanel.image(starName, majesty)
+    val imgview = new ImageView(img){
+      preserveRatio = true
+      fitWidth = width
+    }
+    wrapper.center = imgview
+  }
+
+  update()
 
   def onDrop(origin: CardOrigin): Unit =
     controller.directEffect(origin)

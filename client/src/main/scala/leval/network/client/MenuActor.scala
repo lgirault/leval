@@ -1,6 +1,7 @@
 package leval.network.client
 
-import akka.actor.{Actor, ActorContext, ActorRef, Props, Terminated}
+import akka.actor.Actor.Receive
+import akka.actor.{Actor, ActorContext, ActorIdentity, ActorRef, Identify, Props, Terminated}
 import akka.event.Logging
 import leval.core.{BuryRequest, Game, Move, PlayerId, Rules, Twilight}
 import leval.gui.{GameListPane, ViewController, WaitingRoom}

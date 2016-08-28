@@ -296,10 +296,8 @@ class GameScreenControl
     }
 
   def updateStarPanels() = {
-    pane.playerStarPanel.majestyValueLabel.text =
-      stars(playerGameIdx).majesty.toString
-    pane.opponentStarPanel.majestyValueLabel.text =
-      stars(opponentId).majesty.toString
+    pane.playerStarPanel.update()
+    pane.opponentStarPanel.update()
   }
 
   def notify[A](m: Move[A], res: A): Unit = {
@@ -411,9 +409,7 @@ class GameScreenControl
                 bp.educateButton.visible = true
             }
 
-          pane.statusPane.star = game.stars(newPlayer).name
-          pane.statusPane.round = game.currentRound
-          pane.statusPane.phase = game.currentPhase
+          pane.statusPane.update()
           if (isCurrentPlayer) {
             pane.endPhaseButton.visible = true
           }
@@ -423,8 +419,7 @@ class GameScreenControl
           pane.beingPanesMap.values foreach {
             _.educateButton.visible = false
           }
-          pane.statusPane.phase = game.currentPhase
-          pane.statusPane.phase = game.currentPhase
+          pane.statusPane.update()
 
         case SourcePhase =>
           if (isCurrentPlayer)
@@ -442,7 +437,7 @@ class GameScreenControl
           pane.beingPanesMap.values foreach (_.update())
           pane.endPhaseButton.visible = false
 
-          pane.statusPane.phase = game.currentPhase
+          pane.statusPane.update()
 
         case e : Educate =>
           println("Educate update pane !")

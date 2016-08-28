@@ -133,9 +133,9 @@ object GUIClient extends JFXApp {
   val (systemName, actorName) =
     ("ClientSystem", "IdentifyingActor")
 
-  val conf = ConfigFactory.load("client")
+  //val conf = ConfigFactory.load("client")
 
-  //val conf = ConnectionHelper.conf("client")
+  val conf = ConnectionHelper.conf("client")
 
   val server = conf getString "leval.server.hostname"
   val serverPort = conf getString "leval.server.port"

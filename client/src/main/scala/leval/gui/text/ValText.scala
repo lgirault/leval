@@ -1,8 +1,25 @@
 package leval.gui.text
 
+import scalafx.scene.text.Font
+
 /**
   * Created by lorilan on 7/8/16.
   */
+object ValText {
+
+  val defaultSize = 14
+  val fantasyFont =
+    Font.loadFont(this.getClass.getResource("/fantasy1.ttf").toExternalForm, defaultSize)
+
+  val defaultFont = new Font(Font.default.getName, defaultSize)
+
+  /*
+  style =
+          "-fx-fill: red;"+
+          "-fx-stroke: black;" +
+          "-fx-stroke-width: 1;"
+   */
+}
 trait ValText {
 
   val influence_phase : String

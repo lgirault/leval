@@ -107,6 +107,7 @@ object TestScene extends JFXApp  {
 
   val control = new GameScreenControl(stageScene, game, 0, TestActorRef(ControllerMockup.props(game)))
 
+  control.notify(InfluencePhase(game.currentStarId), ())
   // control showTwilight twilight
 }
 

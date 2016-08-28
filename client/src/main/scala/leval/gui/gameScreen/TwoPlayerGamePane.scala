@@ -169,14 +169,17 @@ class TwoPlayerGamePane
   }
 
   //Highlightable areas
-  val opponentStarPanel = StarPanel(oGame, opponentId, controller)
+  val opponentStarPanel = StarPanel(controller,
+    leftColumnInfo.prefWidth(), opponentId)
   opponentStarPanel.alignmentInParent = Pos.BottomCenter
-  val playerStarPanel = StarPanel(oGame, playerGameId, controller)
+  val playerStarPanel = StarPanel(controller,
+    leftColumnInfo.prefWidth(), playerGameId)
   playerStarPanel.alignmentInParent = Pos.TopCenter
 
   val deck = new CardDropTarget(CardImg.back(Some(cardHeight))){
     def onDrop(origin: CardOrigin): Unit =
       controller.drawAndLook(origin)
+    //style = "-fx-border-width: 1; -fx-border-color: black;"
   }
 
   val riverPane = new RiverPane(controller, cardHeight)
@@ -257,9 +260,8 @@ class TwoPlayerGamePane
 
   padding = Insets.Empty
 
-  val statusPane = new StatusPane()
-
-  statusPane.star = game.stars(game.currentStarIdx).name
+  val statusPane =
+    new StatusPane(controller.game, leftColumnInfo.prefWidth())
 
   val leftColumn = Seq(
     statusPane,

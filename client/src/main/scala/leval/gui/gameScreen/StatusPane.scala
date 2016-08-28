@@ -4,39 +4,62 @@ import leval.core.{ActPhase, InfluencePhase, Phase, SourcePhase}
 import leval.gui.text.ValText
 
 import scalafx.geometry.Pos
-import scalafx.scene.layout.VBox
-import scalafx.scene.text.Text
+import scalafx.scene.{Group, Scene}
+import scalafx.scene.control.Label
+import scalafx.scene.image.{ImageView, WritableImage}
 
 /**
   * Created by lorilan on 7/8/16.
   */
-class StatusPane(implicit txt : ValText) extends VBox {
+class StatusPane
+(game : ObservableGame,
+ width : Double)
+(implicit txt : ValText) extends ImageView {
+
+  style = "-fx-border-width: 1; -fx-border-color: black;"
 
 
-  private [this] val phaseTxt = new Text(txt.influence_phase)
-  def phase_=(p : Phase) : Unit =
-    phaseTxt.text = p match {
-    case InfluencePhase(_) => txt.influence_phase
-    case ActPhase(_) => txt.act_phase
-    case SourcePhase => txt.source_phase
+  def update() : Unit = {
+    val text =
+      s"${txt.round} ${game.currentRound}\n" +
+        game.currentStar.name+"\n" +
+        phaseTxt(game.currentPhase)
+    val w = CardImg.width * 1.5
+    val h = (CardImg.height * 2) / 3
+    val label = new Label(text) {
+      minWidth = w
+      minHeight = h
+      maxWidth = w
+      maxHeight = h
+      prefWidth = w
+      prefHeight = h
+      alignment = Pos.Center
+      wrapText = true
+      style =
+        "-fx-border-insets: 2;" +
+          "-fx-font-size: 40;" +
+          "-fx-text-alignment: center;"
+    }
+
+    val scene = new Scene(new Group(label))
+    val img = new WritableImage(w.toInt, h.toInt)
+    scene.snapshot(img)
+    image = img
+    preserveRatio = true
+    fitWidth = width
+
   }
-  def phase : String = phaseTxt.text()
 
-  private [this] val roundTxt = new Text(txt.round +" 1")
-  def round_=(i : Int) : Unit =
-    roundTxt.text = txt.round +" " + i
-  def round: String = roundTxt.text()
+  update()
 
-  private [this] val starTxt = new Text(txt.round +" 1")
+  def phaseTxt(p : Phase) : String =
+    p match {
+      case InfluencePhase(_) => txt.influence_phase
+      case ActPhase(_) => txt.act_phase
+      case SourcePhase => txt.source_phase
+    }
 
-  def star_=(s : String) : Unit = starTxt.text = s
-  def star: String = starTxt.text()
 
-  alignment = Pos.Center
-  spacing = 10
-  children = Seq(
-    roundTxt,
-    starTxt,
-    phaseTxt
-  )
+
+
 }

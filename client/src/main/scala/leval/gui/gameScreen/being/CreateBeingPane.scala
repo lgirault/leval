@@ -96,7 +96,7 @@ class CreateBeingPane
 
   def playerGameIdx = controller.playerGameIdx
 
-  val okButton = okCanvas(cardWidth)
+  val okButton = okImage(cardWidth/3)//okCanvas(cardWidth)
   okButton.visible = false
 
   okButton.onMouseClicked = {
@@ -177,30 +177,16 @@ class CreateBeingPane
   }
 
 
-  val closeButton : Node = closeCanvas(cardWidth)
+  val closeButton : Node = cancelImage(cardWidth/3)//closeCanvas(cardWidth)
   closeButton.onMouseClicked = {
     me : MouseEvent =>
       menuMode()
   }
 
-  GridPane.setConstraints(okButton, 0, 2)
-  //okButton.alignmentInParent = Pos.BottomLeft
+  bottomLeftCenterConstraints(okButton)
 
-  GridPane.setConstraints(closeButton, 2, 2)
-  //  closeButton.alignmentInParent = Pos.BottomRight
+  bottomRightCenterConstraints(closeButton)
 
-  //  val buttonWrapper = new VBox {
-  //    val vspacer = new Region()
-  //    VBox.setVgrow(vspacer, Priority.Always)
-  //
-  //    val hspacer = new Region()
-  //    HBox.setHgrow(hspacer, Priority.Always)
-  //
-  //
-  //    children = Seq(vspacer,
-  //      new HBox(okButton, hspacer, closeButton))
-  //  }
-  //  GridPane.setConstraints(buttonWrapper, 2, 2)
   def defaultPos(c : Card) : CardDropTarget =
     c match {
       case C(_ : Face, _) | Joker(_) => face
