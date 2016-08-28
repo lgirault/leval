@@ -20,7 +20,7 @@ import scalafx.scene.Scene
 
 trait WaitinPlayersTest
   extends Actor
-    with Scheduler {
+    with InGame {
   val control : NetWorkController
   def thisPlayer : NetPlayerId
 
@@ -44,7 +44,7 @@ trait WaitinPlayersTest
         players map (_.actor) foreach context.watch
         val gameControl = control.gameScreen(og)
         gameControl.showTwilight(t)
-        context.become(scheduler(players, og, gameControl))
+        context.become(ingame(players, og, gameControl))
 
       case Disconnected(netId)  => println(netId + " disconnected")
 

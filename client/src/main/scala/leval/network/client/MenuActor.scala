@@ -57,42 +57,38 @@ trait NetWorkController extends ViewController {
 }
 
 
-trait Scheduler {
+trait InGame {
   this : Actor =>
   def control: NetWorkController
 
   val log = Logging.getLogger(context.system, this)
 
-  def scheduler(players : Seq[NetPlayerId],
-                observableGame: ObservableGame,
-                gameControl : GameScreenControl) : Actor.Receive = {
+  def ingame(scheduler : ActorRef,
+             observableGame: ObservableGame,
+             gameControl : GameScreenControl) : Actor.Receive = {
     case br @ BuryRequest(target, _) =>
-      if(context.sender() == context.system.deadLetters) {
-        val ownerId = observableGame.stars(target.owner).id.uuid
-        players.find(_.id.uuid == ownerId) foreach (_.actor ! br)
-      }
+      if(context.sender() == context.system.deadLetters)
+        scheduler ! br
       else
         gameControl burry br
 
-    case m : Move[_]  if context.sender() == context.system.deadLetters =>
-      players foreach (_.actor ! m)
-    case m : Move[_] =>
-      log debug  s"$m received from ${context.sender()}"
+    case m : Move[_]  =>
+      if (context.sender() == context.system.deadLetters)
+        scheduler ! m
+
       leval.ignore(observableGame(m))
 
-    case Terminated(ref) =>
-      println()
-      players.find(_.actor == ref) foreach {
-        pid => gameControl.disconnectedPlayerAlert(pid.id.name)
-      }
+    case Disconnected(pid) =>
+      gameControl.disconnectedPlayerAlert(pid.id.name)
+
     case StartScreen =>
-      players map (_.actor) foreach context.unwatch
+      scheduler ! Disconnected(NetPlayerId(context.self, control.thisPlayer))
       context.unbecome()
       control.displayStartScreen()
   }
 }
 
-trait WaitinPlayers extends Scheduler {
+trait WaitinPlayers extends InGame {
   this : Actor =>
 
   def thisPlayer : NetPlayerId
@@ -101,11 +97,9 @@ trait WaitinPlayers extends Scheduler {
   def waitingPlayers(gameMaker : ActorRef,
                      waitingScreen : WaitingRoom,
                      owner : NetPlayerId) : Actor.Receive = {
-    val players = ListBuffer[NetPlayerId]()
 
     {
       case Join(npid @ NetPlayerId(ref, pid)) =>
-        players append npid
         log info s"new player : $npid"
         waitingScreen addPlayer pid
 
@@ -120,26 +114,19 @@ trait WaitinPlayers extends Scheduler {
 
       case (t @ Twilight(_), g : Game) =>
         val og = new ObservableGame(g)
-        players map (_.actor) foreach context.watch
         val gameControl = control.gameScreen(og)
-
-        val numCards = og.stars.foldLeft(og.game.source.length){
-          case (acc, s) => acc + s.hand.size
-        }
-
         gameControl.showTwilight(t)
-        context.become(scheduler(players, og, gameControl))
+
+        context.become(ingame(gameMaker, og, gameControl))
 
       case Disconnected(netId)  =>
         if(netId == owner) {
           waitingScreen.ownerExitAlert()
           self ! StartScreen
         }
-        else {
-          players.remove(players.indexOf(netId))
-          waitingScreen.clearPlayers()
-          players map (_.id) foreach waitingScreen.addPlayer
-        }
+        else
+          waitingScreen rmPlayer netId.id
+
 
       case StartScreen =>
         gameMaker ! Disconnected(thisPlayer)

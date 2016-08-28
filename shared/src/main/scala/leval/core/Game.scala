@@ -208,10 +208,6 @@ object Game {
   }
   def apply(pid1 : PlayerId, pid2 : PlayerId, rule : Rules) : Game = {
     val deck = deck54()
-    println("!!!!!!!!!!!!!!! 54 = " + deck.size)
-
-    val (dtest, htest) = deck.pick(54)
-    println(s"dtest.size = ${dtest.size}, htest.size = ${htest.size}")
 
     // on pioche 9 carte
     val (d2, hand1) = deck.pick(9)

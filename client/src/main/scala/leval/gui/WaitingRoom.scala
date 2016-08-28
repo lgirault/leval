@@ -38,6 +38,12 @@ class WaitingRoom
     }
   }
 
+  def rmPlayer(pid : PlayerId) : Unit = {
+    players remove players.indexOf(pid)
+    clearPlayers()
+    players foreach addPlayer
+  }
+
   def addPlayer(pid : PlayerId) : Unit = {
      println(s"addPlayer($pid)")
      val PlayerId(_, name) = pid

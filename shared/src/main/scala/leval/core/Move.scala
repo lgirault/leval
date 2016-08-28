@@ -50,7 +50,7 @@ case class LookCard(origin: CardOrigin, target : Card, resource : Suit) extends 
 
 case class PlaceBeing(being: Being, side : Int) extends Move[Unit]
 case class Bury(target : Card, order : List[Card]) extends Move[Unit]
-case class BuryRequest(target : Being, toBury : Set[Card]) // do not extend Move, this is client communication, place somewhere else ?
+case class BuryRequest(target : Being, toBury : Set[Card])
 
 //delate Educate and make EducationType a move ??
 sealed abstract class Educate extends Move[Unit] {
