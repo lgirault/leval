@@ -2,14 +2,18 @@ package leval.gui
 
 import leval.network.client.NetWorkController
 
-import scalafx.scene.control.{TextField, Button}
+import scalafx.geometry.Pos
+import scalafx.scene.control.{Button, TextField}
 import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout.{VBox, BorderPane}
+import scalafx.scene.layout.{BorderPane, VBox}
 
 
 class ConnectScene
 ( network : NetWorkController
   ) extends BorderPane {
+
+  val img = logoImage()
+  img.alignmentInParent = Pos.Center
 
   val loginTextField = new TextField()
   //val passWordTextField = new TextField()
@@ -27,7 +31,9 @@ class ConnectScene
     }
   }*/
   //padding = Insets(25)
-  center = new VBox(loginTextField,
+  center = new VBox(
+    img,
+    loginTextField,
     //passWordTextField,
     startButton)
 

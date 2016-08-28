@@ -5,6 +5,8 @@ import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
 import leval.network.client._
 
 import scalafx.scene.control
+import scalafx.scene.control.Alert
+import scalafx.scene.control.Alert.AlertType
 
 //import scalafx.Includes._
 import scalafx.scene.Scene
@@ -13,6 +15,8 @@ trait ViewController  {
   this : NetWorkController =>
 
   val scene : Scene
+
+  def exit() : Unit
 
   def displayConnectScreen() : Unit = {
     scene.root = new ConnectScene(this)
@@ -42,4 +46,13 @@ trait ViewController  {
     glp
   }
 
+  def connectError(msg : String) : Unit = {
+    new Alert(AlertType.Confirmation) {
+      delegate.initOwner(scene.getWindow)
+      title = "Erreur de connection"
+      headerText = msg
+    }.showAndWait()
+    exit()
+
+  }
 }

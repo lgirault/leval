@@ -19,12 +19,15 @@ case class CreateGame
 ( desc : GameDescription)
   extends EntryPointRequest
 
-case class GuestConnection
-( login : String)
+case class GuestConnect
+( clientVersion : String,
+  login : String)
   extends EntryPointRequest
 
 case class Connect
-( login : String, password : String)
+( clientVersion : String,
+  login : String,
+  password : String)
   extends EntryPointRequest
 
 

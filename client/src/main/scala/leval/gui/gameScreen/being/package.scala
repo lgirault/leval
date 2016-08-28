@@ -11,7 +11,7 @@ import scalafx.scene.layout.StackPane
   */
 package object being {
 
-  val switchUrl = this.getClass.getResource("/switch-icon.png").toExternalForm
+  val switchUrl = this.getClass.getResource("/icons/switch.png").toExternalForm
   val switch = new Image(switchUrl)
   def switchImage(width : Double) =
     new ImageView(switch) {
@@ -19,7 +19,7 @@ package object being {
       fitWidth = width
     }
 
-  val eyeUrl = this.getClass.getResource("/eye-icon.png").toExternalForm
+  val eyeUrl = this.getClass.getResource("/icons/eye.png").toExternalForm
   val eye = new Image(eyeUrl)
   def eyeImage(width : Double) =
     new ImageView(eye) {
@@ -27,7 +27,7 @@ package object being {
       fitWidth = width
     }
 
-  val educateUrl = this.getClass.getResource("/educate-icon.png").toExternalForm
+  val educateUrl = this.getClass.getResource("/icons/educate.png").toExternalForm
   val educate = new Image(educateUrl)
   def educateImage(width : Double) =
     new ImageView(educate) {
@@ -35,7 +35,7 @@ package object being {
       fitWidth = width
     }
 
-  val okUrl = this.getClass.getResource("/ok-icon.png").toExternalForm
+  val okUrl = this.getClass.getResource("/icons/ok.png").toExternalForm
   val ok = new Image(okUrl)
   def okImage(width : Double) =
     new ImageView(ok) {
@@ -43,7 +43,7 @@ package object being {
       fitWidth = width
     }
 
-  val cancelUrl = this.getClass.getResource("/cancel-icon.png").toExternalForm
+  val cancelUrl = this.getClass.getResource("/icons/cancel.png").toExternalForm
   val cancel = new Image(cancelUrl)
   def cancelImage(width : Double) =
     new ImageView(cancel) {

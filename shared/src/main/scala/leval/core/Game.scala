@@ -190,17 +190,7 @@ case class Game
   def beingsOwnBy(idx: StarIdx) = beings.values filter (_.owner == idx)
 
 
-  def printNumCards() {
-    println("g.source.length = " + source.length)
-    stars.zipWithIndex.foreach {
-      case (s, idx) =>
-        println(s"hand $idx size = " + s.hand.size)
-    }
-    val numCards = stars.foldLeft(source.length) {
-      case (acc, s) => acc + s.hand.size
-    }
-    println("!!!!!!!!!!!!!!!!!! game cards = " + numCards)
-  }
+
 }
 
 

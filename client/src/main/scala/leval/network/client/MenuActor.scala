@@ -17,6 +17,9 @@ case object Disconnect
 
 trait NetWorkController extends ViewController {
 
+  val majorVersion : Int
+  val minorVersion : Int
+
   var thisPlayer : PlayerId = _
   private [this] var actor0 : ActorRef = _
   def actor : ActorRef = actor0
@@ -37,10 +40,10 @@ trait NetWorkController extends ViewController {
   }
 
   def guestConnect(login : String) : Unit =
-    actor ! GuestConnection(login)
+    actor ! GuestConnect(s"$majorVersion.$minorVersion", login)
 
   def connect(login : String, passWord : String) : Unit =
-    actor ! Connect(login, passWord)
+    actor ! Connect(s"$majorVersion.$minorVersion", login, passWord)
 
   def disconnect() : Unit =
     actor ! Disconnect
@@ -195,10 +198,10 @@ class MenuActor private
 
     case ConnectAck(pid) =>
       control.thisPlayer = pid
-      val _ = control.displayStartScreen()
+      leval.ignore(control.displayStartScreen())
 
     case ConnectNack(msg) =>
-      println(msg)
+      leval.ignore(control.connectError(msg))
 
     case ListGame =>
       context.become( listing( control.gameListScreen() ) )

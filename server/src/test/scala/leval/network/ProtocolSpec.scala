@@ -17,12 +17,12 @@ class ProtocolSpec extends AcceptanceSpec with ScalaFutures with ActorSystemSetu
 
 
 
-  val serverRef = TestActorRef(new EntryPoint)
+  val serverRef = TestActorRef(new EntryPoint(0, 5))
 
   "The entry point" - {
 
     "given a valid (login, password) should acknowledge a connection" in {
-      val answer = serverRef ? Connect("Toto", "1234")
+      val answer = serverRef ? Connect("0.5", "Toto", "1234")
       whenReady(answer){
         case ConnectAck(PlayerId(_, "Toto")) => assert(true)
         case _ => assert(false, "ConnectAck was expected")
@@ -30,7 +30,7 @@ class ProtocolSpec extends AcceptanceSpec with ScalaFutures with ActorSystemSetu
     }
 
     "given a INvalid (login, password) should *NOT* acknowledge a connection" in {
-      val answer = serverRef ? Connect("Jack", "Bau-er")
+      val answer = serverRef ? Connect("0.5", "Jack", "Bau-er")
       whenReady(answer){
         case ConnectNack(_) => assert(true)
         case _ => assert(false, "ConnectNack was expected")

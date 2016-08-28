@@ -87,8 +87,6 @@ object ConnectionHelper {
     // override regular stack with myConfig
     val pIp = publicIp
     val lIp = findLocalIP getOrElse error("cannot find local ip")
-    println("public ip = " + pIp)
-    println("private ip = " + lIp)
     val combined = myConfig(pIp, port, lIp, port).withFallback(regularConfig)
 
     ConfigFactory.load(combined)
@@ -153,11 +151,6 @@ object GUIClient extends JFXApp {
   val serverPath = Settings.remotePath(server, serverPort)
   println(s"connecting to $serverPath")
 
-  val control = new NetWorkController {
-    val scene = stageScene
-    system.actorOf(IdentifyingActor.props(serverPath, startMenuActor), actorName)
-  }
-
   override def stopApp() : Unit = {
     control.disconnect()
     println("Shutting down !!")
@@ -165,4 +158,16 @@ object GUIClient extends JFXApp {
     println("Bye bye !!")
     System.exit(0)
   }
+
+  val control = new NetWorkController {
+    val majorVersion: Int = conf getInt "leval.client.version.major"
+    val minorVersion: Int = conf getInt "leval.client.version.minor"
+    def exit() = stopApp()
+
+    val scene = stageScene
+
+    system.actorOf(IdentifyingActor.props(serverPath, startMenuActor), actorName)
+  }
+
+
 }

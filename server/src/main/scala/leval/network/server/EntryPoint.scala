@@ -9,25 +9,38 @@ import leval.core.PlayerId
 
 
 object EntryPoint {
-  def props = Props(new EntryPoint())
+  def props(majorVersion : Int,
+            minorVersion : Int) =
+    Props(new EntryPoint(majorVersion, minorVersion))
 }
-class EntryPoint extends Actor {
-
-  //val gameMakers : ListBuffer[ActorRef] = ListBuffer()
+class EntryPoint
+(val majorVersion : Int,
+ val minorVersion : Int)extends Actor {
 
   println("EntryPoint = " + self.path)
 
-  val playersDB =
+  def checkVersion(version : String) : Boolean = {
+    val a = version.split('.')
+    val major = a(0).toInt
+    val minor = a(1).toInt
+    println(s"received $major.$minor")
+    println(s"expected $majorVersion.$minorVersion")
+    major == majorVersion && minor == minorVersion
+  }
+  /*val playersDB =
     Map(("toto", "1234") -> 0,
         ("titi", "1234") -> 1,
         ("Antares", "1234") -> 4,
-        ("Sinnlos", "1234") -> 5)
+        ("Sinnlos", "1234") -> 5)*/
 
   var id = 0
   override def receive: Receive = {
-    case GuestConnection(login) =>
+    case GuestConnect(clientVersion, login) =>
       id += 1
-      sender() ! ConnectAck(PlayerId(id, login))
+      if(checkVersion(clientVersion))
+        sender() ! ConnectAck(PlayerId(id, login))
+      else
+        sender() ! ConnectNack(s"Mauvaise version, veuillez utiliser un client version $majorVersion.$minorVersion")
    /* case Connect(login, pass) =>
       playersDB get((login, pass)) match {
         case Some(id) =>
@@ -37,13 +50,11 @@ class EntryPoint extends Actor {
       }*/
 
     case CreateGame(desc) =>
-      println("Receive create game request")
       leval.ignore(context.actorOf(GameMaker.props(desc)))
 
 
     case ListGame =>
       //TODO be more subtle, (manage a gameMakers list ?)
-      println("Receive list game request")
       context.children.foreach {
         _.! (ListGame) (sender())
       }

@@ -12,9 +12,13 @@ object Server {
   }
 
   def start() : Unit = {
-    val system = ActorSystem(Settings.systemName,
-      ConfigFactory.load("server"))
+    val conf =  ConfigFactory load "server"
+    val system = ActorSystem(Settings.systemName, conf)
 
-    val _ = system.actorOf(EntryPoint.props, Settings.serverName)
+    val majorVersion : Int = conf getInt "leval.client.version.major"
+    val minorVersion : Int = conf getInt "leval.client.version.minor"
+
+    val _ = system.actorOf(EntryPoint.props(majorVersion, minorVersion),
+      Settings.serverName)
   }
 }

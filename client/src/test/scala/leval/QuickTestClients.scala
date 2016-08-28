@@ -148,7 +148,20 @@ abstract class QuickTestClient extends JFXApp {
   val serverPath = Settings.remotePath(server, serverPort)
   println(s"connecting to $serverPath")
 
+  override def stopApp() : Unit = {
+    control.disconnect()
+    println("Shutting down !!")
+    system.terminate()
+    println("Bye bye !!")
+    System.exit(0)
+  }
+
   val control = new NetWorkController {
+    val majorVersion: Int = conf getInt "leval.client.version.major"
+    val minorVersion: Int = conf getInt "leval.client.version.minor"
+    def exit() = stopApp()
+
+
     val scene = stageScene
 
     system.actorOf(IdentifyingActor.props(serverPath, startTestActor(this)), actorName)
@@ -160,13 +173,7 @@ abstract class QuickTestClient extends JFXApp {
     }
   }
 
-  override def stopApp() : Unit = {
-    control.disconnect()
-    println("Shutting down !!")
-    system.terminate()
-    println("Bye bye !!")
-    System.exit(0)
-  }
+
 }
 
 object QuickCreatorClient extends QuickTestClient {
