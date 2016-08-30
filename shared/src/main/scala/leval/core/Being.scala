@@ -38,6 +38,7 @@ case class Being
   hasDrawn : Boolean = false //for Helios rule
  ){
 
+
   def -( s :Suit) = copy(resources = resources - s)
   def +( kv : (Suit, Card)) = copy(resources = resources + kv)
 
@@ -96,6 +97,8 @@ case class Being
         v(c) + faceBonus + formationBonus(resource)
     }
   }
+
+  def firstDraw : Boolean = ! hasDrawn
 }
 
 

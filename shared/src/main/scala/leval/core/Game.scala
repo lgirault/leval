@@ -3,7 +3,7 @@ package leval.core
 /**
   * Created by lorilan on 6/29/16.
   */
-import Game.{SeqOps, goesToRiver, StarIdx}
+import Game.{SeqOps, StarIdx, goesToRiver}
 
 case class Game
 (stars : Seq[Star], // for 4 or 3 players ??
@@ -63,7 +63,11 @@ case class Game
       case Source => (copy(source = source.tail), source.head)
       case DeathRiver => (copy(deathRiver = deathRiver.tail), deathRiver.head)
     }
-    (g1.setStar(origin.owner, _ + c), c)
+    val g2 = origin match {
+      case CardOrigin.Being(b, _) => g1 + b.copy(hasDrawn = true)
+      case _ => g1
+    }
+    (g2.setStar(origin.owner, _ + c), c)
   }
 
 

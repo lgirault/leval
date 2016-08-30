@@ -35,8 +35,14 @@ trait Rules {
       case CardOrigin.Hand(_, _) => (1, 1)
       case co @ CardOrigin.Being(b, _) =>
         (b, co.card) match {
-          case (Formation(Fool), C(Jack, _)) => (3, 3)
-          case (Formation(Fool), _) => (2, 1)
+          case (Formation(Fool), C(Jack, _)) =>
+            if(b.firstDraw)
+              (4, 3)
+            else
+              (3, 3)
+          case (Formation(Fool), _) =>
+            if(b.firstDraw) (3, 1)
+            else (2, 1)
           case (Formation(Wizard), _)
             if co.suit == Diamond => (wizardCollect, 0) // draw on kill
           case (_, C(Jack, _)) => (2, 2)
