@@ -22,31 +22,29 @@ trait WaitinPlayersTest
   extends Actor
     with InGame {
   val control : NetWorkController
-  def thisPlayer : NetPlayerId
 
   def waitingPlayers(gameMaker : ActorRef,
-                     owner : NetPlayerId) : Actor.Receive = {
-    val players = ListBuffer[NetPlayerId]()
+                     owner : PlayerId) : Actor.Receive = {
+    val players = ListBuffer[PlayerId]()
 
     {
-      case Join(npid @ NetPlayerId(ref, pid)) =>
-        players append npid
-        println(s"new player : $npid")
+      case Join(pid) =>
+        players append pid
+        println(s"new player : $pid")
 
       case GameReady =>
         val status =
-          if (owner == thisPlayer) {
+          if (owner == control.thisPlayer) {
             gameMaker ! GameStart
           }
 
       case (t @ Twilight(_), g : Game) =>
         val og = new ObservableGame(g)
-        players map (_.actor) foreach context.watch
         val gameControl = control.gameScreen(og)
         gameControl.showTwilight(t)
         context.become(ingame(gameMaker, og, gameControl))
 
-      case Disconnected(netId)  => println(netId + " disconnected")
+      case Disconnect(netId)  => println(netId + " disconnected")
 
       case msg => println(s"Waiting players state : msg $msg unhandled")
     }
@@ -65,12 +63,10 @@ class CreatorActor
  val control : NetWorkController)
   extends WaitinPlayersTest {
 
-  def thisPlayer : NetPlayerId = control.netId
-
   def receive: Receive = {
     case cg : CreateGame => serverRef ! cg
-    case GameCreated(GameDescription(creator, rules)) =>
-      context become waitingPlayers(sender(), thisPlayer)
+    case CreateGameAck(GameDescription(creator, rules)) =>
+      context become waitingPlayers(sender(), control.thisPlayer)
   }
 }
 object JoiningActor {
@@ -84,14 +80,12 @@ class JoiningActor
  val control : NetWorkController)
   extends WaitinPlayersTest {
 
-  val thisPlayer : NetPlayerId = control.netId
-
   def receive: Receive = {
     case ListGame => serverRef ! ListGame
-    case WaitingPlayersGameInfo(desc, currentNumPlayer) =>
+    case PlayDescription(desc, currentNumPlayer) =>
       println("WaitingPlayersGameInfo received")
-      sender() ! Join(thisPlayer)
-    case AckJoin(GameDescription(creator, rules)) =>
+      sender() ! Join(control.thisPlayer)
+    case JoinAck(GameDescription(creator, rules)) =>
       context.become( waitingPlayers( sender(), creator ) )
   }
 }

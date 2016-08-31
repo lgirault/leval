@@ -4,21 +4,23 @@ package server
 
 import protocol._
 import akka.actor.{Actor, ActorRef, Props, Terminated}
-import leval.core.{BuryRequest, Game, Move}
+import leval.core.{BuryRequest, Game, Move, PlayerId}
 
 import scala.collection.mutable.ListBuffer
 import akka.actor._
 import akka.event.Logging
 
 object GameMaker {
-  def props(description : GameDescription) =
-    Props(new GameMaker(description))
+  def props(ownerRef : ActorRef,
+            description : GameDescription) =
+    Props(new GameMaker(ownerRef, description))
 }
 
 
 
 class GameMaker
-(val description : GameDescription)
+( ownerRef : ActorRef,
+  val description : GameDescription)
   extends Actor {
 
   val log = Logging.getLogger(context.system, this)
@@ -30,7 +32,7 @@ class GameMaker
 
     def disconnect(nid : NetPlayerId) : Unit = {
       orderedPlayers map (_.actor) foreach {
-        _ ! Disconnected(nid)
+        _ ! Disconnect(nid.id)
       }
     }
 
@@ -46,10 +48,10 @@ class GameMaker
         log debug br.toString
         orderedPlayers(br.target.owner).actor ! br
 
-      case Disconnected(nid) =>
-        disconnect(nid)
+      case Disconnect(id) =>
+        disconnect((sender(), id))
 
-        log debug s"Disconnected($nid) : GameMaker stopping"
+        log debug s"Disconnected($id) : GameMaker stopping"
 
         context stop self
 
@@ -66,45 +68,49 @@ class GameMaker
   def receive: Receive = {
 
     import description._
-    val players = ListBuffer[NetPlayerId](description.owner)
+    val players = ListBuffer[NetPlayerId]((ownerRef, description.owner))
     def currentNumPlayer : Int = players.size
-    context watch owner.actor
-    owner.actor ! GameCreated(description)
-    owner.actor ! Join(owner)
+    context watch ownerRef
+    ownerRef ! CreateGameAck(description)
+    ownerRef ! Join(owner)
 
-    def disconnect(ref : ActorRef) : Unit = {
-      val idx = players.indexWhere(_.actor == ref)
+    def disconnectFromId(ref : PlayerId) : Unit =
+      disconnect(players.indexWhere(_.id.uuid == ref.uuid))
+    def disconnectFromRef(ref : ActorRef) : Unit =
+      disconnect(players.indexWhere(_.actor == ref))
+
+    def disconnect(idx : Int) : Unit = {
       val netId = players.remove(idx)
-      players foreach (_.actor ! Disconnected(netId))
-      if(ref == owner.actor){
+      players foreach (_.actor ! Disconnect(netId.id))
+      if(netId.id == description.owner){
         context stop self
       }
     }
 
-
     {
 
-      case t@Terminated(ref) => disconnect(ref)
-      case Disconnected(netId) => disconnect(netId.actor)
+      case t@Terminated(ref) => disconnectFromRef(ref)
+      case Disconnect(id) => disconnectFromId(id)
       case ListGame =>
         log info "GameMaker receives ListGame request"
-        sender() ! WaitingPlayersGameInfo(description, currentNumPlayer)
+        sender() ! PlayDescription(description, currentNumPlayer)
 
       case j@Join(newPlayerId) =>
         log info s"$newPlayerId wants to join"
+        val newPlayerActor = sender()
         if (currentNumPlayer >= rules.maxPlayer)
-          newPlayerId.actor ! NackJoin
+          newPlayerActor ! JoinNack
         else {
-          newPlayerId.actor ! AckJoin(description)
+          newPlayerActor ! JoinAck(description)
           players.foreach {
             pid =>
               pid.actor ! j
-              newPlayerId.actor ! Join(pid)
+              newPlayerActor ! Join(pid.id)
           }
-          players append newPlayerId
-          newPlayerId.actor ! j
+          players append ((newPlayerActor, newPlayerId))
+          newPlayerActor ! j
 
-          context watch newPlayerId.actor
+          context watch newPlayerActor
 
           if (currentNumPlayer == rules.maxPlayer) {
             players.foreach {

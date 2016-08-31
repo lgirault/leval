@@ -47,7 +47,7 @@ trait ResourceSelector {
 
 class JokerMindEffectTargetSelector
 ( val controller: GameScreenControl,
-  joker : Joker)
+  joker : J)
   extends ResourceSelector {
   val pane =  controller.pane
 
@@ -101,7 +101,7 @@ class JokerMindEffectTargetSelector
 class JokerWeaponEffectTargetSelector
 (val controller: GameScreenControl,
  onFinish : () => Unit,
- joker : Joker)
+ joker : J)
   extends ResourceSelector {
   val pane = controller.pane
 
@@ -143,7 +143,7 @@ class JokerWeaponEffectTargetSelector
 
 class BlackJokerEffect
 ( val controller: GameScreenControl,
-  joker : Joker) {
+  joker : J) {
   var playedClub = false
   var playedSpade = false
 

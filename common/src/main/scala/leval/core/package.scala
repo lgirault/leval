@@ -14,7 +14,7 @@ package object core {
   val ranks = (for(i <- 1 to 10 ) yield Numeric(i)) ++ Seq(Jack, Queen, King)
   def jokers(deckId : Byte) = {
     import Joker._
-      Seq[Card](Joker(deckId, Red), Joker(deckId, Black))
+      Seq[Card](J(deckId, Red), J(deckId, Black))
   }
   def deck54(deckId : Byte = 0) : Deck = {
     val cards = for {

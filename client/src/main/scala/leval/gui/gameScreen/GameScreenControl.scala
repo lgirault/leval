@@ -126,7 +126,7 @@ class GameScreenControl
         }
 
       origin match {
-        case CardOrigin.Hand(_, j : Joker) =>
+        case CardOrigin.Hand(_, j : J) =>
           jokerEffectFromHand(j)
         case CardOrigin.Hand(_, c @ Card(_, suit)) =>
           actor ! effect(Card.value(c), suit)
@@ -177,7 +177,7 @@ class GameScreenControl
       case CardOrigin.Being(b, s) =>
         actor !  Reveal(b.face, s)
         doDrawAndLook()
-      case CardOrigin.Hand(_, j : Joker) =>
+      case CardOrigin.Hand(_, j : J) =>
         leval.ignore(jokerEffectFromHand(j))
       case _ => doDrawAndLook()
     }
@@ -185,7 +185,7 @@ class GameScreenControl
 
 
 
-  def jokerEffectFromHand(joker : Joker) : Seq[Move[_]] ={
+  def jokerEffectFromHand(joker : J) : Seq[Move[_]] ={
     println("joker from hand")
     joker.color match {
       case Joker.Red =>
@@ -212,7 +212,7 @@ class GameScreenControl
     //targetSuit needed if club played from hand
     //heart are not played on being
     val moves : Seq[Move[_]] = origin match {
-      case CardOrigin.Hand(_, j : Joker) =>
+      case CardOrigin.Hand(_, j : J) =>
         jokerEffectFromHand(j)
 
       case CardOrigin.Hand(_, c @ Card(_, Diamond | Spade)) =>

@@ -38,7 +38,7 @@ class GameListPane
     case (GameDescription(creator, maxNumPlayer), currentPlayer , join) =>
 
       val hbox = new HBox()
-      hbox.children += new Label(s"${creator.id.name} ($currentPlayer/$maxNumPlayer)")
+      hbox.children += new Label(s"${creator.name} ($currentPlayer/$maxNumPlayer)")
       val node : Node = new Button("Join"){
         handleEvent(MouseEvent.MouseClicked)(join)
       }

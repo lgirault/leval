@@ -1,53 +1,58 @@
 package leval.network.protocol
 
-import akka.actor.ActorRef
 import leval.core.{PlayerId, Rules}
 
 abstract class Message
 
-case class NetPlayerId
-( actor : ActorRef,
-  id : PlayerId) extends Message
+// 1 - Generic protocol
 
-case class GameDescription
-(owner : NetPlayerId,
- rules : Rules) extends Message
-
-sealed abstract class EntryPointRequest extends Message
-case object ListGame extends EntryPointRequest
-case class CreateGame
-( desc : GameDescription)
-  extends EntryPointRequest
-
+//initial handshake
 case class GuestConnect
 ( clientVersion : String,
   login : String)
-  extends EntryPointRequest
+  extends Message
 
 case class Connect
 ( clientVersion : String,
   login : String,
   password : String)
-  extends EntryPointRequest
+  extends Message
 
 
 case class ConnectAck(id : PlayerId) extends Message
 case class ConnectNack(msg : String) extends Message
 
-case class Join(id : NetPlayerId) extends Message
+//exit
+case class Disconnect(pid : PlayerId) extends Message
+
+//2 - Meta-Game protocol
+case class GameDescription
+(owner : PlayerId,
+ rules : Rules) extends Message
+
+// game creation
+case class CreateGame
+( desc : GameDescription)
+extends Message
+case class CreateGameAck(desc : GameDescription ) extends Message
+
+// game start handshake
+case object GameReady extends Message
 case object GameStart extends Message
 
 
-case object GameReady extends Message
-
-case class WaitingPlayersGameInfo
-( //makerRef : ActorRef,
-  desc : GameDescription,
+// game listing and joining
+case object ListGame extends Message
+case class PlayDescription
+( desc : GameDescription,
   currentNumPlayer : Int) extends Message
 
-case class GameCreated( desc : GameDescription ) extends Message
-//case object GameReady extends MapMakerAnswer
-case class AckJoin(desc : GameDescription) extends Message
-case object NackJoin extends Message
+case class Join(id : PlayerId) extends Message
+case class JoinAck(desc : GameDescription) extends Message
+case object JoinNack extends Message
 
-case class Disconnected(ref : NetPlayerId) extends Message
+
+
+
+
+

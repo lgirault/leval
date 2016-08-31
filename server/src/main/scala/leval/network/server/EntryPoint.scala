@@ -50,8 +50,7 @@ class EntryPoint
       }*/
 
     case CreateGame(desc) =>
-      leval.ignore(context.actorOf(GameMaker.props(desc)))
-
+      leval.ignore(context.actorOf(GameMaker.props(sender(), desc)))
 
     case ListGame =>
       //TODO be more subtle, (manage a gameMakers list ?)

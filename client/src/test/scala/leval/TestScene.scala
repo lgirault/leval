@@ -71,7 +71,7 @@ object TestScene extends JFXApp  {
 
     import Joker._
     val inHandForTest : Seq[Card] =
-      Seq(Joker(0, Red), Joker(0, Black),
+      Seq(J(0, Red), J(0, Black),
         (3, Spade), (2, Heart), (2, Club), (2, Diamond))
 
     val (p1, p2) = (PlayerId(69, "Betelgeuse"), PlayerId(42, "AlphaCentauri"))

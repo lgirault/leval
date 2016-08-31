@@ -28,14 +28,14 @@ sealed abstract class Card
 case class C(deckId : Byte, rank: Rank, suit: Suit) extends Card
 
 
-case class Joker(deckId : Byte, color : Joker.Color) extends Card
+case class J(deckId : Byte, color : Joker.Color) extends Card
 object Joker {
   sealed abstract class Color
   case object Red extends Color
   case object Black extends Color
 
   def unapply(c: Card): Option[Color] = c match {
-    case j : Joker => Some(j.color)
+    case j : J => Some(j.color)
     case _ => None
   }
 

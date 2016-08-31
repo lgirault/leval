@@ -219,7 +219,7 @@ trait Rules {
 
   def legalLoverFormationAtCreation(c : Formation) : Boolean
 
-  def otherLover = PartialFunction[Rank, Rank] {
+  def otherLover : PartialFunction[Rank, Rank] = {
     case King => Queen
     case Queen => King
   }

@@ -24,8 +24,9 @@ class GameMakerSpec
   val titiId = PlayerId(1, "Titi")
   val tutuId = PlayerId(2, "Tutu")
 
-  val gameMakerRef = TestActorRef(new GameMaker(GameDescription(
-    NetPlayerId(???, totoId), Sinnlos)))
+
+  val gameMakerRef = TestActorRef(new GameMaker(???, GameDescription(
+    totoId, Sinnlos)))
   val gameMaker = gameMakerRef.underlyingActor
 
   val mapSize = 5
@@ -58,14 +59,14 @@ class GameMakerSpec
 
       val ownerProbe = TestProbe()
       val joinerProbe = TestProbe()
-      val totoNetId= NetPlayerId(ownerProbe.ref, totoId)
+      //val totoNetId= NetPlayerId(ownerProbe.ref, totoId)
       //gameMaker.players append totoNetId
 
      // gameMaker.owner shouldBe totoNetId
 
-      val titiNetId = NetPlayerId(joinerProbe.ref, titiId)
+      //val titiNetId = NetPlayerId(joinerProbe.ref, titiId)
 
-      gameMakerRef ! Join(titiNetId)
+      gameMakerRef ! Join(titiId)
 
       //gameMaker.gameOwner shouldBe totoNetId
 
@@ -75,11 +76,11 @@ class GameMakerSpec
 
       val joinerProbe = TestProbe()
 
-      val titiNetId = NetPlayerId(joinerProbe.ref, titiId)
+      //val titiNetId = NetPlayerId(joinerProbe.ref, titiId)
 
-      gameMakerRef ! Join(titiNetId)
+      gameMakerRef ! Join(titiId)
 
-      joinerProbe.expectMsg(100 millis, AckJoin(_))
+      joinerProbe.expectMsg(100 millis, JoinAck(_))
 
       ()
     }
@@ -87,11 +88,11 @@ class GameMakerSpec
     "given a join request answer NackJoin if there is *NO* remaining places" in {
       val joinerProbe = TestProbe()
 
-      val titiNetId = NetPlayerId(joinerProbe.ref, titiId)
+      //val titiNetId = NetPlayerId(joinerProbe.ref, titiId)
 
-      gameMakerRef ! Join(titiNetId)
+      gameMakerRef ! Join(titiId)
 
-      joinerProbe.expectMsg(100 millis, NackJoin)
+      joinerProbe.expectMsg(100 millis, JoinNack)
 
       ()
     }
@@ -102,20 +103,20 @@ class GameMakerSpec
       val ownerProbe = TestProbe()
       val otherPlayerProbe = TestProbe()
       val joinerProbe = TestProbe()
-      val totoNetId= NetPlayerId(ownerProbe.ref, totoId)
+      //val totoNetId= NetPlayerId(ownerProbe.ref, totoId)
       //gameMaker.players append totoNetId
-      val tutuNetId= NetPlayerId(otherPlayerProbe.ref, tutuId)
+      //val tutuNetId= NetPlayerId(otherPlayerProbe.ref, tutuId)
       //gameMaker.players append tutuNetId
 
-      val titiNetId = NetPlayerId(joinerProbe.ref, titiId)
+      //val titiNetId = NetPlayerId(joinerProbe.ref, titiId)
 
-      gameMakerRef ! Join(titiNetId)
+      gameMakerRef ! Join(titiId)
 
-      joinerProbe.expectMsg(100 millis, AckJoin)
+      joinerProbe.expectMsg(100 millis, JoinAck)
 
-      ownerProbe expectMsg (100 millis, Join(titiNetId))
+      ownerProbe expectMsg (100 millis, Join(titiId))
 
-      otherPlayerProbe expectMsg (100 millis, Join(titiNetId))
+      otherPlayerProbe expectMsg (100 millis, Join(titiId))
 
       ()
     }
