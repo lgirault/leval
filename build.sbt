@@ -61,8 +61,8 @@ def commonSettings(module: String) = Seq[Setting[_]](
   )
 )
 
-lazy val shared = project.
-  settings(commonSettings("shared"))
+lazy val common = project.
+  settings(commonSettings("common"))
 //settings (libraryDependencies += "org.typelevel" %% "cats" % "0.6.0")
 
 
@@ -95,7 +95,7 @@ lazy val client = (project
   }
 
   )
-  dependsOn (shared % "test->test;compile->compile"))
+  dependsOn (common % "test->test;compile->compile"))
 
 
 lazy val server = (project
@@ -104,13 +104,13 @@ lazy val server = (project
   mainClass in Compile := Some("leval.Server")
 }
   enablePlugins JavaAppPackaging
-  dependsOn (shared % "test->test;compile->compile")
+  dependsOn (common % "test->test;compile->compile")
   )
 
 lazy val root = (project in file(".")
   settings commonSettings("root")
-  dependsOn ( shared % "test->test;compile->compile",
+  dependsOn (common % "test->test;compile->compile",
   client % "test->test;compile->compile",
   server % "test->test;compile->compile")
-  aggregate (shared, client, server)
+  aggregate (common, client, server)
   )
