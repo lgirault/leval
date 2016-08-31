@@ -22,14 +22,6 @@ import scalafx.scene.layout._
 
 object MoveSeq {
 
-  def fromHand(c: Card): Seq[Move[_]] =
-    c match {
-      case Joker(_) => Seq()
-      case _ =>
-        Seq(RemoveFromHand(c),
-          ActPhase(Set()))
-    }
-
   def placeBeing(b: Being, side : Int): Seq[Move[_]] = {
     val s = Seq(PlaceBeing(b, side), ActPhase(Set()))
     b match {
@@ -39,7 +31,9 @@ object MoveSeq {
   }
 
   def end(origin: CardOrigin) : Seq[Move[_]] = origin match {
-    case CardOrigin.Hand(_,c) =>  fromHand(c)
+    case CardOrigin.Hand(_,Joker(_)) =>  Seq()
+    case CardOrigin.Hand(_,c) =>
+      Seq(RemoveFromHand(c), ActPhase(Set()))
     case CardOrigin.Being(b, s) => Seq(ActivateBeing(b.face))
   }
 
@@ -107,7 +101,7 @@ class GameScreenControl
 
   def forbiddenOnFirstRound(origin: CardOrigin) : Boolean =
     origin match {
-      case CardOrigin.Hand(_, C(_, Diamond | Spade))
+      case CardOrigin.Hand(_, Card(_, Diamond | Spade))
            | CardOrigin.Hand(_, Joker(_))
            | CardOrigin.Being(_, Diamond | Spade) => true
       case _ => false
@@ -132,9 +126,9 @@ class GameScreenControl
         }
 
       origin match {
-        case CardOrigin.Hand(_, Joker(j)) =>
+        case CardOrigin.Hand(_, j : Joker) =>
           jokerEffectFromHand(j)
-        case CardOrigin.Hand(_, c @ C(_, suit)) =>
+        case CardOrigin.Hand(_, c @ Card(_, suit)) =>
           actor ! effect(Card.value(c), suit)
         case CardOrigin.Being(b, s)=>
           actor ! Reveal(b.face, s)
@@ -183,17 +177,17 @@ class GameScreenControl
       case CardOrigin.Being(b, s) =>
         actor !  Reveal(b.face, s)
         doDrawAndLook()
-      case CardOrigin.Hand(_, Joker(j)) =>
-        jokerEffectFromHand(j)
+      case CardOrigin.Hand(_, j : Joker) =>
+        leval.ignore(jokerEffectFromHand(j))
       case _ => doDrawAndLook()
     }
   }
 
 
 
-  def jokerEffectFromHand(joker : Joker) : Unit ={
+  def jokerEffectFromHand(joker : Joker) : Seq[Move[_]] ={
     println("joker from hand")
-    joker match {
+    joker.color match {
       case Joker.Red =>
         actor ! MajestyEffect(1, playerGameIdx) // heart effect
         new Alert(AlertType.Information){
@@ -201,10 +195,11 @@ class GameScreenControl
           title = txt.mind
           headerText = txt.select_to_attack
         }.showAndWait()
-        ignore(new JokerMindEffectTargetSelector(this))
+        ignore(new JokerMindEffectTargetSelector(this, joker))
       case Joker.Black =>
-        ignore(new BlackJokerEffect(this))
+        ignore(new BlackJokerEffect(this, joker))
     }
+    Seq()
   }
 
   //(num draw, num look)
@@ -217,11 +212,10 @@ class GameScreenControl
     //targetSuit needed if club played from hand
     //heart are not played on being
     val moves : Seq[Move[_]] = origin match {
-      case CardOrigin.Hand(_, Joker(clr)) =>
-        jokerEffectFromHand(clr)
-        MoveSeq.fromHand(clr)
+      case CardOrigin.Hand(_, j : Joker) =>
+        jokerEffectFromHand(j)
 
-      case CardOrigin.Hand(_, c @ C(_, Diamond | Spade)) =>
+      case CardOrigin.Hand(_, c @ Card(_, Diamond | Spade)) =>
         Seq(AttackBeing(origin,target, targetSuit),
           ActPhase(Set()))
 
@@ -230,7 +224,7 @@ class GameScreenControl
           AttackBeing(origin, target, targetSuit),
           ActivateBeing(b.face))
 
-      case CardOrigin.Hand(_,  C(_, Club) ) |
+      case CardOrigin.Hand(_,  Card(_, Club) ) |
            CardOrigin.Being(_, Club) =>
         drawAndLook(origin)
         Seq()

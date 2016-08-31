@@ -4,7 +4,6 @@ import leval.core.{PlayerId, Rules}
 import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
 import leval.network.client._
 
-import scalafx.scene.control
 import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
 

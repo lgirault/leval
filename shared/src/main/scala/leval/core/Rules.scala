@@ -30,22 +30,22 @@ trait Rules {
 
   def drawAndLookValues(origin : Origin) : (Int, Int) =
     origin match {
-      case CardOrigin.Hand(_, C(King, _)) => (1, 3)
-      case CardOrigin.Hand(_, C(Queen, _)) => (1, 2)
+      case CardOrigin.Hand(_, Card(King, _)) => (1, 3)
+      case CardOrigin.Hand(_, Card(Queen, _)) => (1, 2)
       case CardOrigin.Hand(_, _) => (1, 1)
       case co @ CardOrigin.Being(b, _) =>
         (b, co.card) match {
-          case (Formation(Fool), C(Jack, _)) =>
+          case (Formation(Fool), Card(Jack, _)) =>
             if(b.firstDraw)
-              (4, 3)
+              (foolFirstCollect + 1, 3)
             else
               (3, 3)
           case (Formation(Fool), _) =>
-            if(b.firstDraw) (3, 1)
+            if(b.firstDraw) (foolFirstCollect, 1)
             else (2, 1)
           case (Formation(Wizard), _)
             if co.suit == Diamond => (wizardCollect, 0) // draw on kill
-          case (_, C(Jack, _)) => (2, 2)
+          case (_, Card(Jack, _)) => (2, 2)
           case _ => (1, 1)
         }
       case Origin.Star(_) => (1, 0)
@@ -53,7 +53,7 @@ trait Rules {
 
   def isButcher(o : CardOrigin) : Boolean =
     (o, o.card) match {
-      case (CardOrigin.Being(_, _), C(Jack, Spade)) => true
+      case (CardOrigin.Being(_, _), Card(Jack, Spade)) => true
       case _ => false
     }
 
@@ -103,7 +103,7 @@ trait Rules {
       case (_, false) => g1.copy(deathRiver = removedArcana :: g.deathRiver)
       case (true, true) =>
         removedArcana match {
-          case c @ (C( King | Queen | Jack , _) | Joker(_)) =>
+          case c @ (Card( King | Queen | Jack , _) | Joker(_)) =>
             g1.setStar(sAttacker.get.owner, _ + removedArcana)
           case _ =>
             g1.copy(deathRiver = removedArcana :: g.deathRiver)
@@ -133,7 +133,7 @@ trait Rules {
    killed : Being ) : (Game, Set[Card]) =
     if(isButcher(killer)){
       val f : Card => Boolean = {
-        case c @ (C( King | Queen | Jack , _) | Joker(_)) =>
+        case c @ (Card( King | Queen | Jack , _) | Joker(_)) =>
           Game.goesToRiver(c)
         case _ => false
       }
@@ -147,9 +147,9 @@ trait Rules {
 
   def wizardOrEminenceGrise(killer : CardOrigin) : Int =
     (killer, killer.card) match {
-      case (CardOrigin.Being(Formation(Wizard), _), C(Jack, _)) => 2
+      case (CardOrigin.Being(Formation(Wizard), _), Card(Jack, _)) => 2
       case (CardOrigin.Being(Formation(Wizard), _), _)
-           | (CardOrigin.Being(_, Diamond), C(Jack, _)) => 1
+           | (CardOrigin.Being(_, Diamond), Card(Jack, _)) => 1
       case _ => 0
     }
 
@@ -170,7 +170,7 @@ trait Rules {
       case _ => 0
     }
     val dauphinMalus = killed.resources get Heart match {
-      case Some(C(Jack, Heart)) => 5
+      case Some(Card(Jack, Heart)) => 5
       case _ => 0
     }
     g.setStar(killer.owner, _  - (childMalus + dauphinMalus))
@@ -226,7 +226,7 @@ trait Rules {
 
   def checkLegalLover(face : Card, heart : Card) : Boolean =
     (face, heart) match {
-      case (C(fr @ (King | Queen), fs), C(hr, hs)) =>
+      case (Card(fr @ (King | Queen), fs), Card(hr, hs)) =>
         hr == otherLover(fr) && fs == hs
       case _ => false
     }
@@ -234,7 +234,7 @@ trait Rules {
   def validResource(face : Card, c : Card, pos : Suit) : Boolean
 
   def validResources(b : Being) : Boolean =  b.resources forall {
-    case (Heart, c @ C(_, _)) if b.lover => checkLegalLover(b.face, c)
+    case (Heart, c : C ) if b.lover => checkLegalLover(b.face, c)
     case (pos, c) => validResource(b.face, c, pos)
   }
 
@@ -275,7 +275,7 @@ object Sinnlos
     c == Accomplished
 
   def validResource(face : Card, c : Card, pos : Suit) = c match {
-    case C(Numeric(_), `pos`) => true
+    case Card(Numeric(_), `pos`) => true
     case _ => false
   }
 
@@ -288,14 +288,14 @@ trait AntaresHeliosCommon extends Rules {
   override def checkLegalLover(face : Card, heart : Card) : Boolean =
     super.checkLegalLover(face, heart) || {
       (face, heart) match {
-        case (C(fr@(King | Queen), Heart), C(Jack, Heart)) => true
+        case (Card(fr@(King | Queen), Heart), Card(Jack, Heart)) => true
         case _ => false
       }
     }
 
   def validResource(face : Card, c : Card, pos : Suit) = (c, face) match {
-    case (C(Numeric(_), `pos`) | Joker(_), _)
-         | (C(Jack, `pos`), C(King|Queen, `pos`)) => true
+    case (Card(Numeric(_), `pos`) | Joker(_), _)
+         | (Card(Jack, `pos`), Card(King|Queen, `pos`)) => true
     case _ => false
   }
 }

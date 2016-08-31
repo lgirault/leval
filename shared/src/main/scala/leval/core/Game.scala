@@ -156,7 +156,7 @@ case class Game
     val targetB = beings(targetfc)
     val looked = targetB resources s
     looked match {
-      case C(Queen | King, _) if removeGard(targetB.owner)  =>
+      case Card(Queen | King, _) if removeGard(targetB.owner)  =>
         (rules.removeArcanumFromBeing(this, sAttacker, targetB, Heart), true)
       case _ => (this, false)
     }
@@ -235,7 +235,7 @@ object Game {
 
   //  def activateOrDiscard()
   def goesToRiver(card : Card) : Boolean = card match {
-    case C((Jack | Queen | King), Diamond) => false
+    case Card((Jack | Queen | King), Diamond) => false
     case _ => true
   }
 
@@ -267,7 +267,7 @@ object Game {
   def hasFace(h : Set[Card]) =
     h.exists {
       case Joker(_) => true
-      case C(King|Queen|Jack, _) => true
+      case Card(King|Queen|Jack, _) => true
       case _ => false
     }
   def mulligan(g : Game) : Boolean =

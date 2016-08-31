@@ -32,9 +32,6 @@ class GameMakerSpec
   val maxPlayer = 3
 
 
-  override def beforeEach() : Unit = {
-    gameMaker.players.clear()
-  }
 
 //  override def afterEach() {
 //  }
@@ -62,7 +59,7 @@ class GameMakerSpec
       val ownerProbe = TestProbe()
       val joinerProbe = TestProbe()
       val totoNetId= NetPlayerId(ownerProbe.ref, totoId)
-      gameMaker.players append totoNetId
+      //gameMaker.players append totoNetId
 
      // gameMaker.owner shouldBe totoNetId
 
@@ -106,9 +103,9 @@ class GameMakerSpec
       val otherPlayerProbe = TestProbe()
       val joinerProbe = TestProbe()
       val totoNetId= NetPlayerId(ownerProbe.ref, totoId)
-      gameMaker.players append totoNetId
+      //gameMaker.players append totoNetId
       val tutuNetId= NetPlayerId(otherPlayerProbe.ref, tutuId)
-   gameMaker.players append tutuNetId
+      //gameMaker.players append tutuNetId
 
       val titiNetId = NetPlayerId(joinerProbe.ref, titiId)
 

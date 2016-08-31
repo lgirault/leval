@@ -2,7 +2,6 @@ package leval
 package gui
 
 import leval.core.{PlayerId, Rules}
-import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
 import leval.gui.text.ValText
 import leval.network.client._
 

@@ -8,9 +8,7 @@ import scalafx.Includes._
 import scalafx.event.subscriptions.Subscription
 import scalafx.geometry.Pos
 import scalafx.scene.Node
-import scalafx.scene.control.Button
 import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout.GridPane
 import scalafx.scene.text.{Text, TextAlignment}
 
 /**

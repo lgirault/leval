@@ -45,29 +45,34 @@ class ControllerMockup
 
 object TestScene extends JFXApp  {
 
+  implicit def numPair2card(p:(Int, Suit)) : C = C(0, Numeric(p._1), p._2)
+  implicit def facePair2card(p:(Face, Suit)) : C = C(0, p._1, p._2)
+
   def initGame : Game = {
 
 
     val child = new Being(1,
-      C(Jack, Spade),
+      (Jack, Spade),
       Map(Heart -> ((2, Heart)))
     )
     val wizard = new Being(1,
-      C(Queen, Heart),
+      (Queen, Heart),
       Map(Club -> ((8, Club)),
-        Heart -> C(King, Heart),
+        Heart -> ((King, Heart)),
         //Spade -> ((1, Spade)),
         Diamond -> ((1, Diamond))
       ))
     val spectre = new Being(0,
-      C(King, Spade),
+      (King, Spade),
       Map(Club -> ((1, Club)),
         Diamond -> ((6, Diamond)),
-        Spade -> C(Jack, Spade)
+        Spade -> ((Jack, Spade))
       ))
 
-    val inHandForTest : Seq[Card] = Seq(Joker.Red, Joker.Black,
-      (3, Spade), (2, Heart), (2, Club), (2, Diamond))
+    import Joker._
+    val inHandForTest : Seq[Card] =
+      Seq(Joker(0, Red), Joker(0, Black),
+        (3, Spade), (2, Heart), (2, Club), (2, Diamond))
 
     val (p1, p2) = (PlayerId(69, "Betelgeuse"), PlayerId(42, "AlphaCentauri"))
 
@@ -110,6 +115,7 @@ object TestScene extends JFXApp  {
   control.notify(InfluencePhase(game.currentStarId), ())
   // control showTwilight twilight
 }
+import TestScene.{numPair2card, facePair2card}
 
 object BurialTestScene extends JFXApp {
   val fp = new FlowPane
@@ -123,7 +129,7 @@ object BurialTestScene extends JFXApp {
   }
 
   val b = Being(0,
-    C(King, Spade),
+    (King, Spade),
     Map[Suit, Card](Heart -> ((5, Heart)),
       Diamond -> ((7, Diamond))))
   new BurialDialog(BuryRequest(b, b.cards.toSet),

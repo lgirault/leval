@@ -46,9 +46,11 @@ trait ResourceSelector {
 }
 
 class JokerMindEffectTargetSelector
-(val controller: GameScreenControl)
+( val controller: GameScreenControl,
+  joker : Joker)
   extends ResourceSelector {
   val pane =  controller.pane
+
 
   println("JokerMindEffectTargetSelector")
 
@@ -65,7 +67,7 @@ class JokerMindEffectTargetSelector
       val starSub = pane.opponentStarPanel.handleEvent(MouseEvent.MouseClicked) {
         me: MouseEvent =>
           Seq(MajestyEffect(-1, controller.opponentId),
-            RemoveFromHand(Joker.Red),
+            RemoveFromHand(joker),
             ActPhase(Set())) foreach (controller.actor ! )
           unsuscribe()
       }
@@ -85,7 +87,7 @@ class JokerMindEffectTargetSelector
 
 
   def onClick(brp: BeingResourcePane): Unit = {
-    val origin = CardOrigin.Hand(controller.playerGameIdx, Joker.Red)
+    val origin = CardOrigin.Hand(controller.playerGameIdx, joker)
     Seq(AttackBeing(origin, brp.being, brp.position),
     ActPhase(Set())) foreach (controller.actor ! _)
     unsuscribe()
@@ -98,7 +100,8 @@ class JokerMindEffectTargetSelector
 
 class JokerWeaponEffectTargetSelector
 (val controller: GameScreenControl,
- onFinish : () => Unit)
+ onFinish : () => Unit,
+ joker : Joker)
   extends ResourceSelector {
   val pane = controller.pane
 
@@ -110,7 +113,7 @@ class JokerWeaponEffectTargetSelector
     else Right (pane.opponentStarPanel.handleEvent(MouseEvent.MouseClicked) {
         me: MouseEvent =>
           controller.actor ! MajestyEffect(-1, controller.opponentId)
-          controller.actor ! RemoveFromHand(Joker.Black)
+          controller.actor ! RemoveFromHand(joker)
           unsuscribeAndFinish()
       })
   }
@@ -128,7 +131,7 @@ class JokerWeaponEffectTargetSelector
 
 
   def onClick(brp: BeingResourcePane): Unit = {
-    val origin = CardOrigin.Hand(controller.playerGameIdx, Joker.Black)
+    val origin = CardOrigin.Hand(controller.playerGameIdx, joker)
     controller.actor ! AttackBeing(origin, brp.being, brp.position)
     unsuscribeAndFinish()
   }
@@ -138,7 +141,9 @@ class JokerWeaponEffectTargetSelector
 
 }
 
-class BlackJokerEffect(val controller: GameScreenControl) {
+class BlackJokerEffect
+( val controller: GameScreenControl,
+  joker : Joker) {
   var playedClub = false
   var playedSpade = false
 
@@ -162,18 +167,18 @@ class BlackJokerEffect(val controller: GameScreenControl) {
       //contentText = "Every being has acted"
     }.showAndWait()
 
-  val origin = CardOrigin.Hand(controller.playerGameIdx, Joker.Black)
+  val origin = CardOrigin.Hand(controller.playerGameIdx, joker)
   result match {
     case Some(`attack`) =>
       alertAttack()
       new JokerWeaponEffectTargetSelector(controller,
-        new DrawAndLookAction(controller, origin, end).apply
-      )
+        new DrawAndLookAction(controller, origin, end).apply,
+        joker)
     case Some(`collectAndLook`) =>
 
       new DrawAndLookAction(controller, origin,
         () => { alertAttack()
-          ignore(new JokerWeaponEffectTargetSelector(controller, end))
+          ignore(new JokerWeaponEffectTargetSelector(controller, end, joker))
         }).apply()
 
 

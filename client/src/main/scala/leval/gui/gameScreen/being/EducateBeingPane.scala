@@ -12,7 +12,7 @@ import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
 import scalafx.scene.image.ImageView
 import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout.{GridPane, Pane, StackPane}
+import scalafx.scene.layout.{Pane, StackPane}
 
 
 /**
@@ -235,7 +235,7 @@ class EducateBeingPane
       case (pos, tile) => rules.validResource(being.face, c, pos)
     } values).toList
     (being.face, c) match {
-      case (C(lover@(King | Queen), fsuit), C(r : Face, s))
+      case (Card(lover@(King | Queen), fsuit), Card(r : Face, s))
         if fsuit == s && rules.otherLover(lover) == r =>
         heart +: allowedTiles
       case _ => allowedTiles

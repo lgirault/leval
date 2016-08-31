@@ -55,10 +55,10 @@ case class Being
 
   //a being cannot be educated to become messianic or possessed so no ambiguity here
   def educateWith(card : C) : (Being, Card) = card match {
-    case C(King | Queen, _)
-    | C(Jack, Heart) => (copy(resources = resources + (Heart -> card), lover = true), resources(Heart))
-    case C(_ , Heart) => (copy(resources = resources + (Heart -> card), lover = false), resources(Heart))
-    case C(_, suit) => (copy(resources = resources + (suit -> card)), resources(suit))
+    case Card(King | Queen, _)
+    | Card(Jack, Heart) => (copy(resources = resources + (Heart -> card), lover = true), resources(Heart))
+    case Card(_ , Heart) => (copy(resources = resources + (Heart -> card), lover = false), resources(Heart))
+    case Card(_, suit) => (copy(resources = resources + (suit -> card)), resources(suit))
   }
 
   def educateWith(e : Educate) : Being = e match {
@@ -68,7 +68,7 @@ case class Being
       val kvs = cards map (c => c.suit -> c)
       val b1 = copy(resources = kvs.foldLeft(resources)(_ + _), hasDrawn = false)
       b1.resources get Heart match {
-        case Some(C(King | Queen | Jack, _)) if ! b1.lover => b1.copy(lover = true)
+        case Some(Card(King | Queen | Jack, _)) if ! b1.lover => b1.copy(lover = true)
         case _ => b1
       }
     case _ => this
@@ -91,7 +91,7 @@ case class Being
       c =>
         val faceBonus = face match {
           case Joker(_) => v(face)
-          case C(_, suit) if suit == resource => v(face)
+          case Card(_, suit) if suit == resource => v(face)
           case _ => 0
         }
         v(c) + faceBonus + formationBonus(resource)
@@ -128,8 +128,8 @@ case object Shadow extends Formation
 case object Spectre extends Formation {
   def unapply(b: Being): Option[Spectre] = (b, b.lover, b.face) match {
     case (Formation(Spectre), false, _) => Some(Regular)
-    case (Formation(Spectre), true, C(King, _)) => Some(Royal)
-    case (Formation(Spectre), true, C(Queen, _)) => Some(BlackLady)
+    case (Formation(Spectre), true, Card(King, _)) => Some(Royal)
+    case (Formation(Spectre), true, Card(Queen, _)) => Some(BlackLady)
     case _ => None
   }
 }

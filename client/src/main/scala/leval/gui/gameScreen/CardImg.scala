@@ -40,10 +40,11 @@ object CardImg {
     case King => "King"
   }
 
+  import Joker._
   def cardBaseFileName(c : Card): String = c match {
-    case Joker.Black => "Joker_black"
-    case Joker.Red => "Joker_red"
-    case C(r, s) => s"${rank2string(r)}_of_${suit2string(s)}"
+    case Joker(Black) => "Joker_black"
+    case Joker(Red) => "Joker_red"
+    case Card(r, s) => s"${rank2string(r)}_of_${suit2string(s)}"
   }
 
   def cardUrl(c : Card) =

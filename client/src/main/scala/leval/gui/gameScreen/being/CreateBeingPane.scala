@@ -58,7 +58,7 @@ class CreateBeingTile
           case None => //other pane is face
             pane.rules.checkLegalLover(origin.card, thisCard)
           case Some(otherPos) =>
-            pane.rules.validResource(pane.face.card getOrElse Joker.Black, thisCard, otherPos)
+            pane.rules.validResource(pane.face.card getOrElse ???, thisCard, otherPos)
         }
 
         if(switch)
@@ -168,7 +168,7 @@ class CreateBeingPane
       case fc : Card => new Being(playerGameIdx,
         fc, m,
         heart.card exists {
-          case C(King | Queen, _) => true
+          case Card(King | Queen, _) => true
           case _ => false
         }
       )
@@ -189,11 +189,11 @@ class CreateBeingPane
 
   def defaultPos(c : Card) : CardDropTarget =
     c match {
-      case C(_ : Face, _) | Joker(_) => face
-      case C(_, Heart) => heart
-      case C(_, Club) => power
-      case C(_, Diamond) => mind
-      case C(_, Spade) => weapon
+      case Card(_ : Face, _) | Joker(_) => face
+      case Card(_, Heart) => heart
+      case Card(_, Club) => power
+      case Card(_, Diamond) => mind
+      case Card(_, Spade) => weapon
     }
 
   val rules = controller.game.rules
@@ -201,11 +201,11 @@ class CreateBeingPane
   def targets(c : Card ): Seq[CardDropTarget] = {
 
     val allowedTiles : Seq[CardDropTarget] = defaultPos(c) :: (mapTiles filter {
-      case (pos, tile) => rules.validResource(face.card getOrElse Joker.Black, c, pos)
+      case (pos, tile) => rules.validResource(face.card getOrElse ???, c, pos)
     } values).toList
 
     (face.card , c) match {
-      case (Some(C(lover@(King | Queen), fsuit)), C(r : Face, s))
+      case (Some(Card(lover@(King | Queen), fsuit)), Card(r : Face, s))
         if fsuit == s && rules.otherLover(lover) == r =>
         heart +: allowedTiles
       case _ => allowedTiles

@@ -44,7 +44,7 @@ trait WaitinPlayersTest
         players map (_.actor) foreach context.watch
         val gameControl = control.gameScreen(og)
         gameControl.showTwilight(t)
-        context.become(ingame(players, og, gameControl))
+        context.become(ingame(gameMaker, og, gameControl))
 
       case Disconnected(netId)  => println(netId + " disconnected")
 

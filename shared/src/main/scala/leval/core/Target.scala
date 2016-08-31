@@ -6,7 +6,7 @@ package leval.core
 object Target {
 
   def apply(game : Game, c : Card) : Seq[Target] = c match {
-    case C(_, s) => apply(game, s)
+    case Card(_, s) => apply(game, s)
     case Joker(Joker.Black) =>  (apply(game, Spade).toSet ++ apply(game, Club)).toSeq
     case Joker(Joker.Red) =>  (apply(game, Heart).toSet ++ apply(game, Diamond)).toSeq
   }

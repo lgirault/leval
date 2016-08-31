@@ -21,16 +21,21 @@ case object Queen extends Face
 case object King extends Face
 case class Numeric(value: Int) extends Rank
 
+//Cards keep their id deck
+//its necessary because being maps are indexed by the card
+
 sealed abstract class Card
-case class C(rank: Rank, suit: Suit) extends Card
+case class C(deckId : Byte, rank: Rank, suit: Suit) extends Card
 
-sealed abstract class Joker extends Card
+
+case class Joker(deckId : Byte, color : Joker.Color) extends Card
 object Joker {
-  case object Red extends Joker
-  case object Black extends Joker
+  sealed abstract class Color
+  case object Red extends Color
+  case object Black extends Color
 
-  def unapply(c: Card): Option[Joker] = c match {
-    case j : Joker => Some(j)
+  def unapply(c: Card): Option[Color] = c match {
+    case j : Joker => Some(j.color)
     case _ => None
   }
 
@@ -40,19 +45,22 @@ object Joker {
 
 object Card {
 
-  implicit def pair2card(p:(Int, Suit)) : C = C(Numeric(p._1), p._2)
+  def unapply(c: C): Option[(Rank, Suit)] = c match {
+    case c1 : C => Some((c.rank, c.suit))
+    case _ => None
+  }
 
   def value(c : Card) : Int =
     c match {
       case Joker(_)
-      | C(Jack, _)=> 1
-      case C(Numeric(v), _) => v
-      case C(Queen, _) => 2
-      case C(King, _) => 3
+           | Card(Jack, _)=> 1
+      case Card(Numeric(v), _) => v
+      case Card(Queen, _) => 2
+      case Card(King, _) => 3
     }
 
 
-  private def orderingValue(c : Joker) : Int = c match {
+  private def orderingValue(c : Joker.Color) : Int = c match {
     case Joker.Red => 0
     case Joker.Black  => 1
   }
@@ -88,7 +96,7 @@ object Card {
           Ordering.Int.compare(orderingValue(cx), orderingValue(cy))
         case (Joker(_), _) => 1
         case (_, Joker(_)) => -1
-        case (C(rx, sx), C(ry, sy)) =>
+        case (Card(rx, sx), Card(ry, sy)) =>
           if (sx != sy)
             suitOrdering.compare(sx,sy)
           else rankOrdering.compare(rx, ry)

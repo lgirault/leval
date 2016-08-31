@@ -12,15 +12,17 @@ package object core {
 
   val suits = Seq(Diamond, Club, Heart, Spade)
   val ranks = (for(i <- 1 to 10 ) yield Numeric(i)) ++ Seq(Jack, Queen, King)
-  val jokers = Seq[Card]( Joker.Red, Joker.Black )
-
-  def deck54() : Deck = {
+  def jokers(deckId : Byte) = {
+    import Joker._
+      Seq[Card](Joker(deckId, Red), Joker(deckId, Black))
+  }
+  def deck54(deckId : Byte = 0) : Deck = {
     val cards = for {
       s <- suits
       r <- ranks
-    } yield C(r, s)
+    } yield C(deckId, r, s)
 
-    Random.shuffle(jokers ++ cards)
+    Random.shuffle(jokers(deckId) ++ cards)
   }
 
   implicit class DeckOps(val d : Deck) extends AnyVal {
