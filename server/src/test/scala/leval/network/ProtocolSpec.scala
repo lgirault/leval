@@ -5,7 +5,6 @@ import akka.testkit.TestActorRef
 import org.scalatest.concurrent.ScalaFutures
 import leval.AcceptanceSpec
 import leval.core.PlayerId
-import leval.network.protocol._
 import leval.network.server.EntryPoint
 
 

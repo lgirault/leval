@@ -1,18 +1,16 @@
-package leval.network.protocol
+package leval.serialization
 
 import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets
 
 import akka.serialization._
 import leval.core.PlayerId
-import leval.network.GameSerializer
+import leval.network._
 
 /**
   * Created by lorilan on 8/28/16.
   */
 object MessageManifest {
   // 1 - Generic protocol
-  val playerId = "playerId"
 
   //initial handshake
   val guestConnect = "guestConnect"
@@ -54,12 +52,9 @@ class MessagesSerializer
   extends SerializerWithStringManifest {
 
   def identifier: Int = 79658247
-  val UTF_8 = StandardCharsets.UTF_8.name()
-  val int = 4
+
 
   def manifest(o: AnyRef): String = o match {
-    case _ : PlayerId => MessageManifest.playerId
-
     case _ : GuestConnect => MessageManifest.guestConnect
     case _ : Connect => MessageManifest.connect
     case _ : ConnectAck => MessageManifest.connectAck
@@ -78,17 +73,6 @@ class MessagesSerializer
     case _ : Join => MessageManifest.join
     case _ : JoinAck => MessageManifest.joinAck
     case JoinNack => MessageManifest.joinNack
-  }
-
-
-  def playerIdToBinary(p : PlayerId) : Array[Byte] = {
-    val nameb = p.name getBytes UTF_8
-
-    val bb = ByteBuffer.allocate( int * 3 + nameb.length)
-    bb putInt p.uuid
-    bb putInt nameb.length
-    bb put nameb
-    bb.array()
   }
 
   def toBinary(o: AnyRef): Array[Byte] = o match {
@@ -147,20 +131,7 @@ class MessagesSerializer
   }
 
 
-  def getString(bb : ByteBuffer) : String = {
-    val length = bb.getInt()
-    val bytes = new Array[Byte](length)
-    bb get bytes
-    new String(bytes, UTF_8)
-  }
 
-  def playerIdFromBinary(bb: ByteBuffer) : PlayerId = {
-    val uuid = bb.getInt()
-    val name = getString(bb)
-    PlayerId(uuid, name)
-  }
-  def playerIdFromBinary(bytes: Array[Byte]) : PlayerId =
-    playerIdFromBinary(ByteBuffer.wrap(bytes))
 
   def gameDescFromBinary(bb: ByteBuffer) : GameDescription = {
     val pid = playerIdFromBinary(bb)
@@ -173,8 +144,6 @@ class MessagesSerializer
 
 
   def fromBinary(bytes: Array[Byte], manifest: String): AnyRef = manifest match {
-    case MessageManifest.playerId =>
-      playerIdFromBinary(bytes)
 
     case MessageManifest.guestConnect =>
       val bb = ByteBuffer.wrap(bytes)

@@ -2,7 +2,6 @@ package leval
 package network
 package server
 
-import protocol._
 import akka.actor.{Actor, ActorRef, Props, Terminated}
 import leval.core.{BuryRequest, Game, Move, PlayerId}
 

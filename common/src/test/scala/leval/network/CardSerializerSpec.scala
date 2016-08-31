@@ -2,6 +2,7 @@ package leval.network
 
 import leval.AcceptanceSpec
 import leval.core._
+import leval.serialization.CardSerializer
 
 /**
   * Created by Loïc Girault on 31/08/16.

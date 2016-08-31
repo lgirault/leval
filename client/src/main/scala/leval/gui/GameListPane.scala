@@ -1,9 +1,9 @@
 package leval.gui
 
+import leval.network.GameDescription
 import leval.network.client.BeforeWaitingRoom.CurrentNumPlayer
 import leval.network.client.GameListView.JoinAction
 import leval.network.client.NetWorkController
-import leval.network.protocol.GameDescription
 
 import scalafx.Includes._
 import scalafx.scene.Node

@@ -5,7 +5,6 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import leval.AcceptanceSpec
 import leval.core.{PlayerId, Sinnlos}
-import leval.network.protocol._
 import leval.network.server.GameMaker
 
 import scala.concurrent.duration._

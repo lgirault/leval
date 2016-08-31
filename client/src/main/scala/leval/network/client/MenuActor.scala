@@ -6,8 +6,9 @@ import leval.core.{BuryRequest, Game, Move, PlayerId, Rules, Twilight}
 import leval.gui.{GameListPane, ViewController, WaitingRoom}
 import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
 import leval.gui.text.{Fr, ValText}
+import leval.network._
 import leval.network.client.GameListView.JoinAction
-import leval.network.protocol._
+
 
 case object StartScreen
 

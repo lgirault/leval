@@ -3,7 +3,6 @@ package network
 package client
 
 import akka.actor._
-import leval.network.protocol.Disconnect
 
 import scala.concurrent.duration._
 

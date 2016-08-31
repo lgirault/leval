@@ -76,24 +76,7 @@ case class Twilight(cards : Seq[Seq[Card]])
 //object Move{
 //  type FMove[A] = Free[Move, A]
 //
-//  def directEffect(effect : (Int, Suit)) : FMove[Unit] =
-//    liftF[Move, Unit](DirectEffect(effect))
-//
-//  def attackBeing(attack : (Int, Suit), target : Card) : FMove[Unit] =
-//    liftF[Move, Unit](AttackBeing(attack, target))
-//
-//  def collect : FMove[Unit] =
-//    liftF[Move, Unit](Collect)
-//
-//  def collectFromRiver : FMove[Unit] =
-//    liftF[Move, Unit](CollectFromRiver)
-//
-//  def lookCard( targetBeing  : Card, targetResource : Suit ) : FMove[Unit] =
-//    liftF[Move, Unit](LookCard(targetBeing, targetResource))
-//
-//  def placeBeing(being: Being) : FMove[Unit] =
-//    liftF[Move, Unit](PlaceBeing(being))
-//
-//  def educate(cards : Seq[Card])  : FMove[Unit] =
-//    liftF[Move, Unit](Educate(cards))
+//  def majestyEffect(value : Int, targetStar : Int)) : FMove[Unit] =
+//    liftF[Move, Unit](MajestyEffect(value , targetStar))
+
 //}

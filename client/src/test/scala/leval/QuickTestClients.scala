@@ -3,11 +3,10 @@ package leval
 import akka.actor.{Actor, ActorContext, ActorRef, ActorSystem, Props}
 import com.typesafe.config.ConfigFactory
 import leval.gui.SearchingServerScene
-import leval.network.Settings
+import leval.network._
 import leval.network.client._
 import leval.core.{Game, PlayerId, Sinnlos, Twilight}
 import leval.gui.gameScreen.ObservableGame
-import leval.network.protocol._
 
 import scala.collection.mutable.ListBuffer
 import scalafx.application.JFXApp

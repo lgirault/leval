@@ -1,4 +1,4 @@
-package leval.network.protocol
+package leval.network
 
 import leval.core.{PlayerId, Rules}
 

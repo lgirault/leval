@@ -2,8 +2,6 @@ package leval
 package network
 package server
 
-import protocol._
-
 import akka.actor.{Actor, Props}
 import leval.core.PlayerId
 

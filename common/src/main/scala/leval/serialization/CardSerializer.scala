@@ -1,4 +1,4 @@
-package leval.network
+package leval.serialization
 
 import leval.core._
 
