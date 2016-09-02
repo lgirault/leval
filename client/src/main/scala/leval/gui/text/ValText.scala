@@ -1,5 +1,7 @@
 package leval.gui.text
 
+import leval.core.{Club, Diamond, Heart, Spade, Suit}
+
 import scalafx.scene.text.Font
 
 /**
@@ -42,6 +44,14 @@ trait ValText {
   val power : String
   val heart : String
   val weapon : String
+
+  def suitsText(s : Suit) = s match {
+    case Diamond => mind
+    case Club => power
+    case Heart => heart
+    case Spade => weapon
+  }
+
   val create_being : String
 
   val burying : String

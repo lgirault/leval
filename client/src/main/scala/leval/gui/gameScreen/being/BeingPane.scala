@@ -39,8 +39,10 @@ class BeingResourcePane
  val card : Card,
  val position : Suit, // needed for lovers and Jokers
  sCardDragAndDrop: Option[CardDragAndDrop])
-(val backImg : Node = CardImg.back(Some(bp.cardHeight)))
-  extends CardDropTarget(backImg) {
+ extends CardDropTarget {
+
+  val backImg : Node = CardImg.back(Some(bp.cardHeight))
+  decorated = backImg
 
   def being = bp.being
 
@@ -182,7 +184,7 @@ class BeingPane
       case Opponent => None
     }
 
-    val bpr = new BeingResourcePane(this, c, pos, sCardDragAndDrop)()
+    val bpr = new BeingResourcePane(this, c, pos, sCardDragAndDrop)
     resourcePanes0 += pos -> bpr
     place(bpr)
     bpr

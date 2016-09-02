@@ -44,7 +44,7 @@ object OriginSerializer {
 
       case `beingId` =>
         val being = BeingSerializer fromBinary bb
-        val s = CardSerializer.suits(bb.get)
+        val s = CardSerializer.suits(bb.get.toInt)
         CardOrigin.Being(being, s)
 
       case _ => leval.error("unknown original kind")

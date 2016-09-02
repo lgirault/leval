@@ -10,7 +10,14 @@ import scalafx.util.Duration
 /**
   * Created by lorilan on 6/29/16.
   */
-class HighlightableRegion(decorated : Node) extends StackPane {
+abstract class HighlightableRegion extends StackPane {
+
+  private [this] var decorated0 : Node = _
+  def decorated : Node = decorated0
+  def decorated_=(n : Node) : Unit = {
+    decorated0 = n
+    this.children = Seq(n, highlight)
+  }
 
   protected val highlight = new Region {
     opacity = 0
@@ -18,8 +25,7 @@ class HighlightableRegion(decorated : Node) extends StackPane {
   }
 
 
-  this.children = Seq(decorated, highlight)
-
+  this.children = Seq(highlight)
 
 
   private val highlightTransition = new FadeTransition {

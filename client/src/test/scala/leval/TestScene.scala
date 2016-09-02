@@ -63,8 +63,10 @@ object TestScene extends JFXApp  {
     val (d2, hand1) = deck.pick(9)
     val (d3, hand2) = d2.pick(9)
 
-    GameInit(Star(p1, hand1 ++ inHandForTest),
-      Star(p2, hand2), d3, Helios).game.
+    val rules = Helios
+    Game(rules,
+      Seq(Star(p1, rules.startingMajesty, hand1 ++ inHandForTest),
+      Star(p2, rules.startingMajesty, hand2)), d3).
       copy(beings =
         Map(wizard.face -> wizard,
           spectre.face -> spectre,

@@ -57,12 +57,12 @@ class StarPanel
 ( controller : GameScreenControl,
   width : Double,
   val numStar : Int,
-  val starName : String,
-  val wrapper : BorderPane = new BorderPane())
+  val starName : String)
 (implicit txt : ValText)
-  extends CardDropTarget(wrapper) {
+  extends CardDropTarget {
   def majesty : Int = controller.game.stars(numStar).majesty
-
+  val wrapper : BorderPane = new BorderPane()
+  decorated = wrapper
   def update() = {
     wrapper.children.clear()
     val img = StarPanel.image(starName, majesty)

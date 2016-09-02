@@ -5,7 +5,6 @@ import leval.gui.gameScreen._
 import leval.gui.text.ValText
 
 import scalafx.Includes._
-import scalafx.scene.Node
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout._
 
@@ -15,19 +14,25 @@ import scalafx.scene.layout._
 
 class CreateBeingTile
 (val pane : CreateBeingPane,
- val tile : Pane,
  val hand : PlayerHandPane,
+ override val pos : Option[Suit],
  doCardDragAndDrop: CardOrigin => CardDragAndDrop )
-  extends CardDropTarget(tile) {
+  extends EditableBeingTile(
+    pos,
+    pane.cardWidth,
+    pane.cardHeight,
+    pane.txt ) {
+
+  decorated = backImg
 
   var cardImg0 : Option[(CardImageView, CardDragAndDrop)] = None
   def cardImg : Option[(CardImageView, CardDragAndDrop)] = cardImg0
   def cardImg_=(v : Option[(CardImageView, CardDragAndDrop)]) = {
     if(cardImg0.nonEmpty)
-      tile.children.remove(cardImg0.get._1)
+      backImg.children.remove(cardImg0.get._1)
 
     if(v.nonEmpty)
-      tile.children.add(v.get._1)
+      backImg.children.add(v.get._1)
 
     cardImg0 = v
   }
@@ -36,7 +41,7 @@ class CreateBeingTile
   def card_=(sc : Option[Card]) =
     cardImg = sc map {
       c =>
-        val ci = CardImg(c, Some(tile.prefHeight.value))
+        val ci = CardImg(c, Some(backImg.prefHeight.value))
         (ci, doCardDragAndDrop(CardOrigin.Hand(pane.playerGameIdx , c)))
     }
 
@@ -48,8 +53,6 @@ class CreateBeingTile
       }
   }
 
-  def pos : Option[Suit] = pane.mapTiles.find( _._2 == this) map (_._1)
-
   def onDrop(origin : CardOrigin) : Unit = {
     (pane.tiles find( p => p != this && (p.card contains origin.card) ), card) match {
       case (Some(otherPane), Some(thisCard)) => //card comes from othePane
@@ -58,15 +61,19 @@ class CreateBeingTile
           case None => //other pane is face
             pane.rules.checkLegalLover(origin.card, thisCard)
           case Some(otherPos) =>
-            pane.rules.validResource(pane.face.card, thisCard, otherPos)
+            pane.rules.validResource(pane.face.card,
+              pane.resources, thisCard, otherPos)
         }
 
+        println(s"switch = $switch")
         if(switch)
           otherPane.card = Some(thisCard)
         else
           otherPane.card = None
 
 
+      case (Some(otherPane), None) => //joker can be moved from one place to the other
+        otherPane.card = None
       case _ => ()
     }
 
@@ -88,16 +95,14 @@ class CreateBeingPane
   hand : PlayerHandPane,
   val cardWidth : Double,
   val cardHeight : Double)
-( implicit txt : ValText ) extends BeingGrid {
+( implicit val txt : ValText )
+  extends EditableBeingPane[CreateBeingTile] {
 
   private [this] var open0 : Boolean = false
 
   def isOpen = open0
 
   def playerGameIdx = controller.playerGameIdx
-
-  val okButton = okImage(cardWidth/3)//okCanvas(cardWidth)
-  okButton.visible = false
 
   okButton.onMouseClicked = {
     me : MouseEvent =>
@@ -118,56 +123,38 @@ class CreateBeingPane
     hand.update()
   }
 
-  val createBeingLabel =
-    new CardDropTarget(cardRectangle(txt.create_being, cardWidth, cardHeight)) {
+  val createBeingLabel = new CardDropTarget {
+      decorated = cardRectangle(txt.create_being, cardWidth, cardHeight)
       def onDrop(origin: CardOrigin) =
         editMode(origin)
     }
 
 
-  def makeTilePane(txt : String) =
+  def makeTilePane(pos : Option[Suit]) = {
+    val t = pos map txt.suitsText getOrElse txt.face
     new CreateBeingTile(this,
-      cardRectangle(txt, cardWidth, cardHeight),
-      hand,
+      hand, pos,
       new CardDragAndDrop(controller,
         controller.canDragAndDropOnInfluencePhase, _))
+  }
+
 
   GridPane.setConstraints(createBeingLabel, 1, 1)
   children = createBeingLabel
-  val face = makeTilePane(txt.face)
+  val face = makeTilePane(None)
   centerConstraints(face)
-  val mind = makeTilePane(txt.mind)
-  topConstraints(mind)
-  val power = makeTilePane(txt.power)
-  bottomConstraints(power)
-  val heart = makeTilePane(txt.heart)
-  leftConstraints(heart)
-  val weapon = makeTilePane(txt.weapon)
-  rightConstraints(weapon)
+
+
 
 
   val tiles : Seq[CreateBeingTile] = Seq(face, mind, power, heart, weapon)
 
   def cards : Seq[Card] = tiles flatMap (_.card)
 
-  val mapTiles : Map[Suit, CreateBeingTile] =
-    Map(Diamond -> mind,
-      Club -> power,
-      Heart -> heart,
-      Spade -> weapon)
-
   def being : Option[Being] = {
-
-    val m0 = Map[Suit, Card]()
-    val m1 = mind.card map (c => m0 + (Diamond -> c)) getOrElse m0
-    val m2 = power.card map (c => m1 + (Club -> c)) getOrElse m1
-    val m3 = heart.card map (c => m2 + (Heart -> c)) getOrElse m2
-    val m =  weapon.card map (c => m3 + (Spade -> c)) getOrElse m3
-
     face.card map {
       case fc : Card => new Being(playerGameIdx,
-        fc, m,
-        heart.card exists {
+        fc, resources, heart.card exists {
           case Card(King | Queen, _) => true
           case _ => false
         }
@@ -177,17 +164,12 @@ class CreateBeingPane
   }
 
 
-  val closeButton : Node = cancelImage(cardWidth/3)//closeCanvas(cardWidth)
   closeButton.onMouseClicked = {
     me : MouseEvent =>
       menuMode()
   }
 
-  bottomLeftCenterConstraints(okButton)
-
-  bottomRightCenterConstraints(closeButton)
-
-  def defaultPos(c : Card) : CardDropTarget =
+   def defaultPos(c : Card) : CardDropTarget =
     c match {
       case Card(_ : Face, _) | Joker(_) => face
       case Card(_, Heart) => heart
@@ -201,7 +183,7 @@ class CreateBeingPane
   def targets(c : Card ): Seq[CardDropTarget] = {
 
     val allowedTiles : Seq[CardDropTarget] = defaultPos(c) :: (mapTiles filter {
-      case (pos, tile) => rules.validResource(face.card, c, pos)
+      case (pos, tile) => rules.validResource(face.card, resources, c, pos)
     } values).toList
 
     (face.card , c) match {
@@ -216,7 +198,6 @@ class CreateBeingPane
     being match {
       case None => false
       case Some(b @ Formation(f)) =>
-        println(s"is $b legal ? = " + rules.validBeing(b))
       rules.validBeing(b) && (!b.lover ||
         rules.legalLoverFormationAtCreation(f)) && {
 
@@ -226,7 +207,6 @@ class CreateBeingPane
           case Formation(`f`) => true
           case _ => false
         }
-        println(s"hasSameFormation $hasSameFormation")
         !hasSameFormation
       }
       case _ => false

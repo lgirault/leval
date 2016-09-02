@@ -39,9 +39,6 @@ case class GameInit
 
 object GameInit {
 
-  def apply(s1 : Star, s2 : Star, src : Deck, rule : Rules) : GameInit =
-    new GameInit(Twilight(Seq()), Seq(s1, s2), src, rule)
-
   def apply(players : Seq[PlayerId], rule : Rules) : GameInit = players match {
     case p1 +: p2 +: Nil => this.apply(p1, p2, rule)
     case _ => leval.error("two players only")
@@ -53,7 +50,10 @@ object GameInit {
     val (d2, hand1) = deck.pick(9)
     val (d3, hand2) = d2.pick(9)
 
-    GameInit(Star(pid1, hand1), Star(pid2, hand2), d3, rule)
+    new GameInit(Twilight(Seq()),
+      Seq(Star(pid1, rule.startingMajesty, hand1),
+        Star(pid2, rule.startingMajesty, hand2)),
+      d3, rule)
   }
 
 

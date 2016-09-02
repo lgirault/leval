@@ -3,21 +3,21 @@ package leval.gui.gameScreen
 /**
   * Created by lorilan on 6/22/16.
   */
+
 import leval.ignore
 import leval.core._
 import leval.gui.gameScreen.being._
 
 import scala.collection.mutable
 import scalafx.Includes._
+import scalafx.application.Platform
 import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Node
 import scalafx.scene.control.Button
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout._
 
-abstract class CardDropTarget(decorated : Node)
-  extends HighlightableRegion(decorated)  {
-
+abstract class CardDropTarget extends HighlightableRegion {
   def onDrop(origin : CardOrigin) : Unit
 }
 
@@ -37,7 +37,7 @@ class RiverPane
 
 
 
-  def update() : Unit = {
+  def update() : Unit = Platform.runLater {
     children.clear()
     children = images
   }
@@ -176,14 +176,16 @@ class TwoPlayerGamePane
     leftColumnInfo.prefWidth(), playerGameId)
   playerStarPanel.alignmentInParent = Pos.TopCenter
 
-  val deck = new CardDropTarget(CardImg.back(Some(cardHeight))){
+  val deck = new CardDropTarget {
+    decorated = CardImg.back(Some(cardHeight))
     def onDrop(origin: CardOrigin): Unit =
       controller.drawAndLook(origin)
     //style = "-fx-border-width: 1; -fx-border-color: black;"
   }
 
   val riverPane = new RiverPane(controller, cardHeight)
-  val riverWrapper = new CardDropTarget(riverPane){
+  val riverWrapper = new CardDropTarget {
+    decorated = riverPane
     def onDrop(origin: CardOrigin): Unit =
       controller.drawAndLook(origin)
   }

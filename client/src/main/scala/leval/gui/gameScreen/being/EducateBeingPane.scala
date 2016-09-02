@@ -22,10 +22,13 @@ import scalafx.scene.layout.{Pane, StackPane}
 
 class EducateBeingTile
 (val pane : EducateBeingPane,
- val backImg : Pane,
  val hand : PlayerHandPane,
  val suit : Suit)
-  extends CardDropTarget(backImg) {
+  extends EditableBeingTile(
+    Some(suit),
+    pane.cardWidth,
+    pane.cardHeight,
+    pane.txt ){
 
   val switchImg : Node = switchImage(pane.cardWidth)
   switchImg.visible = false
@@ -111,17 +114,17 @@ class EducateBeingPane
  hand : PlayerHandPane,
  val cardWidth : Double,
  val cardHeight : Double )
-( implicit txt : ValText ) extends BeingGrid {
+( implicit val txt : ValText )
+  extends EditableBeingPane[EducateBeingTile] {
 
   style = "-fx-border-width: 3; " +
-    "-fx-border-color: black; " +
-    "-fx-background-color : blue;"
+    "-fx-border-color: black; "
 
   alignmentInParent = Pos.Center
 
   private [this] var beingPane0 : BeingPane = _
   private [this] var position0 : Option[Int] = None
-  def playerArea =   controller.pane.beingsPane(beingPane0.orientation)
+  def playerArea =  controller.pane.beingsPane(beingPane0.orientation)
   def position = position0
   def position_=(p : Option[ Int]) = {
     position0 = p
@@ -140,23 +143,14 @@ class EducateBeingPane
 
 
 
-  def makeTilePane(txt : String, s : Suit) =
-    new EducateBeingTile(this,
-      cardRectangle(txt, cardWidth, cardHeight),
-      hand, s)
+  def makeTilePane(pos : Option[Suit]) =
+    new EducateBeingTile(this, hand, pos.get)
+
 
   val face = new StackPane{
     children = cardRectangle(txt.face, cardWidth, cardHeight)
   } //makeTilePane(txt.face)
   centerConstraints(face)
-  val mind = makeTilePane(txt.mind, Diamond)
-  topConstraints(mind)
-  val power = makeTilePane(txt.power, Club)
-  bottomConstraints(power)
-  val heart = makeTilePane(txt.heart, Heart)
-  leftConstraints(heart)
-  val weapon = makeTilePane(txt.weapon, Spade)
-  rightConstraints(weapon)
 
 
   private [this] def installEducatePane(bp : BeingPane) : Boolean = {
@@ -194,8 +188,7 @@ class EducateBeingPane
 
   var sEducation : Option[Educate] = None
 
-  val okButton = okImage(cardWidth/3)
-  okButton.visible = false
+
   okButton.onMouseClicked = {
     me : MouseEvent =>
       sEducation foreach (e =>
@@ -204,27 +197,17 @@ class EducateBeingPane
 
   }
 
-  val closeButton : Node = cancelImage(cardWidth/3)
   closeButton.onMouseClicked = {
     me : MouseEvent =>
       resetBeingPane()
       hand.update()
   }
 
-  bottomLeftCenterConstraints(okButton)
-  bottomRightCenterConstraints(closeButton)
-
   children = Seq(face, mind, power, heart, weapon,
     okButton, closeButton)
 
   val tiles : Seq[EducateBeingTile] = Seq(mind, power, heart, weapon)
   def cards : Seq[Card] = tiles flatMap (_.card)
-  val mapTiles : Map[Suit, EducateBeingTile] =
-    Map(Diamond -> mind,
-      Club -> power,
-      Heart -> heart,
-      Spade -> weapon)
-
 
 
   val rules = controller.game.rules
@@ -232,7 +215,8 @@ class EducateBeingPane
   def targets(c : C): Seq[CardDropTarget] ={
 
     val allowedTiles : Seq[CardDropTarget] = (mapTiles filter {
-      case (pos, tile) => rules.validResource(being.face, c, pos)
+      case (pos, tile) => rules.validResource(being.face, resources,
+        c, pos)
     } values).toList
     (being.face, c) match {
       case (Card(lover@(King | Queen), fsuit), Card(r : Face, s))

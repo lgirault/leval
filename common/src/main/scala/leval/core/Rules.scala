@@ -5,7 +5,6 @@ package leval.core
   */
 
 import Game.SeqOps
-import leval.core.Joker.Black
 
 trait Rules {
 
@@ -37,10 +36,8 @@ trait Rules {
       case co @ CardOrigin.Being(b, _) =>
         (b, co.card) match {
           case (Formation(Fool), Card(Jack, _)) =>
-            if(b.firstDraw)
-              (foolFirstCollect + 1, 3)
-            else
-              (3, 3)
+            if(b.firstDraw) (foolFirstCollect + 1, 3)
+            else (3, 3)
           case (Formation(Fool), _) =>
             if(b.firstDraw) (foolFirstCollect, 1)
             else (2, 1)
@@ -234,16 +231,22 @@ trait Rules {
 
 
   //during being creation, we may not have a face
-  def validResource(sFace : Option[Card], c : Card, pos : Suit) : Boolean =
-    validResource(sFace getOrElse J(0, Black), c, pos)
-  //joker as face is a restrictive default : using King or Queen could authorize lovers or "hommes lige"
+  def validResource(sFace : Option[Card],
+                    otherResources : Map[Suit, Card],
+                    c : Card, pos : Suit) : Boolean =
+    validResource(sFace getOrElse C(-1, Numeric(5), Heart),
+      otherResources, c, pos)
+  //restrictive default : using King or Queen could authorize lovers or "hommes lige"
+  //using a Joker could forbid the other
 
 
-  def validResource(face : Card, c : Card, pos : Suit) : Boolean
+  def validResource(face : Card,
+                    otherResources : Map[Suit, Card],
+                    c : Card, pos : Suit) : Boolean
 
   def validResources(b : Being) : Boolean =  b.resources forall {
     case (Heart, c : C ) if b.lover => checkLegalLover(b.face, c)
-    case (pos, c) => validResource(b.face, c, pos)
+    case (pos, c) => validResource(b.face, b.resources, c, pos)
   }
 
   def validBeing(b: Being): Boolean = b match {
@@ -282,7 +285,9 @@ object Sinnlos
   def legalLoverFormationAtCreation(c : Formation) : Boolean =
     c == Accomplished
 
-  def validResource(face : Card, c : Card, pos : Suit) = c match {
+  def validResource(face : Card,
+                    otherResources : Map[Suit, Card],
+                    c : Card, pos : Suit) = c match {
     case Card(Numeric(_), `pos`) => true
     case _ => false
   }
@@ -301,9 +306,14 @@ trait AntaresHeliosCommon extends Rules {
       }
     }
 
-  def validResource(face : Card, c : Card, pos : Suit) = (c, face) match {
-    case (Card(Numeric(_), `pos`) | Joker(_), _)
+  def validResource(face : Card,
+                    otherResources : Map[Suit, Card],
+                    c : Card, pos : Suit) = (c, face) match {
+    case (Card(Numeric(_), `pos`), _)
          | (Card(Jack, `pos`), Card(King|Queen, `pos`)) => true
+    case (Joker(_), Joker(_)) => false
+    case (Joker(_), _) =>
+      ! otherResources.values.exists(r => r.isInstanceOf[J])
     case _ => false
   }
 }

@@ -20,7 +20,7 @@ abstract class BeingGrid extends GridPane {
     columnConstraints.add(colCts)
   }
 
-  def centerConstraints( n : Node) : Unit =
+  def centerConstraints(n : Node) : Unit =
     GridPane.setConstraints(n, 3, 3)
 
   def topConstraints( n : Node) : Unit =

@@ -144,9 +144,13 @@ case object BlackLady extends Spectre
 object Star {
   def emptyHand : Set[Card] = SortedSet.empty(Card.cardOrdering)
 
-  def apply(id : PlayerId, hand : Seq[Card]) : Star = {
-    new Star(id, 25, emptyHand ++ hand)
-  }
+  def apply(id : PlayerId, majesty : Int, hand : Seq[Card]) : Star =
+    new Star(id, majesty, emptyHand ++ hand)
+
+
+  def apply(id : PlayerId, hand : Seq[Card]) : Star =
+    Star(id, 0, hand)
+
 }
 
 case class Star

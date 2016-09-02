@@ -28,7 +28,7 @@ object TestSamples {
   val blackLady = new Being(0,
     (King, Spade),
     Map(Club -> ((3, Club)),
-      Diamond -> ((2, Diamond)),
+      Diamond -> ((3, Diamond)),
       Spade -> ((Jack, Spade))
     ),
     lover = true)
