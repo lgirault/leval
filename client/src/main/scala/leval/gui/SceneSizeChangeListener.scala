@@ -24,11 +24,11 @@ trait SceneSizeChangeListener extends ChangeListener[Number] {
   def contentPaneDimention() : (Double, Double) = {
     val w : Double = scene.width()
     val h : Double = scene.height()
-    print(s"sceneWidth $w, sceneHeight $h -> ")
+    //print(s"sceneWidth $w, sceneHeight $h -> ")
 
     val newWidth = h * scaleFactor
     val newHeight = w * reversedScaleFactor
-    println(s"newWidth = $newWidth, newHeight = $newHeight")
+    //println(s"newWidth = $newWidth, newHeight = $newHeight")
     if(newWidth > w)//too wide
       (w, newHeight)
     else

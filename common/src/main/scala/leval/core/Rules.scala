@@ -5,6 +5,7 @@ package leval.core
   */
 
 import Game.SeqOps
+import leval.core.Joker.Black
 
 trait Rules {
 
@@ -231,6 +232,13 @@ trait Rules {
       case _ => false
     }
 
+
+  //during being creation, we may not have a face
+  def validResource(sFace : Option[Card], c : Card, pos : Suit) : Boolean =
+    validResource(sFace getOrElse J(0, Black), c, pos)
+  //joker as face is a restrictive default : using King or Queen could authorize lovers or "hommes lige"
+
+
   def validResource(face : Card, c : Card, pos : Suit) : Boolean
 
   def validResources(b : Being) : Boolean =  b.resources forall {
@@ -240,7 +248,7 @@ trait Rules {
 
   def validBeing(b: Being): Boolean = b match {
     case Formation(Shadow) if shadowAllowed => validResources(b)
-    case Formation(_) => validResources(b)
+    case Formation(f) => validResources(b)
     case _ => false
   }
 

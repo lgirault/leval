@@ -58,7 +58,7 @@ class CreateBeingTile
           case None => //other pane is face
             pane.rules.checkLegalLover(origin.card, thisCard)
           case Some(otherPos) =>
-            pane.rules.validResource(pane.face.card getOrElse ???, thisCard, otherPos)
+            pane.rules.validResource(pane.face.card, thisCard, otherPos)
         }
 
         if(switch)
@@ -201,7 +201,7 @@ class CreateBeingPane
   def targets(c : Card ): Seq[CardDropTarget] = {
 
     val allowedTiles : Seq[CardDropTarget] = defaultPos(c) :: (mapTiles filter {
-      case (pos, tile) => rules.validResource(face.card getOrElse ???, c, pos)
+      case (pos, tile) => rules.validResource(face.card, c, pos)
     } values).toList
 
     (face.card , c) match {

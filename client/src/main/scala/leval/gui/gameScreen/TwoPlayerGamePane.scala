@@ -73,7 +73,7 @@ class TwoPlayerGamePane
   val leftColumnInfo = new ColumnConstraints(0.1 * widthInit)
   val gameAreaInfo = new ColumnConstraints(0.9 * widthInit)
 
-  println(s"width init = $widthInit, height init = $heightInit")
+//  println(s"width init = $widthInit, height init = $heightInit")
 //  println(s"cardWidth = $cardWidth, cardHeight = $cardHeight")
 //  println(s"riverAreaHeight = $riverAreaHeight, playerAreaHeight = $playerAreaHeight, handAreaHeight = $handAreaHeight")
 //  println(s"left column width = ${0.1 * widthInit}, game area width = ${0.9 * widthInit}")
@@ -109,7 +109,7 @@ class TwoPlayerGamePane
   def opponentSpectrePower : Iterable[BeingResourcePane] =
     beingPanes(opponentId) filter {bp =>
       val Formation(f) = bp.being
-      println(bp.being.face + " : " + f)
+      //println(bp.being.face + " : " + f)
       bp.being match {
       case Formation(Spectre) => true
       case _ => false
@@ -154,8 +154,8 @@ class TwoPlayerGamePane
       }
 
 
-    println(Target(oGame.game, origin.card))
-    println(highlighteds)
+//    println(Target(oGame.game, origin.card))
+//    println(highlighteds)
 
     highlighteds foreach (_.activateHighlight())
     highlightableRegions = highlighteds

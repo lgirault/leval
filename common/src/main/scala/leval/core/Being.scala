@@ -108,6 +108,7 @@ object Formation {
 
   def unapply(being: Being) : Option[Formation] = unapply(explodedView(being))
 
+  //arg : (heart, weapon, mind, power)
   def unapply(arg: (Option[Card], Option[Card], Option[Card], Option[Card])): Option[Formation] = arg match {
     case (Some(_), None, None, None) => Some(Child)
     case (Some(_), Some(_), Some(_), Some(_)) => Some(Accomplished)
@@ -115,6 +116,7 @@ object Formation {
     case (None, Some(_), Some(_), Some(_)) => Some(Spectre)
     case (Some(_), None, Some(_), Some(_)) => Some(Wizard)
     case (Some(_), Some(_), Some(_), None) => Some(Knight)
+    case (None, None, None, Some(_)) => Some(Shadow)
     case _ => None
   }
 }
