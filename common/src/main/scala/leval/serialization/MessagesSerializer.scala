@@ -81,7 +81,6 @@ class MessagesSerializer
     case GuestConnect(clientVersion, login) =>
       val cvb = clientVersion.getBytes(UTF_8)
       val lb = login.getBytes(UTF_8)
-
       val bb = ByteBuffer.allocate( int * 2 + cvb.length + lb.length)
       bb putInt cvb.length
       bb put cvb

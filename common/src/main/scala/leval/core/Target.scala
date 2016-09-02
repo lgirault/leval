@@ -54,6 +54,7 @@ case object SelfStar extends Target
 case object OpponentStar extends Target
 case class TargetBeingResource(suit : Suit, sides : Seq[Int]) extends Target
 case object OpponentSpectrePower extends Target
+
 sealed abstract class CollectTarget extends Target
 case object Source extends CollectTarget
 case object DeathRiver extends CollectTarget

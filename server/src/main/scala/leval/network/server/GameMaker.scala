@@ -3,7 +3,7 @@ package network
 package server
 
 import akka.actor.{Actor, ActorRef, Props, Terminated}
-import leval.core.{BuryRequest, Game, Move, PlayerId}
+import leval.core.{BuryRequest, Game, GameInit, Move, PlayerId}
 
 import scala.collection.mutable.ListBuffer
 import akka.actor._
@@ -119,13 +119,13 @@ class GameMaker
         }
 
       case GameStart =>
-        val tg = Game.gameWithoutMulligan(players map (_.id), description.rules)
-        val (_, g) = tg
+        val gi = GameInit.gameWithoutMulligan(players map (_.id), description.rules)
+
         players.foreach {
-          _.actor ! tg
+          _.actor ! gi
         }
 
-        val orderedPlayers = g.stars map { s =>
+        val orderedPlayers = gi.game.stars map { s =>
           val Some(nid) = players.find(_.id == s.id)
           nid
         }

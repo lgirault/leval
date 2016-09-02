@@ -9,7 +9,7 @@ import leval.gui.text.Fr
 import scalafx.application.JFXApp
 import scalafx.scene.Scene
 import scalafx.scene.layout.FlowPane
-
+import TestSamples._
 /**
   * Created by lorilan on 7/4/16.
   */
@@ -45,29 +45,9 @@ class ControllerMockup
 
 object TestScene extends JFXApp  {
 
-  implicit def numPair2card(p:(Int, Suit)) : C = C(0, Numeric(p._1), p._2)
-  implicit def facePair2card(p:(Face, Suit)) : C = C(0, p._1, p._2)
 
   def initGame : Game = {
 
-
-    val child = new Being(1,
-      (Jack, Spade),
-      Map(Heart -> ((2, Heart)))
-    )
-    val wizard = new Being(1,
-      (Queen, Heart),
-      Map(Club -> ((8, Club)),
-        Heart -> ((King, Heart)),
-        //Spade -> ((1, Spade)),
-        Diamond -> ((1, Diamond))
-      ))
-    val spectre = new Being(0,
-      (King, Spade),
-      Map(Club -> ((1, Club)),
-        Diamond -> ((6, Diamond)),
-        Spade -> ((Jack, Spade))
-      ))
 
     import Joker._
     val inHandForTest : Seq[Card] =
@@ -83,8 +63,8 @@ object TestScene extends JFXApp  {
     val (d2, hand1) = deck.pick(9)
     val (d3, hand2) = d2.pick(9)
 
-    Game(Star(p1, hand1 ++ inHandForTest),
-      Star(p2, hand2), d3, Antares).
+    GameInit(Star(p1, hand1 ++ inHandForTest),
+      Star(p2, hand2), d3, Antares).game.
       copy(beings =
         Map(wizard.face -> wizard,
           spectre.face -> spectre,
@@ -97,8 +77,6 @@ object TestScene extends JFXApp  {
 
   implicit val system = ActorSystem()
   //  val _ = system.actorOf(ControlerMockup.props(game))
-
-
 
   val stageScene =  new Scene(800, 600)
 
@@ -115,7 +93,6 @@ object TestScene extends JFXApp  {
   control.notify(InfluencePhase(game.currentStarId), ())
   // control showTwilight twilight
 }
-import TestScene.{numPair2card, facePair2card}
 
 object BurialTestScene extends JFXApp {
   val fp = new FlowPane

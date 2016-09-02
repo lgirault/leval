@@ -5,7 +5,7 @@ import com.typesafe.config.ConfigFactory
 import leval.gui.SearchingServerScene
 import leval.network._
 import leval.network.client._
-import leval.core.{Game, PlayerId, Sinnlos, Twilight}
+import leval.core.{GameInit, PlayerId, Sinnlos}
 import leval.gui.gameScreen.ObservableGame
 
 import scala.collection.mutable.ListBuffer
@@ -37,10 +37,10 @@ trait WaitinPlayersTest
             gameMaker ! GameStart
           }
 
-      case (t @ Twilight(_), g : Game) =>
-        val og = new ObservableGame(g)
+      case gi : GameInit =>
+        val og = new ObservableGame(gi.game)
         val gameControl = control.gameScreen(og)
-        gameControl.showTwilight(t)
+        gameControl.showTwilight(gi.twilight)
         context.become(ingame(gameMaker, og, gameControl))
 
       case Disconnect(netId)  => println(netId + " disconnected")

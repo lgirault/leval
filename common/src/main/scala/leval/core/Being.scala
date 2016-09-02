@@ -140,9 +140,10 @@ case object Royal extends Spectre
 case object BlackLady extends Spectre
 
 object Star {
+  def emptyHand : Set[Card] = SortedSet.empty(Card.cardOrdering)
+
   def apply(id : PlayerId, hand : Seq[Card]) : Star = {
-    val s : Set[Card] = SortedSet.empty(Card.cardOrdering)
-    new Star(id, 25, s ++ hand)
+    new Star(id, 25, emptyHand ++ hand)
   }
 }
 

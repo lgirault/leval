@@ -2,7 +2,7 @@ package leval.network.client
 
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
 import akka.event.Logging
-import leval.core.{BuryRequest, Game, Move, PlayerId, Rules, Twilight}
+import leval.core.{BuryRequest, Game, GameInit, Move, PlayerId, Rules, Twilight}
 import leval.gui.{GameListPane, ViewController, WaitingRoom}
 import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
 import leval.gui.text.{Fr, ValText}
@@ -104,10 +104,10 @@ trait WaitinPlayers extends InGame {
 
       case GameStart => gameMaker ! GameStart
 
-      case (t @ Twilight(_), g : Game) =>
-        val og = new ObservableGame(g)
+      case gi : GameInit =>
+        val og = new ObservableGame(gi.game)
         val gameControl = control.gameScreen(og)
-        gameControl.showTwilight(t)
+        gameControl.showTwilight(gi.twilight)
 
         context.become(ingame(gameMaker, og, gameControl))
 
