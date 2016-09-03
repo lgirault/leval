@@ -7,17 +7,18 @@ import scalafx.geometry.Pos
 import scalafx.scene.{Group, Scene}
 import scalafx.scene.control.Label
 import scalafx.scene.image.{ImageView, WritableImage}
+import scalafx.scene.layout.FlowPane
 
 /**
   * Created by lorilan on 7/8/16.
   */
 class StatusPane
 (game : ObservableGame,
- width : Double)
-(implicit txt : ValText) extends ImageView {
+ height : Double)
+(implicit txt : ValText)
+  extends FlowPane {
 
-  style = "-fx-border-width: 1; -fx-border-color: black;"
-
+  alignment = Pos.Center
 
   def update() : Unit = {
     val text =
@@ -33,10 +34,8 @@ class StatusPane
       maxHeight = h
       prefWidth = w
       prefHeight = h
-      alignment = Pos.Center
       wrapText = true
       style =
-        "-fx-border-insets: 2;" +
           "-fx-font-size: 40;" +
           "-fx-text-alignment: center;"
     }
@@ -44,10 +43,12 @@ class StatusPane
     val scene = new Scene(new Group(label))
     val img = new WritableImage(w.toInt, h.toInt)
     scene.snapshot(img)
-    image = img
-    preserveRatio = true
-    fitWidth = width
 
+    children = new ImageView {
+      image = img
+      preserveRatio = true
+      fitHeight = (height * 0.9).ceil
+    }
   }
 
   update()

@@ -11,7 +11,7 @@ import leval.gui.gameScreen.being._
 import scala.collection.mutable
 import scalafx.Includes._
 import scalafx.application.Platform
-import scalafx.geometry.{Insets, Pos}
+import scalafx.geometry.Insets
 import scalafx.scene.Node
 import scalafx.scene.control.Button
 import scalafx.scene.input.MouseEvent
@@ -101,8 +101,6 @@ class TwoPlayerGamePane
   import controller.{opponentId, txt}
   import oGame._
 
-  //style = "-fx-background : rgb(0,0,51)"
-
   style = "-fx-background-color: white"
 
   def player = stars(playerGameId)
@@ -169,13 +167,10 @@ class TwoPlayerGamePane
     hed.foreach(_.deactivateHightLight())
   }
 
-  //Highlightable areas
   val opponentStarPanel = StarPanel(controller,
     leftColumnInfo.prefWidth(), opponentId)
-  opponentStarPanel.alignmentInParent = Pos.BottomCenter
   val playerStarPanel = StarPanel(controller,
     leftColumnInfo.prefWidth(), playerGameId)
-  playerStarPanel.alignmentInParent = Pos.TopCenter
 
   val deck = new CardDropTarget {
     decorated = CardImg.back(Some(cardHeight))
@@ -193,11 +188,20 @@ class TwoPlayerGamePane
 
   val handPane = new PlayerHandPane(controller, handAreaHeight)
 
+  val createBeeingPane =
+    new CreateBeingPane(controller,
+      handPane,
+      cardWidth, cardHeight)
+
   val endPhaseButton =
     new Button(txt.do_end_phase){
       onMouseClicked = {
         me : MouseEvent =>
+          if(createBeeingPane.isOpen)
+            createBeeingPane.menuMode()
+
           controller.endPhase()
+
       }
       visible = controller.isCurrentPlayer
     }
@@ -205,10 +209,7 @@ class TwoPlayerGamePane
     center = handPane
     right = endPhaseButton
   }
-  val createBeeingPane =
-    new CreateBeingPane(controller,
-      handPane,
-      cardWidth, cardHeight)
+
 
   val educateBeingPane =
     new EducateBeingPane(controller,
@@ -217,9 +218,16 @@ class TwoPlayerGamePane
 
   val opponentHandPane = new OpponnentHandPane(controller, handAreaHeight)
   //style = "-fx-border-width: 1; -fx-border-color: black;"
-  val opponentBeingsPane = new FlowPane()
+  val playerAreasStyle = s"-fx-hgap : ${(cardWidth / 10).ceil} ;"+
+    s"-fx-hgap : ${(cardHeight / 10).ceil} ;"
 
-  val playerBeingsPane = new FlowPane()
+  val opponentBeingsPane = new FlowPane(){
+    style = playerAreasStyle
+  }
+
+  val playerBeingsPane = new FlowPane(){
+      style = playerAreasStyle
+  }
   def beingsPane(o : Orientation) = o match {
     case Player => playerBeingsPane
     case Opponent => opponentBeingsPane
@@ -264,7 +272,7 @@ class TwoPlayerGamePane
   padding = Insets.Empty
 
   val statusPane =
-    new StatusPane(controller.game, leftColumnInfo.prefWidth())
+    new StatusPane(controller.game, handAreaHeight)
 
   val leftColumn = Seq(
     statusPane,

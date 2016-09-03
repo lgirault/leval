@@ -66,7 +66,6 @@ package object being {
           "-fx-background-color: white;" +
           "-fx-background-radius: 20;" +
           "-fx-border-color: green;" +
-          "-fx-border-insets: 2;" +
           "-fx-border-width: 3;" +
           "-fx-border-radius: 20;" +
           "-fx-font-size: 36;" +

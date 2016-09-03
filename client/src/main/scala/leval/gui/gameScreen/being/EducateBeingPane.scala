@@ -82,7 +82,9 @@ class EducateBeingPane
   extends EditableBeingPane[EducateBeingTile] {
 
   style = "-fx-border-width: 3; " +
-    "-fx-border-color: black; "
+      "-fx-grid-lines-visible: true;" +
+      "-fx-border-color: black; "
+
 
   alignmentInParent = Pos.Center
 

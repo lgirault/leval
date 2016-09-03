@@ -163,7 +163,7 @@ class CreateBeingPane
   def makeResourceTilePane(pos : Suit) =
     new CreateBeingResourceTile(this,  pos)
 
-  GridPane.setConstraints(createBeingLabel, 1, 1)
+  centerConstraints(createBeingLabel)
   children = createBeingLabel
 
   val face = new CreateBeingFaceTile(this)

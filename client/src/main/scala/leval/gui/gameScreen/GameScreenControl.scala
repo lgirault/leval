@@ -72,7 +72,6 @@ class GameScreenControl
     leftPadding0 = (scene.width() - w) /2
 
     pane0 = new TwoPlayerGamePane(game, playerGameIdx, this, w, h)
-    pane0.alignmentInParent = Pos.Center
     rootPane.children.clear()
     leval.ignore(rootPane.children.add(pane0))
   }

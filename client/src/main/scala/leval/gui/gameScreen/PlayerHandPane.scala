@@ -25,9 +25,7 @@ class PlayerHandPane
       if(cards.isEmpty) Seq[CardImageView]()
       else cards.tail.foldLeft(Seq(CardImg(cards.head, Some(height)))) {
         case (acc, c) =>
-          val ci = CardImg.cutLeft(c, 1.8, Some(height))
-          ci.alignmentInParent = Pos.BottomCenter
-          ci +: acc
+          CardImg.cutLeft(c, 1.8, Some(height)) +: acc
       }
 
     imgs.foreach {
@@ -48,7 +46,7 @@ class PlayerHandPane
 
   }
   children = wrapper
-  alignmentInParent = Pos.BottomCenter
+  alignment = Pos.BottomCenter
 
 }
 
@@ -62,9 +60,7 @@ class OpponnentHandPane
       if(hand.isEmpty) Seq[CardImageView]()
       else hand.tail.foldLeft(Seq(CardImg(hand.head, Some(height), front = false))) {
         case (acc, c) =>
-          val ci = CardImg.cutLeft(c, 1.8, Some(height), front = false)
-          ci.alignmentInParent = Pos.BottomCenter
-          ci +: acc
+          CardImg.cutLeft(c, 1.8, Some(height), front = false) +: acc
       }
 
   val wrapper = new HBox(images: _*)
@@ -74,6 +70,6 @@ class OpponnentHandPane
 
   }
   children = wrapper
-  alignmentInParent = Pos.TopCenter
+  alignment = Pos.TopCenter
 
 }

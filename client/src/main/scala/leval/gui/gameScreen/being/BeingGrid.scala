@@ -15,28 +15,28 @@ abstract class BeingGrid extends GridPane {
 
   val colCts = new ColumnConstraints(cardWidth / 3)
 
-  for (i <- 0 until 9) {
+  for (i <- 1 to 9) {
     rowConstraints.add(rowCts)
     columnConstraints.add(colCts)
   }
 
   def centerConstraints(n : Node) : Unit =
-    GridPane.setConstraints(n, 3, 3)
+    GridPane.setConstraints(n, 3, 4)
 
   def topConstraints( n : Node) : Unit =
-    GridPane.setConstraints(n, 3, 0)
+    GridPane.setConstraints(n, 3, 1)
 
   def bottomConstraints( n : Node) : Unit =
-    GridPane.setConstraints(n, 3, 6)
+    GridPane.setConstraints(n, 3, 7)
 
   def leftConstraints( n : Node) : Unit =
-    GridPane.setConstraints(n, 0, 3)
+    GridPane.setConstraints(n, 0, 4)
 
   def rightConstraints( n : Node) : Unit =
-    GridPane.setConstraints(n, 6, 3)
+    GridPane.setConstraints(n, 6, 4)
 
   def bottomLeftCenterConstraints( n : Node) : Unit =
-    GridPane.setConstraints(n, 1, 6)
+    GridPane.setConstraints(n, 1, 7)
   def bottomRightCenterConstraints( n : Node) : Unit =
-    GridPane.setConstraints(n, 7, 6)
+    GridPane.setConstraints(n, 7, 7)
 }
