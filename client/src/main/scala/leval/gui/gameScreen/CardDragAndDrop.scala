@@ -25,12 +25,10 @@ class CardDragAndDrop
 ( control: GameScreenControl,
   canDragAndDrop : () => Boolean,
   origin : CardOrigin,
-  showFront : Boolean = true)extends (MouseEvent => Unit) {
-
-
+  showFront : Boolean = true
+) extends (MouseEvent => Unit) {
 
   import control.pane
-
 
   lazy val cardImageView : CardImageView = {
     val height = pane.handAreaHeight * 2

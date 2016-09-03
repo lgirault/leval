@@ -4,7 +4,7 @@ package leval.core
   * Created by lorilan on 6/21/16.
   */
 
-import Game.SeqOps
+import Game.{SeqOps, StarIdx}
 
 trait Rules {
 
@@ -217,6 +217,24 @@ trait Rules {
 
   def legalLoverFormationAtCreation(c : Formation) : Boolean
 
+  def isValidBeingAtCreation(g : Game, b : Being, side : StarIdx) : Boolean =
+    b match {
+      case Formation(f) =>
+        isValidBeing(b) && (!b.lover ||
+          legalLoverFormationAtCreation(f)) && {
+
+          val playerBeings = g beingsOwnBy side
+
+          val hasSameFormation = playerBeings exists {
+            case Formation(`f`) => true
+            case _ => false
+          }
+
+          !hasSameFormation
+        }
+      case _ => false
+    }
+
   def otherLover : PartialFunction[Rank, Rank] = {
     case King => Queen
     case Queen => King
@@ -249,11 +267,12 @@ trait Rules {
     case (pos, c) => validResource(b.face, b.resources, c, pos)
   }
 
-  def validBeing(b: Being): Boolean = b match {
+  def isValidBeing(b: Being): Boolean = b match {
     case Formation(Shadow) if shadowAllowed => validResources(b)
     case Formation(f) => validResources(b)
     case _ => false
   }
+
 
 
 }
@@ -311,9 +330,12 @@ trait AntaresHeliosCommon extends Rules {
                     c : Card, pos : Suit) = (c, face) match {
     case (Card(Numeric(_), `pos`), _)
          | (Card(Jack, `pos`), Card(King|Queen, `pos`)) => true
-    case (Joker(_), Joker(_)) => false
+    case (j1 @ Joker(_), j2 @ Joker(_)) =>
+      println("jj !")
+      j1 == j2 //moving joker from one position to another
     case (Joker(_), _) =>
-      ! otherResources.values.exists(r => r.isInstanceOf[J])
+      println("joko !")
+      ! otherResources.values.exists(r => r.isInstanceOf[J] && r != c)
     case _ => false
   }
 }

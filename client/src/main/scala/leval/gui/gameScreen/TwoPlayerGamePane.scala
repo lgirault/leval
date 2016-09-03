@@ -34,9 +34,6 @@ class RiverPane
           CardImg.cutLeft(c, 3, Some(fitHeight)) :: acc
       }
 
-
-
-
   def update() : Unit = Platform.runLater {
     children.clear()
     children = images

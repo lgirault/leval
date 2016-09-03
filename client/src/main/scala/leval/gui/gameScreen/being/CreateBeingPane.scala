@@ -12,91 +12,117 @@ import scalafx.scene.layout._
   * Created by lorilan on 7/4/16.
   */
 
-class CreateBeingTile
-(val pane : CreateBeingPane,
- val hand : PlayerHandPane,
- override val pos : Option[Suit],
- doCardDragAndDrop: CardOrigin => CardDragAndDrop )
-  extends EditableBeingTile(
-    pos,
-    pane.cardWidth,
-    pane.cardHeight,
-    pane.txt ) {
 
-  decorated = backImg
+trait CreateBeingTile {
+  self : CardDropTarget =>
 
-  var cardImg0 : Option[(CardImageView, CardDragAndDrop)] = None
-  def cardImg : Option[(CardImageView, CardDragAndDrop)] = cardImg0
-  def cardImg_=(v : Option[(CardImageView, CardDragAndDrop)]) = {
-    if(cardImg0.nonEmpty)
-      backImg.children.remove(cardImg0.get._1)
+  def pane : CreateBeingPane
+  def card : Option[Card]
+  def card_=(c : Option[(Card, Boolean)]) : Unit
 
-    if(v.nonEmpty)
-      backImg.children.add(v.get._1)
-
-    cardImg0 = v
-  }
-
-  def card = cardImg0 map (_._1.card)
-  def card_=(sc : Option[Card]) =
-    cardImg = sc map {
-      c =>
-        val ci = CardImg(c, Some(backImg.prefHeight.value))
-        (ci, doCardDragAndDrop(CardOrigin.Hand(pane.playerGameIdx , c)))
-    }
+  var dand : Option[CardDragAndDrop] = None
 
 
   highlight.handleEvent(MouseEvent.Any){
     me : MouseEvent =>
-      cardImg.foreach {
-        case (civ, cdad) => cdad(me)
-      }
+      dand foreach (_(me))
   }
 
-  def onDrop(origin : CardOrigin) : Unit = {
-    (pane.tiles find( p => p != this && (p.card contains origin.card) ), card) match {
+  //precond card.nonEmpty
+  def switchPredicate(resourceTile : CreateBeingResourceTile) : Boolean
+
+  def switchIfNeeded(ocard : Card) = {
+    (pane.tiles find( p => p != this && (p.card contains ocard)), card) match {
       case (Some(otherPane), Some(thisCard)) => //card comes from othePane
-
-        val switch = otherPane.pos match {
-          case None => //other pane is face
-            pane.rules.checkLegalLover(origin.card, thisCard)
-          case Some(otherPos) =>
-            pane.rules.validResource(pane.face.card,
-              pane.resources, thisCard, otherPos)
-        }
-
-        println(s"switch = $switch")
-        if(switch)
-          otherPane.card = Some(thisCard)
-        else
-          otherPane.card = None
-
-
-      case (Some(otherPane), None) => //joker can be moved from one place to the other
+        if(switchPredicate(otherPane))
+          otherPane.card = Some((thisCard, true))
+        else otherPane.card = None
+      case (Some(otherPane), None) =>
         otherPane.card = None
       case _ => ()
     }
+  }
 
-    card = Some(origin.card)
+  def onDrop(origin : CardOrigin) : Unit = {
+    switchIfNeeded(origin.card)
+    card = Some((origin.card, true))
+   pane.checkIfLegalAndUpdate()
+  }
 
-    if(pane.legalFormation)
-      pane.okButton.visible = true
-    else
-      pane.okButton.visible = false
+}
 
-    hand.update(pane.cards)
+class CreateBeingFaceTile
+(val pane : CreateBeingPane)
+  extends EditableBeingTile
+  with CreateBeingTile {
+
+  val backImg =
+    cardRectangle(pane.txt.face,
+      pane.cardWidth,
+      pane.cardHeight)
+
+  decorated = backImg
+
+  private [this] var card0 : Option[Card] = None
+
+
+  def card : Option[Card] = card0
+  override def card_=(sc : Option[(Card, Boolean)]) : Unit = {
+    super.card_=(sc)
+    card0 = sc map (_._1)
+    dand = card0 map pane.doCardDragAndDrop
+  }
+
+  def switchPredicate(resourceTile : CreateBeingResourceTile) : Boolean =
+    resourceTile.pos match {
+    case Heart =>
+      pane.rules.checkLegalLover(resourceTile.card.get, card.get)
+    case otherPos =>
+      pane.rules.validResource(pane.face.card,
+        pane.resources, card.get, otherPos)
+  }
+
+
+}
+
+
+class CreateBeingResourceTile
+(val pane : CreateBeingPane,
+ val pos : Suit)
+  extends EditableBeingResourceTile
+    with CreateBeingTile {
+
+  def switchPredicate(resourceTile : CreateBeingResourceTile) : Boolean = {
+    pane.rules.validResource(pane.face.card,
+      pane.resources, card.get, resourceTile.pos)
+  }
+
+  override def switchIfNeeded(ocard : Card) : Unit =
+    if(pane.face.card contains ocard) {
+      card match {
+        case Some(thisCard)
+          if pane.rules.checkLegalLover(ocard, thisCard) =>
+            pane.face.card = Some((thisCard, true))
+        case _ =>
+          pane.face.card = None
+      }
+    }
+    else super.switchIfNeeded(ocard)
+
+  override def card_=(sc : Option[(Card, Boolean)]) : Unit = {
+    super.card_=(sc)
+    dand = sc map (_._1) map pane.doCardDragAndDrop
   }
 }
 
 
-
 class CreateBeingPane
-( controller : GameScreenControl,
-  hand : PlayerHandPane,
+( val controller : GameScreenControl,
+  val hand : PlayerHandPane,
   val cardWidth : Double,
   val cardHeight : Double)
 ( implicit val txt : ValText )
-  extends EditableBeingPane[CreateBeingTile] {
+  extends EditableBeingPane[CreateBeingResourceTile] {
 
   private [this] var open0 : Boolean = false
 
@@ -111,7 +137,7 @@ class CreateBeingPane
 
   def editMode(origin: CardOrigin) : Unit = {
     children = Seq(face, mind, power, heart, weapon,
-      okButton, closeButton/*buttonWrapper*/)
+      okButton, closeButton)
     defaultPos(origin.card).onDrop(origin)
     open0 = true
   }
@@ -119,7 +145,7 @@ class CreateBeingPane
   def menuMode() : Unit = {
     children = createBeingLabel
     open0 = false
-    tiles.foreach (_.cardImg = None)
+    tiles.foreach (_.card = None)
     hand.update()
   }
 
@@ -129,27 +155,21 @@ class CreateBeingPane
         editMode(origin)
     }
 
+  def doCardDragAndDrop(c : Card) : CardDragAndDrop =
+    new CardDragAndDrop(controller,
+      controller.canDragAndDropOnInfluencePhase,
+      CardOrigin.Hand(playerGameIdx, c))
 
-  def makeTilePane(pos : Option[Suit]) = {
-    val t = pos map txt.suitsText getOrElse txt.face
-    new CreateBeingTile(this,
-      hand, pos,
-      new CardDragAndDrop(controller,
-        controller.canDragAndDropOnInfluencePhase, _))
-  }
-
+  def makeResourceTilePane(pos : Suit) =
+    new CreateBeingResourceTile(this,  pos)
 
   GridPane.setConstraints(createBeingLabel, 1, 1)
   children = createBeingLabel
-  val face = makeTilePane(None)
+
+  val face = new CreateBeingFaceTile(this)
   centerConstraints(face)
 
-
-
-
-  val tiles : Seq[CreateBeingTile] = Seq(face, mind, power, heart, weapon)
-
-  def cards : Seq[Card] = tiles flatMap (_.card)
+  def faceCard = face.card
 
   def being : Option[Being] = {
     face.card map {
@@ -162,7 +182,6 @@ class CreateBeingPane
       case _ => leval.error()
     }
   }
-
 
   closeButton.onMouseClicked = {
     me : MouseEvent =>
@@ -182,9 +201,17 @@ class CreateBeingPane
 
   def targets(c : Card ): Seq[CardDropTarget] = {
 
-    val allowedTiles : Seq[CardDropTarget] = defaultPos(c) :: (mapTiles filter {
-      case (pos, tile) => rules.validResource(face.card, resources, c, pos)
-    } values).toList
+    val allowedTiles : Seq[CardDropTarget] =
+      c match {
+        case Joker(_)
+          if resources.values exists (c2 => c2.isInstanceOf[J] && c2 != c) => Seq()
+        case _ => mapTiles.foldLeft(List(defaultPos(c))) {
+            case (l, (pos, tile)) =>
+              if(rules.validResource(face.card, resources, c, pos))
+                tile :: l
+              else l
+          }
+      }
 
     (face.card , c) match {
       case (Some(Card(lover@(King | Queen), fsuit)), Card(r : Face, s))
@@ -194,21 +221,9 @@ class CreateBeingPane
     }
   }
 
-  def legalFormation : Boolean =
-    being match {
-      case None => false
-      case Some(b @ Formation(f)) =>
-      rules.validBeing(b) && (!b.lover ||
-        rules.legalLoverFormationAtCreation(f)) && {
-
-        val playerBeings = controller.game beingsOwnBy controller.playerGameIdx
-
-        val hasSameFormation = playerBeings exists {
-          case Formation(`f`) => true
-          case _ => false
-        }
-        !hasSameFormation
-      }
-      case _ => false
+  def legalFormation : Boolean = {
+    being exists (rules.isValidBeingAtCreation(controller.game.game, _,
+      controller.playerGameIdx))
   }
+
 }

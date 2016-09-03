@@ -19,6 +19,8 @@ abstract class HighlightableRegion extends StackPane {
     this.children = Seq(n, highlight)
   }
 
+
+
   protected val highlight = new Region {
     opacity = 0
     style = "-fx-border-width: 3; -fx-border-color: dodgerblue; -fx-background-color : rgba(12,56,100, 0.05);"

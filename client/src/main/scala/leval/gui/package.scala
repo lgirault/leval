@@ -6,7 +6,7 @@ import scalafx.scene.image.{Image, ImageView}
   * Created by lorilan on 8/28/16.
   */
 package object gui {
-  val logoWidth = 287
+  val logoWidth = 287d
   val logoUrl = this.getClass.getResource("/logoval.png").toExternalForm
   val logo = new Image(logoUrl)
   def logoImage(width : Double = logoWidth) =

@@ -10,9 +10,8 @@ import scalafx.geometry.Pos
 import scalafx.scene.Node
 import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
-import scalafx.scene.image.ImageView
 import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout.{Pane, StackPane}
+import scalafx.scene.layout.StackPane
 
 
 /**
@@ -22,52 +21,17 @@ import scalafx.scene.layout.{Pane, StackPane}
 
 class EducateBeingTile
 (val pane : EducateBeingPane,
- val hand : PlayerHandPane,
- val suit : Suit)
-  extends EditableBeingTile(
-    Some(suit),
-    pane.cardWidth,
-    pane.cardHeight,
-    pane.txt ){
+ val pos : Suit)
+  extends EditableBeingResourceTile {
 
   val switchImg : Node = switchImage(pane.cardWidth)
   switchImg.visible = false
 
-  var cardImg0 : Option[ImageView] = None
-  def cardImg : Option[ImageView]= cardImg0
-  def cardImg_=(v : Option[ImageView]) = {
-    v match {
-      case None =>
-        children = Seq(backImg, highlight)
-      case Some(iv) =>
-        children = Seq(switchImg, iv, highlight)
-
-    }
-    cardImg0 = v
-  }
-
-  private [this] var card0 : Option[Card] = None
-  def card = card0
-  def card_=(c : Card) = setCard(c, front = true)
-
-  def setCard(c : Card, front : Boolean) ={
-    card0 = Some(c)
-    cardImg = Some(CardImg(c, Some(backImg.prefHeight.value), front))
-  }
-
-  def reset() = {
-    card0 = None
-    cardImg = None
-  }
 
   def doOnDrop(c : C) : Unit = {
-    card = c
-    if(pane.legalFormation)
-      pane.okButton.visible = true
-    else
-      pane.okButton.visible = false
-
-    hand.update(pane.cards)
+    card = Some((c, true))
+    this.children add switchImg
+    pane.checkIfLegalAndUpdate()
   }
 
   def onDrop(origin : CardOrigin) : Unit =
@@ -76,7 +40,7 @@ class EducateBeingTile
 
     pane.sEducation match {
       case None =>
-        if(cardImg0.nonEmpty)
+        if(pane.being.resources.get(pos).nonEmpty)
           pane.sEducation = Some(Switch(pane.being.face, c))
         else
           pane.sEducation = Some(Rise(pane.being.face, Seq(c)))
@@ -92,7 +56,7 @@ class EducateBeingTile
         }.showAndWait())
 
       case Some(Rise(tgt, s)) =>
-        if((pane.being.resources get suit ).nonEmpty)
+        if((pane.being.resources get pos ).nonEmpty)
           ignore(new Alert(AlertType.Information) {
             delegate.initOwner(pane.scene().getWindow)
             title = "Education"
@@ -111,7 +75,7 @@ class EducateBeingTile
 
 class EducateBeingPane
 (controller : GameScreenControl,
- hand : PlayerHandPane,
+ val hand : PlayerHandPane,
  val cardWidth : Double,
  val cardHeight : Double )
 ( implicit val txt : ValText )
@@ -138,18 +102,16 @@ class EducateBeingPane
         position0 = None
     }
     sEducation = None
-    Seq(mind, power, heart, weapon) foreach (_.reset())
+    Seq(mind, power, heart, weapon) foreach (_.card = None)
   }
 
+  def makeResourceTilePane(pos : Suit) =
+    new EducateBeingTile(this, pos)
 
 
-  def makeTilePane(pos : Option[Suit]) =
-    new EducateBeingTile(this, hand, pos.get)
-
-
-  val face = new StackPane{
+  val face = new StackPane {
     children = cardRectangle(txt.face, cardWidth, cardHeight)
-  } //makeTilePane(txt.face)
+  }
   centerConstraints(face)
 
 
@@ -177,11 +139,11 @@ class EducateBeingPane
   }
   def being_=(b : Being) : Unit = {
     face.children = CardImg(b.face, Some(cardHeight))
-    b.mind foreach (mind.setCard(_, front = false))
-    b.heart foreach (heart.setCard(_, front = false))
-    b.power foreach (power.setCard(_, front = false))
-    b.weapon foreach (weapon.setCard(_, front = false))
-
+    resources = b.resources
+    b.resources foreach {
+      case (suit, c) =>
+        mapTiles(suit).card = Some((c, false))
+    }
   }
 
   def being = beingPane0.being
@@ -203,12 +165,10 @@ class EducateBeingPane
       hand.update()
   }
 
+  def faceCard = Some(being.face)
+
   children = Seq(face, mind, power, heart, weapon,
     okButton, closeButton)
-
-  val tiles : Seq[EducateBeingTile] = Seq(mind, power, heart, weapon)
-  def cards : Seq[Card] = tiles flatMap (_.card)
-
 
   val rules = controller.game.rules
 
@@ -226,5 +186,5 @@ class EducateBeingPane
     }
   }
   def legalFormation : Boolean =
-    sEducation exists (e => rules.validBeing(being.educateWith(e)))
+    sEducation exists (e => rules.isValidBeing(being.educateWith(e)))
 }

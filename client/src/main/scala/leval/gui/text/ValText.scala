@@ -9,7 +9,7 @@ import scalafx.scene.text.Font
   */
 object ValText {
 
-  val defaultSize = 14
+  val defaultSize = 14d
   val fantasyFont =
     Font.loadFont(this.getClass.getResource("/fantasy1.ttf").toExternalForm, defaultSize)
 
