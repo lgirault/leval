@@ -130,7 +130,11 @@ class TwoPlayerGamePane
       if(createBeeingPane.isOpen) createBeeingPane.targets(origin.card)
       else if(educateBeingPane.isOpen) origin.card match {
         case c : C => educateBeingPane.targets(c)
-        case _ => Seq()
+        case j : J =>
+          val resources = educateBeingPane.being.resources
+          educateBeingPane.targets(j) filter {
+          t => (resources get t.pos).isEmpty
+        }
       }
       else {
         val highlighteds0 : Seq[CardDropTarget] =

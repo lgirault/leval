@@ -59,7 +59,7 @@ sealed abstract class Educate extends Move[Unit] {
 case class Switch(target : Card,
                   c : C) extends Educate
 case class Rise(target : Card,
-                cards : Seq[C]) extends Educate
+                cards : Map[Suit, Card]) extends Educate
 
 
 sealed abstract class Phase extends Move[Unit]

@@ -327,14 +327,17 @@ trait AntaresHeliosCommon extends Rules {
 
   def validResource(face : Card,
                     otherResources : Map[Suit, Card],
-                    c : Card, pos : Suit) = (c, face) match {
-    case (Card(Numeric(_), `pos`), _)
-         | (Card(Jack, `pos`), Card(King|Queen, `pos`)) => true
-    case (j1 @ Joker(_), j2 @ Joker(_)) =>
-      println("jj !")
-      j1 == j2 //moving joker from one position to another
-    case (Joker(_), _) =>
-      println("joko !")
+                    c : Card, pos : Suit) = (face, c) match {
+    case (_, Card(Numeric(_), `pos`))
+         | (Card(King|Queen, `pos`), Card(Jack, `pos`)) => true
+
+    //Lover
+    case (Card(lover@(King | Queen), fsuit), Card(r : Face, s))
+      if pos == Heart =>
+      fsuit == s && otherLover(lover) == r
+
+    case (j1 @ Joker(_), j2 @ Joker(_)) => j1 == j2
+    case (_, Joker(_)) =>
       ! otherResources.values.exists(r => r.isInstanceOf[J] && r != c)
     case _ => false
   }

@@ -80,6 +80,10 @@ trait ValText {
   val do_nothing : String
 
   def disconnected( name : String) : String
+
+  val education : String
+  val only_one_switch : String
+  val switch_or_rise : String
 }
 
 object Fr extends ValText {
@@ -139,6 +143,10 @@ object Fr extends ValText {
   val collect_from_river : String = "Puiser à la rivière"
   val look_resource : String = "Regarder une ressource"
   val do_nothing : String = "Ne rien faire"
+
+  val education : String = "Éducation"
+  val only_one_switch : String = "Un seul échange à la fois"
+  val switch_or_rise : String = "Échange ou élévation, pas les deux en même temps"
 }
 
 object Eng extends ValText {
@@ -202,4 +210,7 @@ object Eng extends ValText {
   val do_nothing : String = "Do nothing"
 
 
+  val education : String = "Education"
+  val only_one_switch : String = "Only one switch at a time"
+  val switch_or_rise : String = "Switch or rise not both at the same time"
 }

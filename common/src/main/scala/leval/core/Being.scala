@@ -65,8 +65,7 @@ case class Being
     case Switch(`face`, c) => educateWith(c)._1
 
     case Rise(`face`, cards) =>
-      val kvs = cards map (c => c.suit -> c)
-      val b1 = copy(resources = kvs.foldLeft(resources)(_ + _), hasDrawn = false)
+      val b1 = copy(resources = cards.foldLeft(resources)(_ + _), hasDrawn = false)
       b1.resources get Heart match {
         case Some(Card(King | Queen | Jack, _)) if ! b1.lover => b1.copy(lover = true)
         case _ => b1

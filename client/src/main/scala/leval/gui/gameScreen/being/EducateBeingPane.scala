@@ -28,48 +28,43 @@ class EducateBeingTile
   switchImg.visible = false
 
 
-  def doOnDrop(c : C) : Unit = {
+  def doOnDrop(c : Card) : Unit = {
     card = Some((c, true))
     this.children add switchImg
     pane.checkIfLegalAndUpdate()
   }
 
-  def onDrop(origin : CardOrigin) : Unit =
-  origin.card match {
-    case c : C =>
-
+  def onDrop(origin : CardOrigin) : Unit = {
+    val c = origin.card
     pane.sEducation match {
       case None =>
         if(pane.being.resources.get(pos).nonEmpty)
-          pane.sEducation = Some(Switch(pane.being.face, c))
+          pane.sEducation = Some(Switch(pane.being.face, c.asInstanceOf[C]))
         else
-          pane.sEducation = Some(Rise(pane.being.face, Seq(c)))
+          pane.sEducation = Some(Rise(pane.being.face, Map(pos -> c)))
         doOnDrop(c)
-      case Some(Switch(tgt, c2)) if c2.suit == c.suit =>
+      case Some(Switch(tgt, c2)) if c2.suit == c.asInstanceOf[C].suit =>
         pane.sEducation = Some(Switch(tgt, c2))
         doOnDrop(c2)
       case Some(Switch(tgt, c2))  =>
         ignore(new Alert(AlertType.Information) {
           delegate.initOwner(pane.scene().getWindow)
-          title = "Education"
-          headerText = s"Only one switch at a time"
+          title = pane.txt.education
+          headerText = pane.txt.only_one_switch
         }.showAndWait())
 
-      case Some(Rise(tgt, s)) =>
+      case Some(Rise(tgt, m)) =>
         if((pane.being.resources get pos ).nonEmpty)
           ignore(new Alert(AlertType.Information) {
             delegate.initOwner(pane.scene().getWindow)
-            title = "Education"
-            headerText = s"Switch or rise not both at the same time"
+            title = pane.txt.education
+            headerText = pane.txt.switch_or_rise
           }.showAndWait())
         else {
-          val newS = c +: s.filterNot(_.suit == c.suit)
-          pane.sEducation = Some(Rise(tgt, newS))
+          pane.sEducation = Some(Rise(tgt, m + (pos -> c)))
           doOnDrop(c)
         }
-
     }
-    case _ => ()
   }
 }
 
@@ -174,19 +169,10 @@ class EducateBeingPane
 
   val rules = controller.game.rules
 
-  def targets(c : C): Seq[CardDropTarget] ={
-
-    val allowedTiles : Seq[CardDropTarget] = (mapTiles filter {
-      case (pos, tile) => rules.validResource(being.face, resources,
-        c, pos)
+  def targets(c : Card): Seq[EducateBeingTile] = (mapTiles filter {
+      case (pos, tile) => rules.validResource(being.face, resources, c, pos)
     } values).toList
-    (being.face, c) match {
-      case (Card(lover@(King | Queen), fsuit), Card(r : Face, s))
-        if fsuit == s && rules.otherLover(lover) == r =>
-        heart +: allowedTiles
-      case _ => allowedTiles
-    }
-  }
+
   def legalFormation : Boolean =
     sEducation exists (e => rules.isValidBeing(being.educateWith(e)))
 }

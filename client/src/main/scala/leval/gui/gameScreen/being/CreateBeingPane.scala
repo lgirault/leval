@@ -6,7 +6,6 @@ import leval.gui.text.ValText
 
 import scalafx.Includes._
 import scalafx.scene.input.MouseEvent
-import scalafx.scene.layout._
 
 /**
   * Created by lorilan on 7/4/16.
@@ -46,7 +45,7 @@ trait CreateBeingTile {
   def onDrop(origin : CardOrigin) : Unit = {
     switchIfNeeded(origin.card)
     card = Some((origin.card, true))
-   pane.checkIfLegalAndUpdate()
+    pane.checkIfLegalAndUpdate()
   }
 
 }
@@ -54,7 +53,7 @@ trait CreateBeingTile {
 class CreateBeingFaceTile
 (val pane : CreateBeingPane)
   extends EditableBeingTile
-  with CreateBeingTile {
+    with CreateBeingTile {
 
   val backImg =
     cardRectangle(pane.txt.face,
@@ -75,11 +74,37 @@ class CreateBeingFaceTile
 
   def switchPredicate(resourceTile : CreateBeingResourceTile) : Boolean =
     resourceTile.pos match {
-    case Heart =>
-      pane.rules.checkLegalLover(resourceTile.card.get, card.get)
-    case otherPos =>
-      pane.rules.validResource(pane.face.card,
-        pane.resources, card.get, otherPos)
+      case Heart =>
+        pane.rules.checkLegalLover(resourceTile.card.get, card.get)
+      case otherPos =>
+        pane.rules.validResource(pane.face.card,
+          pane.resources, card.get, otherPos)
+    }
+
+  def removeHeartIfNeeded(newCard : Card) : Unit =
+    pane.resources get Heart map {
+      case Joker(_) | Card(Numeric(_), _) => false
+      case Card(Jack, s) =>
+        ! newCard.isInstanceOf[C] ||
+          s != newCard.asInstanceOf[C].suit
+      case Card(r @ (King|Queen), s) =>
+        ! newCard.isInstanceOf[C] || {
+          val nc = newCard.asInstanceOf[C]
+          s != nc.suit || pane.rules.otherLover(r) != nc.rank
+        }
+    } foreach  {
+      needRemove =>
+        if(needRemove)
+          pane.heart.card = None
+    }
+
+
+
+
+
+  override def onDrop(origin : CardOrigin) : Unit = {
+    removeHeartIfNeeded(origin.card)
+    super.onDrop(origin)
   }
 
 
@@ -102,7 +127,7 @@ class CreateBeingResourceTile
       card match {
         case Some(thisCard)
           if pane.rules.checkLegalLover(ocard, thisCard) =>
-            pane.face.card = Some((thisCard, true))
+          pane.face.card = Some((thisCard, true))
         case _ =>
           pane.face.card = None
       }
@@ -150,10 +175,10 @@ class CreateBeingPane
   }
 
   val createBeingLabel = new CardDropTarget {
-      decorated = cardRectangle(txt.create_being, cardWidth, cardHeight)
-      def onDrop(origin: CardOrigin) =
-        editMode(origin)
-    }
+    decorated = cardRectangle(txt.create_being, cardWidth, cardHeight)
+    def onDrop(origin: CardOrigin) =
+      editMode(origin)
+  }
 
   def doCardDragAndDrop(c : Card) : CardDragAndDrop =
     new CardDragAndDrop(controller,
@@ -188,7 +213,7 @@ class CreateBeingPane
       menuMode()
   }
 
-   def defaultPos(c : Card) : CardDropTarget =
+  def defaultPos(c : Card) : CardDropTarget =
     c match {
       case Card(_ : Face, _) | Joker(_) => face
       case Card(_, Heart) => heart
@@ -206,11 +231,11 @@ class CreateBeingPane
         case Joker(_)
           if resources.values exists (c2 => c2.isInstanceOf[J] && c2 != c) => Seq()
         case _ => mapTiles.foldLeft(List(defaultPos(c))) {
-            case (l, (pos, tile)) =>
-              if(rules.validResource(face.card, resources, c, pos))
-                tile :: l
-              else l
-          }
+          case (l, (pos, tile)) =>
+            if(rules.validResource(face.card, resources, c, pos))
+              tile :: l
+            else l
+        }
       }
 
     (face.card , c) match {

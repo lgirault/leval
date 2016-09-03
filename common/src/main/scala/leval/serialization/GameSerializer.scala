@@ -183,10 +183,14 @@ class GameSerializer
       bb.array()
 
     case Rise(tgt, cs) =>
-      val bb = ByteBuffer.allocate(CardSerializer.cardSize * (cs.size + 1) + int)
+      val bb = ByteBuffer.allocate((CardSerializer.cardSize + byte) * (cs.size + 1) + int)
       CardSerializer.put(bb, tgt)
       bb putInt cs.size
-      cs.reverseIterator foreach (CardSerializer.put(bb, _))
+      cs foreach {
+        case (s, c) =>
+          bb put (CardSerializer toByte s)
+          CardSerializer.put(bb, c)
+      }
       bb.array()
     case InfluencePhase(newPlayer) =>
       val bb = ByteBuffer.allocate(int)
@@ -307,11 +311,13 @@ class GameSerializer
 
         val tgt = CardSerializer.fromBinary(bb)
         val size = bb.getInt()
-        var l = List[C]()
+        var m = Map[Suit, Card]()
         for( _ <- 1 to size ){
-          l ::= CardSerializer.fromBinary(bb).asInstanceOf[C]
+          val s = CardSerializer.suits(bb.get.toInt)
+          val c = CardSerializer.fromBinary(bb)
+          m += (s -> c)
         }
-        Rise(tgt, l)
+        Rise(tgt, m)
       case GameManifest.influencePhase =>
         val bb = ByteBuffer wrap bytes
         InfluencePhase(bb.getInt())

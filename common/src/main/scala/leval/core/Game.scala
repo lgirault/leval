@@ -160,7 +160,8 @@ case class Game
           val (newB, oldC) = b.educateWith(c)
           (s.copy(hand = s.hand - c + oldC), newB)
         case Rise(target, cards) =>
-          (s.copy(hand = s.hand -- cards), b.educateWith(e))
+
+          (s.copy(hand = s.hand -- cards.values), b.educateWith(e))
       }
 
 

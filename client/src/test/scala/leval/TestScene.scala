@@ -52,7 +52,7 @@ object TestScene extends JFXApp  {
     import Joker._
     val inHandForTest : Seq[Card] =
       Seq(J(0, Red), J(0, Black),
-        (3, Spade), (2, Heart), (2, Club), (2, Diamond))
+          (Queen, Club), (King, Club))
 
     val (p1, p2) = (PlayerId(69, "Betelgeuse"), PlayerId(42, "AlphaCentauri"))
 
@@ -90,7 +90,10 @@ object TestScene extends JFXApp  {
 
   }
 
-  new GameScreenControl(stageScene, game, 0, TestActorRef(ControllerMockup.props(game)))
+  val control = new GameScreenControl(stageScene, game, 0, TestActorRef(ControllerMockup.props(game)))
+
+
+  control.pane.beingPanes(0).head.educateButton.visible = true
 }
 
 object BurialTestScene extends JFXApp {

@@ -83,7 +83,9 @@ class GameSerializerSpec
       fromBinary(b, GameManifest.educateSwitch) shouldBe m
     }
     "should encode and decode a Rise" in {
-      val m = Rise((King, Heart), List[C]((10, Club), (1, Spade)))
+      val m = Rise((King, Heart),
+        Map[Suit, Card](Club -> ((10, Club)),
+        Spade -> ((1, Spade))))
       val b = toBinary(m)
       fromBinary(b, GameManifest.educateRise) shouldBe m
     }
