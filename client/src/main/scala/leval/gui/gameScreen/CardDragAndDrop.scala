@@ -31,8 +31,7 @@ class CardDragAndDrop
   import control.pane
 
   lazy val cardImageView : CardImageView = {
-    val height = pane.handAreaHeight * 2
-
+    val height = pane.cardHeight
     val img = CardImg(origin.card,
       sfitHeight = Some(height),
       showFront)

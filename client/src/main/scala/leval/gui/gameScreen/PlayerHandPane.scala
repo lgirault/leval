@@ -23,9 +23,9 @@ class PlayerHandPane
 
     val imgs =
       if(cards.isEmpty) Seq[CardImageView]()
-      else cards.tail.foldLeft(Seq(CardImg.topHalf(cards.head, Some(height)))) {
+      else cards.tail.foldLeft(Seq(CardImg(cards.head, Some(height)))) {
         case (acc, c) =>
-          val ci = CardImg.cutTopHalf(c, Some(height))
+          val ci = CardImg.cutLeft(c, 1.8, Some(height))
           ci.alignmentInParent = Pos.BottomCenter
           ci +: acc
       }
@@ -60,9 +60,9 @@ class OpponnentHandPane
 
   private def images : Seq[CardImageView]=
       if(hand.isEmpty) Seq[CardImageView]()
-      else hand.tail.foldLeft(Seq(CardImg.bottomHalf(hand.head, Some(height), front = false))) {
+      else hand.tail.foldLeft(Seq(CardImg(hand.head, Some(height), front = false))) {
         case (acc, c) =>
-          val ci = CardImg.cutBottomHalf(c, Some(height), front = false)
+          val ci = CardImg.cutLeft(c, 1.8, Some(height), front = false)
           ci.alignmentInParent = Pos.BottomCenter
           ci +: acc
       }

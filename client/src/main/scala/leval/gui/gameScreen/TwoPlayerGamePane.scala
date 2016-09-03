@@ -53,17 +53,21 @@ class TwoPlayerGamePane
 
 
 
-  val cardHeight = heightInit / 10
+  val cardHeight = (heightInit / 10).floor
   val cardResizeRatio = cardHeight / CardImg.height
 
   val cardWidth = CardImg.width * cardResizeRatio
 
 
-  val riverAreaHeight = (0.1 * heightInit).ceil
+  val riverAreaHeight = cardHeight
 
-  val playerAreaHeight = (0.325 * heightInit).ceil
+  val handAreaHeight = cardHeight //((heightInit - riverAreaHeight - (2 * playerAreaHeight))/2).floor
 
-  val handAreaHeight = ((heightInit - riverAreaHeight - (2 * playerAreaHeight))/2).floor
+  val playerAreaHeight = ((heightInit - riverAreaHeight - 2 * handAreaHeight) / 2).floor
+  //(0.325 * heightInit).ceil
+
+
+
       //= ~ 0.15 * heightInit
 
 
