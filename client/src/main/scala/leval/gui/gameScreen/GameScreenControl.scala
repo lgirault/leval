@@ -88,9 +88,6 @@ class GameScreenControl
   scene.heightProperty.addListener(this)
 
 
-  if(isCurrentPlayer)
-    pane.endPhaseButton.visible = true
-
   game.observers += this
 
   def numLookedCards : Int =
@@ -434,7 +431,6 @@ class GameScreenControl
           pane.statusPane.update()
 
         case e : Educate =>
-          println("Educate update pane !")
           val bp = pane.beingPanesMap(e.target)
           val b = game.beings(e.target)
           bp.update(b)

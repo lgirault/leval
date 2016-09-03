@@ -144,6 +144,7 @@ class JokerWeaponEffectTargetSelector
 class BlackJokerEffect
 ( val controller: GameScreenControl,
   joker : J) {
+  import controller.txt
   var playedClub = false
   var playedSpade = false
 

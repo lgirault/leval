@@ -1,8 +1,8 @@
 package leval.gui.gameScreen
 
-import leval.ignore
 import leval.core._
 import leval.gui.gameScreen.being.BeingResourcePane
+import leval.gui.text.ValText
 
 import scalafx.Includes._
 import scalafx.scene.control.Alert.AlertType
@@ -12,8 +12,8 @@ import scalafx.scene.layout.Pane
 /**
   * Created by lorilan on 7/6/16.
   */
-class CardDialog( c : Card, p : Pane) extends Dialog[Card] {
-  title = "Card"
+class CardDialog(c : Card, p : Pane)(implicit txt : ValText) extends Dialog[Card] {
+  title = txt.card
   dialogPane().content = CardImg(c)
   delegate.initOwner(p.scene().getWindow)
   resultConverter = {
@@ -26,25 +26,28 @@ class DrawAndLookAction
 (val controller : GameScreenControl,
  origin : Origin,
  onFinish : () => Unit)
+(implicit valText : ValText)
   extends ResourceSelector {
 
   var (collect, look) = controller.game.rules.drawAndLookValues(origin)
-  import controller.canCollectFromRiver
 
-  import controller.pane
+  import controller.{pane, canCollectFromRiver, numLookedCards, numResourcesCardinal}
 
-  import controller.{numLookedCards, numResourcesCardinal}
   def canLook = look > 0 && numLookedCards < numResourcesCardinal
 
-  val collectFromSource = new ButtonType("Collect from source")
-  val collectFromRiver = new ButtonType("Collect from river")
-  val lookCard = new ButtonType("Look card")
+  val collectFromSource = new ButtonType(valText.collect_from_source)
+  val collectFromRiver = new ButtonType(valText.collect_from_river)
+  val lookResource = new ButtonType(valText.look_resource)
+  val doNothing = new ButtonType(valText.do_nothing)
+
 
   def remainingEffect: Seq[ButtonType] = {
 
     val s0 =
-      if (canLook) Seq(lookCard)
-      else Seq()
+      if (canLook) {
+        if (collect > 0) Seq(lookResource)
+        else Seq(lookResource, doNothing)
+      } else Seq()
 
     if (collect > 0) {
       if (canCollectFromRiver && controller.game.deathRiver.nonEmpty)
@@ -89,9 +92,10 @@ class DrawAndLookAction
         else
           new Alert(AlertType.Confirmation) {
             delegate.initOwner(pane.scene().getWindow)
-            title = "Draw or look Action"
-            headerText = "Choose next effect of action\n" +
-                    s"(Draw $collect card(s), look $look card(s)"
+            title = valText.draw_or_look
+            headerText = valText.choose_next_effect + "\n" +
+              valText.remainingEffects(collect, look)
+
             buttonTypes = remainingEffect
           }.showAndWait()
 
@@ -104,14 +108,11 @@ class DrawAndLookAction
           controller.collect(origin, DeathRiver, collect)
           collect -= 1
           this.apply()
-        case Some(`lookCard`) =>
+        case Some(`lookResource`) =>
           look -= 1
-          ignore(new Alert(AlertType.Information){
-            delegate.initOwner(pane.scene().getWindow)
-            title = "Look Action"
-            headerText = "Click on a card to look at it"
-            //contentText = "Every being has acted"
-          }.showAndWait())
+        case Some(`doNothing`) =>
+          look = 0
+          this.apply()
         case _ => leval.error()
       }
     }

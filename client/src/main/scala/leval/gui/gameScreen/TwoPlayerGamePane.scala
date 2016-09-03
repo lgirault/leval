@@ -199,7 +199,7 @@ class TwoPlayerGamePane
         me : MouseEvent =>
           controller.endPhase()
       }
-      visible = false
+      visible = controller.isCurrentPlayer
     }
   val handPaneWrapper = new BorderPane {
     center = handPane

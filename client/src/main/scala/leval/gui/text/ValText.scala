@@ -68,6 +68,17 @@ trait ValText {
 
   val information : String
   val owner_exit : String
+
+  val card : String
+  val draw_or_look : String
+  val choose_next_effect : String
+  def remainingEffects(collect : Int, look : Int) : String
+
+  val collect_from_source : String
+  val collect_from_river : String
+  val look_resource : String
+  val do_nothing : String
+
   def disconnected( name : String) : String
 }
 
@@ -116,6 +127,18 @@ object Fr extends ValText {
 
   def disconnected( name : String) : String =
     name + " s'est déconnecté(e)"
+
+
+  val card : String = "Carte"
+  val draw_or_look : String = "Puiser ou regarder"
+  val choose_next_effect : String = "Choisissez l'effet suivant : "
+  def remainingEffects(collect : Int, look : Int) : String =
+    s"(Puiser $collect carte(s), regarder $look carte(s)"
+
+  val collect_from_source : String = "Puiser à la source"
+  val collect_from_river : String = "Puiser à la rivière"
+  val look_resource : String = "Regarder une ressource"
+  val do_nothing : String = "Ne rien faire"
 }
 
 object Eng extends ValText {
@@ -166,4 +189,17 @@ object Eng extends ValText {
 
   def disconnected( name : String) : String =
     name + " is disconnected"
+
+  val card : String = "Card"
+  val draw_or_look : String = "Draw or look Action"
+  val choose_next_effect : String = "Choose next effect of action"
+  def remainingEffects(collect : Int, look : Int) : String =
+    s"(Draw $collect card(s), look $look card(s)"
+
+  val collect_from_source : String = "Collect from source"
+  val collect_from_river : String = "Collect from river"
+  val look_resource : String = "Look a resource"
+  val do_nothing : String = "Do nothing"
+
+
 }
