@@ -6,7 +6,7 @@ import leval.core.Game.StarIdx
 /**
   * Created by Loïc Girault on 06/07/16.
   */
-sealed abstract class Move[A]
+sealed abstract class Move[A] extends Serializable
 //heart or diamond
 case class MajestyEffect(value : Int, targetStar : Int) extends Move[Unit]
 //diamond or spades
@@ -50,7 +50,7 @@ case class LookCard(origin: CardOrigin, target : Card, resource : Suit) extends 
 
 case class PlaceBeing(being: Being, side : StarIdx) extends Move[Unit]
 case class Bury(target : Card, order : List[Card]) extends Move[Unit]
-case class BuryRequest(target : Being, toBury : Set[Card])
+case class BuryRequest(target : Being, toBury : Set[Card]) extends Serializable
 
 //delate Educate and make EducationType a move ??
 sealed abstract class Educate extends Move[Unit] {

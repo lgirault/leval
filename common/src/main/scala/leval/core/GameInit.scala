@@ -7,7 +7,7 @@ case class GameInit
 (twilight: Twilight,
  stars : Seq[Star], // for 4 or 3 players ??
  source : Deck,
- rules : Rules){
+ rules : Rules) extends Serializable {
 
   def game : Game = Game(rules, stars, source)
 

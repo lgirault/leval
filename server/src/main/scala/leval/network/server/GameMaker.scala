@@ -3,7 +3,7 @@ package network
 package server
 
 import akka.actor.{Actor, ActorRef, Props, Terminated}
-import leval.core.{BuryRequest, Game, GameInit, Move, PlayerId}
+import leval.core.{BuryRequest, GameInit, Move, PlayerId}
 
 import scala.collection.mutable.ListBuffer
 import akka.actor._
@@ -119,6 +119,7 @@ class GameMaker
         }
 
       case GameStart =>
+        println("GameStart received, sending GameInit !")
         val gi = GameInit.gameWithoutMulligan(players map (_.id), description.rules)
 
         players.foreach {

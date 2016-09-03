@@ -102,9 +102,12 @@ trait WaitinPlayers extends InGame {
 
         waitingScreen.gameReady(control, status)
 
-      case GameStart => gameMaker ! GameStart
+      case GameStart =>
+        println("sending gameStart !")
+        gameMaker ! GameStart
 
       case gi : GameInit =>
+        println("gameInit received")
         val og = new ObservableGame(gi.game)
         val gameControl = control.gameScreen(og)
         gameControl.showTwilight(gi.twilight)

@@ -2,7 +2,7 @@ package leval.network
 
 import leval.core.{PlayerId, Rules}
 
-abstract class Message
+abstract class Message extends Serializable
 
 // 1 - Generic protocol
 

@@ -57,7 +57,7 @@ object GameManifest{
 class GameSerializer
   extends SerializerWithStringManifest {
 
-  def identifier: Int = 79658247
+  def identifier: Int = 667815469
 
   def manifest(o: AnyRef): String = o match {
     case _ : GameInit => GameManifest.initGame //not a move
@@ -209,7 +209,7 @@ class GameSerializer
 
   def fromBinary(bytes: Array[Byte], manifest: String): AnyRef = {
     manifest match {
-      case GameManifest.`initGame` =>
+      case GameManifest.initGame =>
         val bb = ByteBuffer wrap bytes
         val t = TwilightSerializer.fromBinary(bb)
         val numStar = bb.get().toInt

@@ -174,6 +174,7 @@ class MessagesSerializer
 
     case MessageManifest.gameReady =>
       GameReady
+
     case MessageManifest.gameStart =>
       GameStart
 
