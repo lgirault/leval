@@ -77,7 +77,7 @@ class EducateBeingPane
   extends EditableBeingPane[EducateBeingTile] {
 
   style = "-fx-border-width: 3; " +
-      "-fx-grid-lines-visible: true;" +
+      //"-fx-grid-lines-visible: true;" +
       "-fx-border-color: black; "
 
 

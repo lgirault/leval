@@ -1,6 +1,6 @@
 package leval.gui.gameScreen.being
 
-import leval.core.{Being, Card, Club, Diamond, Heart, CardOrigin, Spade, Suit}
+import leval.core.{Being, Card, CardOrigin, Club, Diamond, Heart, Spade, Suit}
 import leval.gui.gameScreen._
 import leval.gui.text.ValText
 
@@ -8,6 +8,7 @@ import scalafx.Includes._
 import scalafx.event.subscriptions.Subscription
 import scalafx.geometry.Pos
 import scalafx.scene.Node
+import scalafx.scene.control.Label
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.text.{Text, TextAlignment}
 
@@ -59,6 +60,7 @@ class BeingResourcePane
     alignmentInParent = Pos.BottomCenter
   }
 
+
   def dmg : String = dmgTxt.text()
   def dmg_=(i : Int) = if(i == 0){
     dmgTxt.text = ""
@@ -83,15 +85,31 @@ class BeingResourcePane
 
   setCardDragAndDrap()
 
+  import bp.control.game
+
+  def value = game.value(being, position).get
+
+  val valueTxt = new Label(value.toString){
+    style =
+      "-fx-font-size: 24pt;" +
+      "-fx-background-color: white;"
+    textAlignment = TextAlignment.Center
+    alignmentInParent = Pos.Center
+  }
+
+  def frontSeq = Seq(frontImg, valueTxt, dmgTxt, highlight)
+  def backSeq = Seq(backImg, switchImg, eyeImg, /*valueTxt,*/ highlight)
+
   private [this] var reveal0 = false
   def reveal : Boolean = reveal0
   def reveal_=(b : Boolean) : Unit = {
     reveal0 = b
     children =
-      if(b) Seq(frontImg, dmgTxt, highlight)
-      else Seq(backImg, switchImg, eyeImg, highlight)
+      if(b) frontSeq
+      else backSeq
   }
 
+  children = backSeq
   def looked : Boolean = eyeImg.visible()
   def looked_=(b : Boolean) : Unit = {
     eyeImg.visible = b
@@ -112,7 +130,6 @@ class BeingResourcePane
     bp.control.playOnBeing(origin, bp.being, position)
 
   def update() : Unit = {
-    import bp.control.game
 
     (game.beingsState get being.face, position) match {
       case (Some((heartDmg, _)), Heart) =>
@@ -134,6 +151,18 @@ class BeingResourcePane
     reveal = game.revealedCard contains ((being.face, position))
   }
 
+
+
+  handleEvent(MouseEvent.MouseEntered) {
+    me : MouseEvent =>
+      valueTxt.visible = true
+  }
+
+  handleEvent(MouseEvent.MouseExited) {
+    me : MouseEvent =>
+      valueTxt.visible = false
+
+  }
 }
 
 class BeingPane

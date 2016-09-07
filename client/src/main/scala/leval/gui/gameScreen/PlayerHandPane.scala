@@ -23,9 +23,9 @@ class PlayerHandPane
 
     val imgs =
       if(cards.isEmpty) Seq[CardImageView]()
-      else cards.tail.foldLeft(Seq(CardImg(cards.head, Some(height)))) {
+      else cards.tail.foldLeft(Seq(CardImg.topHalf(cards.head, Some(height)))) {
         case (acc, c) =>
-          CardImg.cutLeft(c, 1.8, Some(height)) +: acc
+          CardImg.cutTopHalf(c, Some(height)) +: acc
       }
 
     imgs.foreach {
@@ -58,9 +58,9 @@ class OpponnentHandPane
 
   private def images : Seq[CardImageView]=
       if(hand.isEmpty) Seq[CardImageView]()
-      else hand.tail.foldLeft(Seq(CardImg(hand.head, Some(height), front = false))) {
+      else hand.tail.foldLeft(Seq(CardImg.bottomHalf(hand.head, Some(height), front = false))) {
         case (acc, c) =>
-          CardImg.cutLeft(c, 1.8, Some(height), front = false) +: acc
+          CardImg.cutBottomHalf(c, Some(height), front = false) +: acc
       }
 
   val wrapper = new HBox(images: _*)

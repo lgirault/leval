@@ -171,6 +171,7 @@ class CreateBeingPane
     children = createBeingLabel
     open0 = false
     tiles.foreach (_.card = None)
+    face.card = None
     hand.update()
   }
 

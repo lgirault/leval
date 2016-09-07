@@ -47,9 +47,11 @@ class GameScreenControl
   extends GameObserver
     with SceneSizeChangeListener{
 
-  val widthRatio: Double = 16d
-  val heightRatio: Double = 9d
+//  val widthRatio: Double = 16d
+//  val heightRatio: Double = 9d
 
+  val widthRatio: Double = 4d
+  val heightRatio: Double = 3d
 
   implicit val txt = text.Fr
   val opponentId = (playerGameIdx + 1) % 2
@@ -242,6 +244,7 @@ class GameScreenControl
     }
 
   def endGame(): Unit = {
+    game.observers.remove(game.observers.indexOf(this))
     new Alert(AlertType.Information){
       delegate.initOwner(pane.scene().getWindow)
       title = txt.game_over
@@ -253,7 +256,6 @@ class GameScreenControl
       //contentText = "Every being has acted"
     }.showAndWait()
     actor ! StartScreen
-
   }
 
   def disconnectedPlayerAlert(name : String) : Unit = {
@@ -354,6 +356,7 @@ class GameScreenControl
           origin match {
             case CardOrigin.Being(b, s) =>
               pane.beingPanesMap get b.face foreach (_ update s)
+              pane.riverPane.update()
             case _ =>()
           }
           pane.beingPanesMap get target.face foreach (_ update targetSuit)

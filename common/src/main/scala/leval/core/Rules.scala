@@ -184,18 +184,18 @@ trait Rules {
   if(g.source.isEmpty) None
   else {
     val someWinner = g.stars.zipWithIndex.find {
-      case (s, i) => s.majesty == winningMajesty
+      case (s, i) => s.majesty >= winningMajesty
     }
     val result = someWinner map {
-      case (s, i) => (s.id, g.stars(i+1%2).id)
+      case (s, i) => (s.id, g.stars((i+1)%2).id)
     }
     if(result.nonEmpty) result
     else {
       val someLoser = g.stars.zipWithIndex.find {
-        case (s, i) => s.majesty == losingMajesty
+        case (s, i) => s.majesty <= losingMajesty
       }
       someLoser map {
-        case (s, i) => (g.stars(i+1%2).id, s.id)
+        case (s, i) => (g.stars((i+1)%2).id, s.id)
       }
     }
   }
@@ -203,8 +203,8 @@ trait Rules {
 
   def ended(g : Game) : Boolean =
     g.source.isEmpty || g.stars.exists(s =>
-      s.majesty == losingMajesty ||
-        s.majesty == winningMajesty)
+      s.majesty <= losingMajesty ||
+        s.majesty >= winningMajesty)
 
 
   def canSoulBeSold : Boolean //variante du diable

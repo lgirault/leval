@@ -56,7 +56,7 @@ object TestScene extends JFXApp  {
 
     val (p1, p2) = (PlayerId(69, "Betelgeuse"), PlayerId(42, "AlphaCentauri"))
 
-    val usedCards : Set[Card] = wizard.cards.toSet ++ spectre.cards ++ inHandForTest
+    val usedCards : Set[Card] = wizard.cards.toSet ++ acomplished.cards ++ knight.cards ++  inHandForTest
 
     val deck = core.deck54() filterNot usedCards.contains
 
@@ -69,8 +69,8 @@ object TestScene extends JFXApp  {
       Star(p2, rules.startingMajesty, hand2)), d3).
       copy(beings =
         Map(wizard.face -> wizard,
-          spectre.face -> spectre,
-          child.face -> child))
+          acomplished.face -> acomplished,
+          knight.face -> knight))
   }
 
 
@@ -93,7 +93,7 @@ object TestScene extends JFXApp  {
   val control = new GameScreenControl(stageScene, game, 0, TestActorRef(ControllerMockup.props(game)))
 
 
-  control.pane.beingPanes(0).head.educateButton.visible = true
+
 }
 
 object BurialTestScene extends JFXApp {
