@@ -121,7 +121,8 @@ trait Rules {
     val g3 = spectreEffectOnDeath(g2, killed)
     val (g4, toBurry) = butcherEffect(g3, killer, killed)
     val removedCard = killed.resources(targetedSuit)
-    (g4, toBurry - removedCard, wizardOrEminenceGrise(killer))
+    (g4, toBurry.filter(Game.goesToRiver) - removedCard,
+      wizardOrEminenceGrise(killer))
   }
 
 

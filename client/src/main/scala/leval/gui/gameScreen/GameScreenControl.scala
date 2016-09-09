@@ -9,7 +9,6 @@ import leval.core._
 import leval.gui.{SceneSizeChangeListener, text}
 import leval.network.client.StartScreen
 
-import scalafx.geometry.Pos
 import scalafx.scene.Scene
 import scalafx.scene.control.Alert
 import scalafx.scene.control.Alert.AlertType
@@ -364,8 +363,9 @@ class GameScreenControl
             case Formation(f) => ()
             case b =>
               pane.riverPane.update()
+              val (toBury, toDraw) = res
               if(b.owner != playerGameIdx) {
-                val (toBury, toDraw) = res
+
                 if(toDraw > 0)
                   new DrawAndLookAction(this, origin,
                     () => MoveSeq.end(origin) foreach (actor ! _)
@@ -380,7 +380,7 @@ class GameScreenControl
                   actor ! Bury(target.face, toBury.toList)
                 }
               }
-              if(b.cards.size > 1)
+              if(toBury.size > 1)
                 burialOnGoing = true
 
               updateStarPanels()
