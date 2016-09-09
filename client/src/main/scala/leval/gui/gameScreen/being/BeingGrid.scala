@@ -6,20 +6,8 @@ import scalafx.scene.layout.{ColumnConstraints, GridPane, RowConstraints}
 /**
   * Created by lorilan on 7/9/16.
   */
-abstract class BeingGrid extends GridPane {
 
-  val cardHeight : Double
-  val cardWidth : Double
-
-  val rowCts = new RowConstraints(cardHeight / 3)
-
-  val colCts = new ColumnConstraints(cardWidth / 3)
-
-  for (i <- 1 to 9) {
-    rowConstraints.add(rowCts)
-    columnConstraints.add(colCts)
-  }
-
+object BeingGrid {
   def centerConstraints(n : Node) : Unit =
     GridPane.setConstraints(n, 3, 4)
 
@@ -39,4 +27,20 @@ abstract class BeingGrid extends GridPane {
     GridPane.setConstraints(n, 1, 7)
   def bottomRightCenterConstraints( n : Node) : Unit =
     GridPane.setConstraints(n, 7, 7)
+}
+abstract class BeingGrid extends GridPane {
+
+  val cardHeight : Double
+  val cardWidth : Double
+
+  val rowCts = new RowConstraints(cardHeight / 3)
+
+  val colCts = new ColumnConstraints(cardWidth / 3)
+
+  for (i <- 1 to 9) {
+    rowConstraints.add(rowCts)
+    columnConstraints.add(colCts)
+  }
+
+
 }

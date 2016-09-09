@@ -109,7 +109,7 @@ class EducateBeingPane
   val face = new StackPane {
     children = cardRectangle(txt.face, cardWidth, cardHeight)
   }
-  centerConstraints(face)
+  BeingGrid.centerConstraints(face)
 
 
   private [this] def installEducatePane(bp : BeingPane) : Boolean = {

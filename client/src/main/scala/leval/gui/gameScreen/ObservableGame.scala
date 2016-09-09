@@ -35,6 +35,7 @@ class ObservableGame(g : Game) extends MutableGame(g){
   def rules = game.rules
 
   def value(b : Being, s : Suit) : Option[Int] = g.beingValue(b, s)
+  def arcaneBonus(b : Being, s : Suit ) = g.arcaneBonus(b, s)
 
   val observers : mutable.ListBuffer[GameObserver] = new mutable.ListBuffer[GameObserver]
 

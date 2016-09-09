@@ -31,11 +31,11 @@ object Being {
 }
 
 case class Being
-( owner : StarIdx,
-  face : Card,
-  resources : Map[Suit, Card],
-  lover : Boolean = false,
-  hasDrawn : Boolean = false //for Helios rule
+(owner : StarIdx,
+ face : Card,
+ resources : Map[Suit, Card],
+ lover : Boolean = false,
+ hasAlreadyDrawn : Boolean = false //for Helios rule
  ){
 
 
@@ -65,7 +65,7 @@ case class Being
     case Switch(`face`, c) => educateWith(c)._1
 
     case Rise(`face`, cards) =>
-      val b1 = copy(resources = cards.foldLeft(resources)(_ + _), hasDrawn = false)
+      val b1 = copy(resources = cards.foldLeft(resources)(_ + _), hasAlreadyDrawn = false)
       b1.resources get Heart match {
         case Some(Card(King | Queen | Jack, _)) if ! b1.lover => b1.copy(lover = true)
         case _ => b1
@@ -85,19 +85,20 @@ case class Being
     case _ => 0
   }
 
-  def value(resource : Suit, v : Card => Int)  : Option[Int] = {
-    resources get resource map {
-      c =>
-        val faceBonus = face match {
-          case Joker(_) => v(face)
-          case Card(_, suit) if suit == resource => v(face)
-          case _ => 0
-        }
-        v(c) + faceBonus + formationBonus(resource)
+  def bonus(resource : Suit, v : Card => Int) : Int = {
+    val faceBonus = face match {
+      case Joker(_) => v(face)
+      case Card(_, suit) if suit == resource => v(face)
+      case _ => 0
     }
+    faceBonus + formationBonus(resource)
   }
 
-  def firstDraw : Boolean = ! hasDrawn
+  def value(resource : Suit, v : Card => Int)  : Option[Int] =
+    resources get resource map ( v(_) + bonus(resource, v) )
+
+
+  def firstDraw : Boolean = ! hasAlreadyDrawn
 }
 
 

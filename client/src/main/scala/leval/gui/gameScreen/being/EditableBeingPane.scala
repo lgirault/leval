@@ -50,7 +50,7 @@ abstract class EditableBeingResourceTile
   }
 
 }
-
+import BeingGrid._
 abstract class EditableBeingPane[Tile <: EditableBeingTile]
   extends BeingGrid {
 

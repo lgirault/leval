@@ -4,7 +4,6 @@ import javafx.geometry.Bounds
 
 import leval.core._
 
-import scalafx.application.Platform
 import scalafx.geometry.Point2D
 import scalafx.scene.Node
 import scalafx.scene.input.MouseEvent

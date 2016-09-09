@@ -5,7 +5,7 @@ import com.typesafe.config.ConfigFactory
 import leval.gui.SearchingServerScene
 import leval.network._
 import leval.network.client._
-import leval.core.{GameInit, PlayerId, Sinnlos}
+import leval.core._
 import leval.gui.gameScreen.ObservableGame
 
 import scala.collection.mutable.ListBuffer
@@ -186,7 +186,7 @@ object QuickCreatorClient extends QuickTestClient {
   }
 
   val onTestActorCreate: (NetWorkController) => Unit = {
-    ctrl => ctrl.createGame(Sinnlos)
+    ctrl => ctrl.createGame(Helios)
   }
 }
 

@@ -1,6 +1,6 @@
 package leval.gui.gameScreen.being
 
-import leval.core.{Being, Card, CardOrigin, Club, Diamond, Heart, Spade, Suit}
+import leval.core.{Card, CardOrigin, Club, Diamond, Heart, Spade, Suit}
 import leval.gui.gameScreen._
 import leval.gui.text.ValText
 
@@ -15,38 +15,39 @@ import scalafx.scene.text.{Text, TextAlignment}
 /**
   * Created by Loïc Girault on 05/07/16.
   */
-sealed abstract class Orientation{
-  val leftResource : Suit
-  val rightResource : Suit
-  val topResource : Suit
-  val bottomResource : Suit
+sealed abstract class Orientation {
+  def posConstraints(s : Suit) : Node => Unit
 }
 case object Player extends Orientation {
-  val leftResource : Suit = Heart
-  val rightResource : Suit = Spade
-  val topResource : Suit = Diamond
-  val bottomResource : Suit = Club
+  def posConstraints(s : Suit) : Node => Unit = s match {
+    case Heart => BeingGrid.leftConstraints
+    case Spade => BeingGrid.rightConstraints
+    case Diamond => BeingGrid.topConstraints
+    case Club => BeingGrid.bottomConstraints
+  }
 }
 case object Opponent extends Orientation {
-  val leftResource : Suit = Spade
-  val rightResource : Suit = Heart
-  val topResource : Suit = Club
-  val bottomResource : Suit = Diamond
+  def posConstraints(s : Suit) : Node => Unit = s match {
+    case Heart => BeingGrid.rightConstraints
+    case Spade => BeingGrid.leftConstraints
+    case Diamond => BeingGrid.bottomConstraints
+    case Club => BeingGrid.topConstraints
+  }
 }
 
 
 class BeingResourcePane
 (bp : BeingPane,
  val card : Card,
- val position : Suit, // needed for lovers and Jokers
- sCardDragAndDrop: Option[CardDragAndDrop])
+ val position : Suit)
  extends CardDropTarget {
 
+  var sCardDragAndDrop: Option[CardDragAndDrop] = None
   val backImg : Node = CardImg.back(Some(bp.cardHeight))
   decorated = backImg
 
   def being = bp.being
-
+  import bp.face
   val eyeImg : Node = eyeImage(bp.cardWidth)
   eyeImg.visible = false
   val switchImg : Node = switchImage(bp.cardWidth)
@@ -54,10 +55,11 @@ class BeingResourcePane
 
   val frontImg : Node = CardImg(card, Some(bp.cardHeight))
 
-  val dmgTxt = new Text("0"){
+  val dmgTxt = new Text(""){
     style = "-fx-font-size: 24pt"
     textAlignment = TextAlignment.Center
     alignmentInParent = Pos.BottomCenter
+    visible = false
   }
 
 
@@ -83,22 +85,22 @@ class BeingResourcePane
   }
 
 
-  setCardDragAndDrap()
-
+  import bp.control
   import bp.control.game
 
-  def value = game.value(being, position).get
+  def bonus = game.arcaneBonus(being, position)
 
-  val valueTxt = new Label(value.toString){
+  val bonusTxt = new Label(""){
     style =
       "-fx-font-size: 24pt;" +
       "-fx-background-color: white;"
     textAlignment = TextAlignment.Center
     alignmentInParent = Pos.Center
+    visible = false
   }
 
-  def frontSeq = Seq(frontImg, valueTxt, dmgTxt, highlight)
-  def backSeq = Seq(backImg, switchImg, eyeImg, /*valueTxt,*/ highlight)
+  def frontSeq = Seq(frontImg, bonusTxt, dmgTxt, highlight)
+  def backSeq = Seq(backImg, switchImg, eyeImg, bonusTxt, highlight)
 
   private [this] var reveal0 = false
   def reveal : Boolean = reveal0
@@ -127,72 +129,55 @@ class BeingResourcePane
   }
 
   def onDrop(origin : CardOrigin) : Unit =
-    bp.control.playOnBeing(origin, bp.being, position)
+    control.playOnBeing(origin, bp.being, position)
 
   def update() : Unit = {
 
-    (game.beingsState get being.face, position) match {
-      case (Some((heartDmg, _)), Heart) =>
-        if(heartDmg >= game.value(being, Heart).get)
-          bp remove Heart
-        else
-          dmg = heartDmg
-
-      case (Some((_, powerDmg)), Club) =>
-        if(powerDmg >= game.value(being, Club).get)
-          bp remove Club
-        else
-          dmg = powerDmg
-      case _ => dmg = 0
-
+    unsetCardDragAndDrop()
+    sCardDragAndDrop = bp.orientation match {
+      case Player => Some(new CardDragAndDrop(control,
+        control canDragAndDropOnActPhase face,
+        CardOrigin.Being(being, position), showFront = false))
+      case Opponent => None
     }
-
-    looked = game.lookedCards contains ((being.face, position))
-    reveal = game.revealedCard contains ((being.face, position))
+    setCardDragAndDrap()
+    bonusTxt.text = s"+$bonus"
+    looked = game.lookedCards contains ((face, position))
+    reveal = game.revealedCard contains ((face, position))
   }
 
+
+  update()
 
 
   handleEvent(MouseEvent.MouseEntered) {
     me : MouseEvent =>
-      valueTxt.visible = true
+      bonusTxt.visible = true
   }
 
   handleEvent(MouseEvent.MouseExited) {
     me : MouseEvent =>
-      valueTxt.visible = false
+      bonusTxt.visible = false
 
   }
 }
 
 class BeingPane
 ( val control: GameScreenControl,
-  var being : Being,
+  val face : Card,
   val cardWidth : Double,
   val cardHeight : Double,
   val orientation: Orientation)
 ( implicit txt : ValText) extends BeingGrid {
 
+  def being = control.game.beings(face)
+
   private [this] var resourcePanes0 = Map[Suit, BeingResourcePane]()
   def resourcePanes = resourcePanes0.values
 
-  def resourcePane(s : Suit) : Option[BeingResourcePane] = {
+  def resourcePane(s : Suit) : Option[BeingResourcePane] =
     resourcePanes0 get s
-  }
 
-  def remove(s : Suit) : Unit = {
-    resourcePane(s) foreach (children remove _)
-    resourcePanes0 -= s
-    being = being.copy(resources = being.resources - s)
-  }
-
-  def update() : Unit = {
-    resourcePanes foreach (_.update())
-  }
-
-  def update(s : Suit) : Unit = {
-    resourcePane(s) foreach (_.update())
-  }
 
   import control.pane
 
@@ -203,59 +188,33 @@ class BeingPane
     me : MouseEvent =>
       pane.educateBeingPane.beingPane = BeingPane.this
   }
-  bottomRightCenterConstraints(educateButton)
+  BeingGrid.bottomRightCenterConstraints(educateButton)
 
-  def placeResourcePane( c : Card, pos : Suit, place : Node => Unit) : Node ={
-    val sCardDragAndDrop = orientation match {
-      case Player => Some(new CardDragAndDrop(control,
-        control.canDragAndDropOnActPhase(being.face),
-        CardOrigin.Being(being, pos), showFront = false))
-      case Opponent => None
-    }
-
-    val bpr = new BeingResourcePane(this, c, pos, sCardDragAndDrop)
+  def placeResourcePane( c : Card, pos : Suit) : Unit ={
+    val bpr = new BeingResourcePane(this, c, pos)
     resourcePanes0 += pos -> bpr
-    place(bpr)
-    bpr
+    orientation.posConstraints(pos)(bpr)
+  }
+
+  val faceImage = CardImg(face, Some(cardHeight))
+  BeingGrid.centerConstraints(faceImage)
+
+  def update(s : Suit) : Unit =
+    (being.resources get s, resourcePane(s)) match {
+    case (Some(c), None) => placeResourcePane(c, s)
+    case (None, Some(rp)) =>
+      children remove rp
+      resourcePanes0 -= s
+    case (Some(_), Some(rp)) => rp.update()
+    case (None, None) => ()
   }
 
 
-
-  import orientation._
-  def topCard  = being.resources get topResource
-  def leftCard = being.resources get leftResource
-  def rightCard = being.resources get rightResource
-  def bottomCard  = being.resources get bottomResource
-
-  def update(b : Being) : Unit = {
-    being = b
-
-    leftCard foreach { c =>
-      placeResourcePane(c, leftResource, leftConstraints)
-    }
-
-    rightCard foreach { c =>
-      placeResourcePane(c, rightResource, rightConstraints)
-    }
-
-    topCard foreach { c =>
-      placeResourcePane(c, topResource, topConstraints)
-    }
-
-    bottomCard foreach { c =>
-      placeResourcePane(c, bottomResource, bottomConstraints)
-    }
-
-    val faceImage = CardImg(being.face, Some(cardHeight))
-    centerConstraints(faceImage)
+  def update() : Unit = {
+    Suit.list foreach update
     children = educateButton +: faceImage +: resourcePanes.toSeq
   }
 
-  update(being)
-
-
-
-
-
+  update()
 
 }

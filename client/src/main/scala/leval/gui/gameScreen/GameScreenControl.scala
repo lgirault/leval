@@ -321,7 +321,6 @@ class GameScreenControl
 
           if (playerGameIdx == origin.owner) {
             new CardDialog(res, pane).showAndWait()
-
             pane.handPane.update()
           }
           else
@@ -329,12 +328,12 @@ class GameScreenControl
 
 
         case LookCard(_, fc, s) =>
-          pane.beingPanesMap get fc foreach (_ update s)
+          pane.beingPanesMap get fc foreach (_.update())
           if(res) pane.riverPane.update()
 
         case Reveal(fc, s) =>
           println(s"reveal ($fc, $s)")
-          pane.beingPanesMap get fc foreach (_ update s)
+          pane.beingPanesMap get fc foreach (_.update())
           if(res) pane.riverPane.update()
 
         case Bury(target, _) =>
@@ -358,7 +357,7 @@ class GameScreenControl
               pane.riverPane.update()
             case _ =>()
           }
-          pane.beingPanesMap get target.face foreach (_ update targetSuit)
+          pane.beingPanesMap get target.face foreach (_.update())
           game.beings(target.face) match {
             case Formation(f) => ()
             case b =>
@@ -371,7 +370,6 @@ class GameScreenControl
                     () => MoveSeq.end(origin) foreach (actor ! _)
                   ).apply()
 
-                println(s"toBury = $toBury")
                 if(toBury.size > 1) {
                   actor ! BuryRequest(target, toBury)
                   alertWaitEndOfBurial()
@@ -433,9 +431,7 @@ class GameScreenControl
           pane.statusPane.update()
 
         case e : Educate =>
-          val bp = pane.beingPanesMap(e.target)
-          val b = game.beings(e.target)
-          bp.update(b)
+          pane.beingPanesMap(e.target).update()
           if(isCurrentPlayer)
             pane.handPane.update()
           else

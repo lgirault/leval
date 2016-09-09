@@ -189,11 +189,11 @@ class CreateBeingPane
   def makeResourceTilePane(pos : Suit) =
     new CreateBeingResourceTile(this,  pos)
 
-  centerConstraints(createBeingLabel)
+  BeingGrid.centerConstraints(createBeingLabel)
   children = createBeingLabel
 
   val face = new CreateBeingFaceTile(this)
-  centerConstraints(face)
+  BeingGrid.centerConstraints(face)
 
   def faceCard = face.card
 

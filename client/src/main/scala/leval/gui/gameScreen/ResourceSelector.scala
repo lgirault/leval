@@ -19,7 +19,6 @@ trait ResourceSelector {
 
   def unsuscribeSelector(subscriptions : Iterable[(BeingResourcePane, Subscription)]) =
     {
-      println("unsuscribeSelector")
       subscriptions.foreach  {
         case (brp, subscription) =>
           subscription.cancel()
@@ -30,10 +29,8 @@ trait ResourceSelector {
   def suscribe
   ( brps : Iterable[BeingResourcePane]
   ) : Iterable[(BeingResourcePane, Subscription)] = {
-    println("suscribe")
     brps map {
       brp =>
-        println(brp)
         brp.activateHighlight()
         (brp,
           brp.handleEvent(MouseEvent.MouseClicked) {
@@ -52,16 +49,12 @@ class JokerMindEffectTargetSelector
   val pane =  controller.pane
 
 
-  println("JokerMindEffectTargetSelector")
-
   val (subscriptions, starSubscription) = {
     val opponentSpectres = pane.opponentSpectrePower
     if (opponentSpectres.nonEmpty) {
-     println("opponentSpectres.nonEmpty")
       (suscribe(opponentSpectres), None)
     }
     else {
-      println("star should be available")
       val brps = controller.pane.targetBeingResource(Club, Seq(controller.opponentId))
       pane.opponentStarPanel.activateHighlight()
       val starSub = pane.opponentStarPanel.handleEvent(MouseEvent.MouseClicked) {

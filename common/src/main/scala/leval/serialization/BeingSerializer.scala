@@ -22,7 +22,7 @@ object BeingSerializer {
     if(being.lover)
       numResourcesAndBools = (numResourcesAndBools | 0x01).toByte
     numResourcesAndBools = (numResourcesAndBools << 2).toByte
-    if(being.hasDrawn)
+    if(being.hasAlreadyDrawn)
       numResourcesAndBools = (numResourcesAndBools | 0x01).toByte
 
     bb put numResourcesAndBools

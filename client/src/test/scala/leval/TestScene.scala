@@ -56,7 +56,7 @@ object TestScene extends JFXApp  {
 
     val (p1, p2) = (PlayerId(69, "Betelgeuse"), PlayerId(42, "AlphaCentauri"))
 
-    val usedCards : Set[Card] = wizard.cards.toSet ++ acomplished.cards ++ knight.cards ++  inHandForTest
+    val usedCards : Set[Card] = wizard.cards.toSet ++ loverAcomplished.cards ++ knight.cards ++  inHandForTest
 
     val deck = core.deck54() filterNot usedCards.contains
 
@@ -69,7 +69,7 @@ object TestScene extends JFXApp  {
       Star(p2, rules.startingMajesty, hand2)), d3).
       copy(beings =
         Map(wizard.face -> wizard,
-          acomplished.face -> acomplished,
+          loverAcomplished.face -> loverAcomplished,
           knight.face -> knight))
   }
 

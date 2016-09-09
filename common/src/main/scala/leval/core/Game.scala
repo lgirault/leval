@@ -85,7 +85,8 @@ case class Game
       case DeathRiver => (copy(deathRiver = deathRiver.tail), deathRiver.head)
     }
     val g2 = origin match {
-      case CardOrigin.Being(b, _) => g1 + b.copy(hasDrawn = true)
+      case CardOrigin.Being(b, _) if !b.hasAlreadyDrawn =>
+        g1 + b.copy(hasAlreadyDrawn = true)
       case _ => g1
     }
     (g2.setStar(origin.owner, _ + c), c)
@@ -213,6 +214,7 @@ case class Game
   }
 
   def beingValue(b : Being, s : Suit ) = b.value(s, rules.value)
+  def arcaneBonus(b : Being, s : Suit ) = b.bonus(s, rules.value)
   def beingsOwnBy(idx: StarIdx) = beings.values filter (_.owner == idx)
 
 

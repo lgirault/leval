@@ -32,21 +32,29 @@ object TestSamples {
       Spade -> ((Jack, Spade))
     ),
     lover = true)
+
+  val loverAcomplished = new Being(1,
+    (King, Spade),
+    Map(Club -> ((3, Club)),
+      Heart ->((Queen, Spade)),
+      Diamond -> ((3, Diamond)),
+      Spade -> ((Jack, Spade))
+    ),
+    lover = true)
   val acomplished = new Being(1,
     (King, Spade),
     Map(Club -> ((3, Club)),
       Heart ->((3, Heart)),
       Diamond -> ((3, Diamond)),
       Spade -> ((Jack, Spade))
-    ),
-    lover = true)
+    ))
   val fool = new Being(0,
     (King, Spade),
     Map(Club -> ((1, Club)),
       Heart -> ((6, Heart)),
       Spade -> ((Jack, Spade))
     ),
-    hasDrawn = true)
+    hasAlreadyDrawn = true)
 
   val knight = new Being(0,
     (Jack, Club),
@@ -54,7 +62,7 @@ object TestSamples {
       Heart -> ((4, Heart)),
       Spade -> ((6, Spade))
     ),
-    hasDrawn = true)
+    hasAlreadyDrawn = true)
 
 
 }

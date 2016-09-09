@@ -256,13 +256,13 @@ class TwoPlayerGamePane
     beingPanesMap.values filter (_.being.owner == sideId)
 
   def addOpponentBeingPane(b : Being) : Unit = {
-    val bp = new BeingPane(controller, b, cardWidth, cardHeight, Opponent)
+    val bp = new BeingPane(controller, b.face, cardWidth, cardHeight, Opponent)
     beingPanesMap += (b.face -> bp)
     leval.ignore(opponentBeingsPane.children add bp)
   }
 
   def addPlayerBeingPane(b : Being) : Unit = {
-    val bp = new BeingPane(controller, b, cardWidth, cardHeight, Player)
+    val bp = new BeingPane(controller, b.face, cardWidth, cardHeight, Player)
     beingPanesMap += (b.face -> bp)
     ignore(playerBeingsPane.children add bp)
   }
