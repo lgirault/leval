@@ -15,6 +15,7 @@ trait GameObserver {
 }
 
 class ObservableGame(g : Game) extends MutableGame(g){
+  def source = game.source
   def stars : Seq[Star] = game.stars
   def currentStarId : Int = game.currentStarIdx
   def currentPhase : Phase = game.currentPhase

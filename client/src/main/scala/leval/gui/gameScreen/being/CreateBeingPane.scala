@@ -182,9 +182,7 @@ class CreateBeingPane
   }
 
   def doCardDragAndDrop(c : Card) : CardDragAndDrop =
-    new CardDragAndDrop(controller,
-      controller.canDragAndDropOnInfluencePhase,
-      CardOrigin.Hand(playerGameIdx, c))
+    new HandDragAndDrop(controller, c)
 
   def makeResourceTilePane(pos : Suit) =
     new CreateBeingResourceTile(this,  pos)

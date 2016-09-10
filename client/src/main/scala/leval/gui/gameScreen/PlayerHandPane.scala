@@ -31,9 +31,7 @@ class PlayerHandPane
     imgs.foreach {
       img =>
         img.handleEvent(MouseEvent.Any) {
-          new CardDragAndDrop(controller,
-            controller.canDragAndDropOnInfluencePhase,
-            CardOrigin.Hand(controller.playerGameIdx, img.card))
+          new HandDragAndDrop(controller, img.card)
         }
     }
     imgs

@@ -46,8 +46,16 @@ class BeingResourcePane
   val backImg : Node = CardImg.back(Some(bp.cardHeight))
   decorated = backImg
 
+  import bp.{control,face}
+  import bp.control.game
+
+  sCardDragAndDrop = bp.orientation match {
+    case Player => Some(new BeingDragAndDrop(control, face, position))
+    case Opponent => None
+  }
+
   def being = bp.being
-  import bp.face
+
   val eyeImg : Node = eyeImage(bp.cardWidth)
   eyeImg.visible = false
   val switchImg : Node = switchImage(bp.cardWidth)
@@ -84,9 +92,6 @@ class BeingResourcePane
     subscription = sCardDragAndDrop map (handleEvent(MouseEvent.Any)(_))
   }
 
-
-  import bp.control
-  import bp.control.game
 
   def bonus = game.arcaneBonus(being, position)
 
@@ -133,14 +138,6 @@ class BeingResourcePane
 
   def update() : Unit = {
 
-    unsetCardDragAndDrop()
-    sCardDragAndDrop = bp.orientation match {
-      case Player => Some(new CardDragAndDrop(control,
-        control canDragAndDropOnActPhase face,
-        CardOrigin.Being(being, position), showFront = false))
-      case Opponent => None
-    }
-    setCardDragAndDrap()
     bonusTxt.text = s"+$bonus"
     looked = game.lookedCards contains ((face, position))
     reveal = game.revealedCard contains ((face, position))

@@ -21,12 +21,13 @@ object CardDragAndDrop {
 }
 
 import leval.gui.gameScreen.CardDragAndDrop.NodeOps
-class CardDragAndDrop
-( control: GameScreenControl,
-  canDragAndDrop : () => Boolean,
-  origin : CardOrigin,
-  showFront : Boolean = true
-) extends (MouseEvent => Unit) {
+abstract class CardDragAndDrop extends (MouseEvent => Unit) {
+
+  val control: GameScreenControl
+  def canDragAndDrop() : Boolean
+  val showFront : Boolean
+
+  def origin : CardOrigin
 
   import control.pane
 
@@ -87,4 +88,34 @@ class CardDragAndDrop
 
     case _ => ()
   }
+}
+
+class HandDragAndDrop
+( val control: GameScreenControl,
+  card : Card
+) extends  CardDragAndDrop {
+
+  val origin : CardOrigin =
+    CardOrigin.Hand(control.playerGameIdx, card)
+
+  def canDragAndDrop() : Boolean =
+    control.canDragAndDropOnInfluencePhase()
+
+  val showFront : Boolean = true
+}
+
+class BeingDragAndDrop
+(val control: GameScreenControl,
+ face : Card,
+ suit : Suit
+) extends  CardDragAndDrop {
+
+  def origin : CardOrigin =
+    CardOrigin.Being(control.game.beings(face), suit)
+
+  def canDragAndDrop() : Boolean =
+    control canDragAndDropOnActPhase face
+
+
+  val showFront : Boolean = false
 }

@@ -11,11 +11,12 @@ import leval.gui.gameScreen.being._
 import scala.collection.mutable
 import scalafx.Includes._
 import scalafx.application.Platform
-import scalafx.geometry.Insets
+import scalafx.geometry.{Insets, Pos}
 import scalafx.scene.Node
-import scalafx.scene.control.Button
+import scalafx.scene.control.{Button, Label}
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout._
+import scalafx.scene.text.{Text, TextAlignment}
 
 abstract class CardDropTarget extends HighlightableRegion {
   def onDrop(origin : CardOrigin) : Unit
@@ -99,7 +100,7 @@ class TwoPlayerGamePane
   minHeight = heightInit
 
   import controller.{opponentId, txt}
-  import oGame._
+  import oGame.{game => _, _}
 
   style = "-fx-background-color: white"
 
@@ -177,10 +178,36 @@ class TwoPlayerGamePane
     leftColumnInfo.prefWidth(), playerGameId)
 
   val deck = new CardDropTarget {
-    decorated = CardImg.back(Some(cardHeight))
+
     def onDrop(origin: CardOrigin): Unit =
       controller.drawAndLook(origin)
+
     //style = "-fx-border-width: 1; -fx-border-color: black;"
+
+    val numCardTxt = new Label(""){
+      style =
+        "-fx-font-size: 24pt;" +
+          "-fx-background-color: white;"
+      textAlignment = TextAlignment.Center
+      alignmentInParent = Pos.Center
+      visible = false
+    }
+
+    children = Seq(CardImg.back(Some(cardHeight)), numCardTxt, highlight)
+
+    handleEvent(MouseEvent.MouseEntered) {
+      me : MouseEvent =>
+        println("entered " + oGame.source.size.toString)
+        numCardTxt.text = oGame.source.size.toString
+        numCardTxt.visible = true
+    }
+
+    handleEvent(MouseEvent.MouseExited) {
+      me : MouseEvent =>
+        numCardTxt.visible = false
+
+    }
+
   }
 
   val riverPane = new RiverPane(controller, cardHeight)
