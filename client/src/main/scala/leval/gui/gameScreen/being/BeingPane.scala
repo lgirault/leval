@@ -7,8 +7,9 @@ import leval.gui.text.ValText
 import scalafx.Includes._
 import scalafx.event.subscriptions.Subscription
 import scalafx.geometry.Pos
-import scalafx.scene.Node
+import scalafx.scene.{Group, Node, Scene}
 import scalafx.scene.control.Label
+import scalafx.scene.image.{ImageView, WritableImage}
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.text.{Text, TextAlignment}
 
@@ -100,12 +101,24 @@ class BeingResourcePane
       "-fx-font-size: 24pt;" +
       "-fx-background-color: white;"
     textAlignment = TextAlignment.Center
+  }
+
+  def bonusImage = {
+    val scene = new Scene(new Group(bonusTxt))
+    val img = new WritableImage(50,40)
+    scene.snapshot(img)
+    img
+  }
+  val bonusImageView =
+  new ImageView {
+    preserveRatio = true
     alignmentInParent = Pos.Center
+    fitWidth = bp.cardWidth / 2
     visible = false
   }
 
-  def frontSeq = Seq(frontImg, bonusTxt, dmgTxt, highlight)
-  def backSeq = Seq(backImg, switchImg, eyeImg, bonusTxt, highlight)
+  var frontSeq = Seq(frontImg, bonusImageView, dmgTxt, highlight)
+  var backSeq = Seq(backImg, switchImg, eyeImg, bonusImageView, highlight)
 
   private [this] var reveal0 = false
   def reveal : Boolean = reveal0
@@ -137,8 +150,8 @@ class BeingResourcePane
     control.playOnBeing(origin, bp.being, position)
 
   def update() : Unit = {
-
     bonusTxt.text = s"+$bonus"
+    bonusImageView.image = bonusImage
     looked = game.lookedCards contains ((face, position))
     reveal = game.revealedCard contains ((face, position))
   }
@@ -149,12 +162,12 @@ class BeingResourcePane
 
   handleEvent(MouseEvent.MouseEntered) {
     me : MouseEvent =>
-      bonusTxt.visible = true
+      bonusImageView.visible = true
   }
 
   handleEvent(MouseEvent.MouseExited) {
     me : MouseEvent =>
-      bonusTxt.visible = false
+      bonusImageView.visible = false
 
   }
 }

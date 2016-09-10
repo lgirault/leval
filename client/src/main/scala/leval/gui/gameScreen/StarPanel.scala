@@ -40,7 +40,6 @@ object StarPanel {
       prefHeight = h
       alignment = Pos.Center
       style =
-        "-fx-border-insets: 2;" +
         "-fx-font-size: 40;" +
         "-fx-text-alignment: center;"
     }

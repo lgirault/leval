@@ -12,8 +12,9 @@ import scala.collection.mutable
 import scalafx.Includes._
 import scalafx.application.Platform
 import scalafx.geometry.{Insets, Pos}
-import scalafx.scene.Node
+import scalafx.scene.{Group, Node, Scene}
 import scalafx.scene.control.{Button, Label}
+import scalafx.scene.image.{ImageView, WritableImage}
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout._
 import scalafx.scene.text.TextAlignment
@@ -189,22 +190,34 @@ class TwoPlayerGamePane
         "-fx-font-size: 24pt;" +
           "-fx-background-color: white;"
       textAlignment = TextAlignment.Center
-      alignmentInParent = Pos.Center
-      visible = false
     }
 
-    children = Seq(CardImg.back(Some(cardHeight)), numCardTxt, highlight)
+    def numCardImage = {
+      val scene = new Scene(new Group(numCardTxt))
+      val img = new WritableImage(50,40)
+      scene.snapshot(img)
+      img
+    }
+    val numCardImageView =
+      new ImageView {
+        preserveRatio = true
+        alignmentInParent = Pos.Center
+        fitWidth = cardWidth / 2
+        visible = false
+      }
+
+    children = Seq(CardImg.back(Some(cardHeight)), numCardImageView, highlight)
 
     handleEvent(MouseEvent.MouseEntered) {
       me : MouseEvent =>
-        println("entered " + oGame.source.size.toString)
         numCardTxt.text = oGame.source.size.toString
-        numCardTxt.visible = true
+        numCardImageView.image = numCardImage
+        numCardImageView.visible = true
     }
 
     handleEvent(MouseEvent.MouseExited) {
       me : MouseEvent =>
-        numCardTxt.visible = false
+        numCardImageView.visible = false
 
     }
 
