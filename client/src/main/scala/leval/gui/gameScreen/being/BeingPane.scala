@@ -43,17 +43,10 @@ class BeingResourcePane
  val position : Suit)
  extends CardDropTarget {
 
-  var sCardDragAndDrop: Option[CardDragAndDrop] = None
+
+
+
   val backImg : Node = CardImg.back(Some(bp.cardHeight))
-  decorated = backImg
-
-  import bp.{control,face}
-  import bp.control.game
-
-  sCardDragAndDrop = bp.orientation match {
-    case Player => Some(new BeingDragAndDrop(control, face, position))
-    case Opponent => None
-  }
 
   def being = bp.being
 
@@ -83,6 +76,13 @@ class BeingResourcePane
 
 
 
+  import bp.{control,face}
+  import bp.control.game
+
+  var sCardDragAndDrop: Option[CardDragAndDrop] = bp.orientation match {
+    case Player => Some(new BeingDragAndDrop(control, face, position))
+    case Opponent => None
+  }
   private [this] var subscription  : Option[Subscription] = None
   def unsetCardDragAndDrop() : Unit = {
     subscription foreach (_.cancel())
@@ -93,6 +93,8 @@ class BeingResourcePane
     subscription = sCardDragAndDrop map (handleEvent(MouseEvent.Any)(_))
   }
 
+  
+  setCardDragAndDrap()
 
   def bonus = game.arcaneBonus(being, position)
 
