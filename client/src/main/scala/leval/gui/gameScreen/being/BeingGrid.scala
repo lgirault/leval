@@ -37,9 +37,9 @@ abstract class BeingGrid extends GridPane {
 
   val colCts = new ColumnConstraints(cardWidth / 3)
 
-  for (i <- 1 to 9) {
-    rowConstraints.add(rowCts)
-    columnConstraints.add(colCts)
+  for (_ <- 1 to 9) {
+    rowConstraints add rowCts
+    columnConstraints add colCts
   }
 
 

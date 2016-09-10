@@ -82,15 +82,21 @@ object TestScene extends JFXApp  {
 
   val stageScene =  new Scene(800, 600)
 
+
+  val config = LevalConfig.default
+  import LevalConfig._
   stage = new JFXApp.PrimaryStage {
     title = "Test"
 
-    implicit val txt = Fr
+    implicit val txt = config.lang()
     scene = stageScene
 
   }
 
-  val control = new GameScreenControl(stageScene, game, 0, TestActorRef(ControllerMockup.props(game)))
+  val control =
+    new GameScreenControl(stageScene, game, 0,
+      TestActorRef(ControllerMockup.props(game)),
+      config)
 
 
 

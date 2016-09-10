@@ -2,10 +2,11 @@ package leval.network.client
 
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
 import akka.event.Logging
+import com.typesafe.config.Config
 import leval.core.{BuryRequest, GameInit, Move, PlayerId, Rules}
 import leval.gui.{GameListPane, ViewController, WaitingRoom}
 import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
-import leval.gui.text.{Fr, ValText}
+import leval.gui.text.ValText
 import leval.network._
 import leval.network.client.GameListView.JoinAction
 
@@ -14,6 +15,7 @@ case object StartScreen
 
 trait NetWorkController extends ViewController {
 
+  var config : Config
   val majorVersion : Int
   val minorVersion : Int
 
@@ -24,7 +26,9 @@ trait NetWorkController extends ViewController {
     actor0 = r
   }
 
-  implicit val text : ValText = Fr
+  import leval.LevalConfig._
+
+  implicit def texts : ValText = config.lang()
 
   def startMenuActor(context : ActorContext, serverRef: ActorRef) : Unit = {
     val menuProps =

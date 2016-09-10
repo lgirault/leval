@@ -24,6 +24,8 @@ object ValText {
 }
 trait ValText {
 
+  val id : String
+
   val influence_phase : String
   val act_phase : String
   val source_phase : String
@@ -84,10 +86,25 @@ trait ValText {
   val education : String
   val only_one_switch : String
   val switch_or_rise : String
+
+  val screen_ratio : String
+  val language : String
+
+  val create_game : String
+  val join_game : String
+  val settings : String
+
+  val unsupported : String
+  val rules : String
+
+  val connect : String
+  val empty_login : String
 }
 
 object Fr extends ValText {
 
+  val id : String = "fr"
+  override val toString = "Français"
 
   val influence_phase : String = "Phase d'influence"
   val act_phase : String = "Phase des actes"
@@ -147,10 +164,24 @@ object Fr extends ValText {
   val education : String = "Éducation"
   val only_one_switch : String = "Un seul échange à la fois"
   val switch_or_rise : String = "Échange ou élévation, pas les deux en même temps"
+
+  val screen_ratio : String = "Format d'image"
+  val language : String = "Langue"
+
+  val create_game : String = "Créer une partie"
+  val join_game : String = "Rejoindre une partie"
+  val settings : String = "Options"
+
+  val unsupported : String = "non supporté pour le moment"
+  val rules : String = "Règle"
+  val connect : String = "Connexion"
+  val empty_login : String = "Identifiant vide"
 }
 
 object Eng extends ValText {
 
+  val id : String = "eng"
+  override val toString = "English"
 
   val influence_phase : String = "Influence phase"
   val act_phase : String = "Acts phase"
@@ -213,4 +244,17 @@ object Eng extends ValText {
   val education : String = "Education"
   val only_one_switch : String = "Only one switch at a time"
   val switch_or_rise : String = "Switch or rise not both at the same time"
+
+  val screen_ratio : String = "Screen format"
+
+  val language : String = "Language"
+  val create_game : String = "Create Game"
+  val join_game : String = "Join Game"
+  val settings : String = "Settings"
+
+  val unsupported : String = "unsupported for now"
+  val rules : String = "Rules"
+
+  val connect : String = "Connect"
+  val empty_login : String = "Empty login"
 }

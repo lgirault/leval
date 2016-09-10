@@ -16,7 +16,7 @@ import scalafx.scene.Node
 import scalafx.scene.control.{Button, Label}
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout._
-import scalafx.scene.text.{Text, TextAlignment}
+import scalafx.scene.text.TextAlignment
 
 abstract class CardDropTarget extends HighlightableRegion {
   def onDrop(origin : CardOrigin) : Unit

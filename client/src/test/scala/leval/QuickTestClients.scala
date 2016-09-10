@@ -150,6 +150,9 @@ abstract class QuickTestClient extends JFXApp {
   }
 
   val control = new NetWorkController {
+
+    var config = LevalConfig.default
+
     val majorVersion: Int = conf getInt "leval.client.version.major"
     val minorVersion: Int = conf getInt "leval.client.version.minor"
     def exit() = stopApp()

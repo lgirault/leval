@@ -3,10 +3,11 @@ package leval.gui.gameScreen
 import javafx.beans.value.ObservableValue
 
 import akka.actor.ActorRef
+import com.typesafe.config.Config
 import leval.ignore
 import leval.core.Game.StarIdx
 import leval.core._
-import leval.gui.{SceneSizeChangeListener, text}
+import leval.gui.SceneSizeChangeListener
 import leval.network.client.StartScreen
 
 import scalafx.scene.Scene
@@ -42,17 +43,20 @@ class GameScreenControl
 (val scene : Scene,
  val game : ObservableGame,
  val playerGameIdx : StarIdx,
- val actor : ActorRef)
+ val actor : ActorRef,
+ cfg : Config)
   extends GameObserver
     with SceneSizeChangeListener{
 
 //  val widthRatio: Double = 16d
 //  val heightRatio: Double = 9d
 
-  val widthRatio: Double = 4d
-  val heightRatio: Double = 3d
+  import leval.LevalConfig._
 
-  implicit val txt = text.Fr
+  val (widthRatio, heightRatio) = cfg.screenRatio()
+
+  implicit val txt = cfg.lang()
+
   val opponentId = (playerGameIdx + 1) % 2
 
   def isCurrentPlayer =

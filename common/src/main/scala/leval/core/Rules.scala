@@ -8,6 +8,8 @@ import Game.{SeqOps, StarIdx}
 
 trait Rules {
 
+  val id : String
+
   def value(c : Card) : Int // Variante de sinnlos. As = 11
 
   def startingMajesty : Int
@@ -301,6 +303,7 @@ object Sinnlos
     with SinnlosAntaresCommon
     with Serializable {
 
+  val id = "sinnlos"
   override val toString = "Sinnlos"
   def legalLoverFormationAtCreation(c : Formation) : Boolean =
     c == Accomplished
@@ -348,13 +351,14 @@ object Antares
   extends AntaresHeliosCommon
     with SinnlosAntaresCommon
     with Serializable{
+  val id = "antares"
   override val toString = "Antarès"
 }
 
 object Helios
   extends AntaresHeliosCommon
     with Serializable {
-
+  val id = "helios"
   override val toString = "Hélios"
 
   def value(c: Card): Int = Card.value(c)

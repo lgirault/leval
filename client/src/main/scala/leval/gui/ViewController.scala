@@ -36,7 +36,7 @@ trait ViewController  {
 
   def gameScreen(game : ObservableGame) : GameScreenControl ={
     val pidx = game.stars.indexWhere(_.id == thisPlayer)
-    new GameScreenControl(scene, game, pidx, actor)
+    new GameScreenControl(scene, game, pidx, actor, config)
   }
 
   def gameListScreen() : GameListPane  = {

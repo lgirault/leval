@@ -4,12 +4,14 @@ import java.io.{BufferedReader, InputStreamReader}
 import java.net._
 
 import com.typesafe.config.Config
-import akka.actor. ActorSystem
+import akka.actor.ActorSystem
 import com.typesafe.config.ConfigFactory
 import leval.gui.SearchingServerScene
 import leval.network.Settings
 import leval.network.client.{IdentifyingActor, NetWorkController}
 import java.util
+
+import akka.event.Logging
 
 import scalafx.application.JFXApp
 import scalafx.application.JFXApp.PrimaryStage
@@ -138,18 +140,22 @@ object GUIClient extends JFXApp {
   val server = conf getString "leval.server.hostname"
   val serverPort = conf getString "leval.server.port"
 
-  println(s"hostname = ${conf getString "akka.remote.netty.tcp.hostname"}")
-  println(s"port = ${conf getString "akka.remote.netty.tcp.port"}")
-  println(s"bind-hostname = ${conf getString "akka.remote.netty.tcp.bind-hostname"}")
-  println(s"bind-port = ${conf getString "akka.remote.netty.tcp.bind-port"}")
-
-  println(s"server = $server")
-  println(s"serverPort = $serverPort")
-
   val system = ActorSystem(systemName, conf)
 
+  val log = Logging.getLogger(system, this)
+
+  log info s"hostname = ${conf getString "akka.remote.netty.tcp.hostname"}"
+  log info s"port = ${conf getString "akka.remote.netty.tcp.port"}"
+  log info s"bind-hostname = ${conf getString "akka.remote.netty.tcp.bind-hostname"}"
+  log info s"bind-port = ${conf getString "akka.remote.netty.tcp.bind-port"}"
+
+  log info s"server = $server"
+  log info s"serverPort = $serverPort"
+
+
+
   val serverPath = Settings.remotePath(server, serverPort)
-  println(s"connecting to $serverPath")
+  log info s"trying to connect to $serverPath"
 
   override def stopApp() : Unit = {
     control.disconnect()
@@ -160,8 +166,19 @@ object GUIClient extends JFXApp {
   }
 
   val control = new NetWorkController {
-    val majorVersion: Int = conf getInt "leval.client.version.major"
-    val minorVersion: Int = conf getInt "leval.client.version.minor"
+
+    var config0 = LevalConfig.load()
+    def config = config0
+    def config_=(cfg : Config) = {
+      config0 = cfg
+      LevalConfig.save(cfg)
+    }
+
+
+    import LevalConfig.Keys
+
+    val majorVersion: Int = conf getInt Keys.majorVersion
+    val minorVersion: Int = conf getInt Keys.minorVersion
     def exit() = stopApp()
 
     val scene = stageScene
