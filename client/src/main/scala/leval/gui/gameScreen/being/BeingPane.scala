@@ -217,7 +217,9 @@ class BeingPane
     case (None, Some(rp)) =>
       children remove rp
       resourcePanes0 -= s
-    case (Some(_), Some(rp)) => rp.update()
+    case (Some(c), Some(rp)) =>
+      if (c == rp.card) rp.update()
+      else placeResourcePane(c, s) //after a switch from education
     case (None, None) => ()
   }
 

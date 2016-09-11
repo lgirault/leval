@@ -44,7 +44,6 @@ class WaitingRoom
   }
 
   def addPlayer(pid : PlayerId) : Unit = {
-     println(s"addPlayer($pid)")
      val PlayerId(_, name) = pid
       players += pid
       updateCurrentNumPlayer(players.size)

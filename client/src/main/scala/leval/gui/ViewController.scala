@@ -28,7 +28,6 @@ trait ViewController  {
 
   def waitingOtherPlayerScreen
   ( maker : PlayerId, rules : Rules ) : WaitingRoom = {
-    println("Displaying waiting room ...")
     val wr =  new WaitingRoom(this, maker.name, rules)
     scene.root = wr
     wr

@@ -45,12 +45,9 @@ class IdentifyingActor private
 
   def active(server: ActorRef): Actor.Receive = {
     case Disconnect(_) =>
-      print("Unwatching server ... ")
       context.unwatch(server)
-      println("unwatching done")
 
     case Terminated(`server`) =>
-      println("Server terminated")
       sendIdentifyRequest()
       context.become(identifying)
 

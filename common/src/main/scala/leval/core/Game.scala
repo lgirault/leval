@@ -57,7 +57,7 @@ case class Game
 
   //def currentStar : Star = stars(currentPlayer)
   def setStar(numStar : Int, f : Star => Star) : Game =
-    copy(stars = stars.set(numStar, f))
+  copy(stars = stars.set(numStar, f))
 
   def +(b : Being) = copy(beings = beings + (b.face -> b))
 
@@ -139,12 +139,19 @@ case class Game
       case CardOrigin.Being(_, _) => g1
     }
 
+    val toDraw =
+      if(removed1 && targetedSuit == Club)
+        rules.wizardOrEminenceGrise(origin)
+      else 0
 
-    if(removed1) target - targetedSuit match {
-      case Formation(_) => (g2, Set(), 0)
-      case b => rules.onDeath(g2, origin, target, targetedSuit)
-    }
-    else (g2, Set(), 0)
+    val (g3, toBury) =
+      if(removed1) target - targetedSuit match {
+        case Formation(_) => (g2, Set[Card]())
+        case b => rules.onDeath(g2, origin, target, targetedSuit)
+      }
+      else (g2, Set[Card]())
+    println(toDraw)
+    (g3, toBury, toDraw)
   }
 
 
@@ -169,7 +176,7 @@ case class Game
     val (newStar, newBeing) = aux(b, star)
 
     copy(beings = beings + (newBeing.face -> newBeing),
-        stars = stars.set(b.owner, newStar))
+      stars = stars.set(b.owner, newStar))
   }
 
   def revealAndLookLoverCheck(targetfc : Card,

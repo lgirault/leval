@@ -30,12 +30,21 @@ trait Rules {
   def wizardCollect : Int
   def foolFirstCollect : Int
 
+
+  def wizardOrEminenceGrise(origin : CardOrigin) : Int =
+    (origin, origin.card) match {
+      case (CardOrigin.Being(Formation(Wizard), _), Card(Jack, Diamond)) => wizardCollect + 1
+      case (CardOrigin.Being(Formation(Wizard), _), _) => wizardCollect
+      case (CardOrigin.Being(_, _), Card(Jack, Diamond)) => 1
+      case _ => 0
+    }
+
   def drawAndLookValues(origin : Origin) : (Int, Int) =
     origin match {
       case CardOrigin.Hand(_, Card(King, _)) => (1, 3)
       case CardOrigin.Hand(_, Card(Queen, _)) => (1, 2)
       case CardOrigin.Hand(_, _) => (1, 1)
-      case co @ CardOrigin.Being(b, _) =>
+      case co @ CardOrigin.Being(b, Club) =>
         (b, co.card) match {
           case (Formation(Fool), Card(Jack, _)) =>
             if(b.firstDraw) (foolFirstCollect + 1, 3)
@@ -43,11 +52,11 @@ trait Rules {
           case (Formation(Fool), _) =>
             if(b.firstDraw) (foolFirstCollect, 1)
             else (2, 1)
-          case (Formation(Wizard), _)
-            if co.suit == Diamond => (wizardCollect, 0) // draw on kill
           case (_, Card(Jack, _)) => (2, 2)
           case _ => (1, 1)
         }
+      case co @ CardOrigin.Being(b, Diamond) =>
+      (wizardOrEminenceGrise(co), 0)
       case Origin.Star(_) => (1, 0)
     }
 
@@ -118,13 +127,12 @@ trait Rules {
    killer : CardOrigin,
    killed : Being,
    targetedSuit : Suit
-  ) : (Game, Set[Card], Int) = {
+  ) : (Game, Set[Card]) = {
     val g2 = childAndDauphinEffect(g, killer, killed)
     val g3 = spectreEffectOnDeath(g2, killed)
     val (g4, toBurry) = butcherEffect(g3, killer, killed)
     val removedCard = killed.resources(targetedSuit)
-    (g4, toBurry.filter(Game.goesToRiver) - removedCard,
-      wizardOrEminenceGrise(killer))
+    (g4, toBurry.filter(Game.goesToRiver) - removedCard)
   }
 
 
@@ -146,13 +154,7 @@ trait Rules {
     else (g, killed.cards.toSet)
 
 
-  def wizardOrEminenceGrise(killer : CardOrigin) : Int =
-    (killer, killer.card) match {
-      case (CardOrigin.Being(Formation(Wizard), _), Card(Jack, _)) => 2
-      case (CardOrigin.Being(Formation(Wizard), _), _)
-           | (CardOrigin.Being(_, Diamond), Card(Jack, _)) => 1
-      case _ => 0
-    }
+
 
   def spectreEffectOnDeath( g : Game, killed : Being ) : Game = {
     killed match {
@@ -271,7 +273,8 @@ trait Rules {
   }
 
   def isValidBeing(b: Being): Boolean = b match {
-    case Formation(Shadow) if shadowAllowed => validResources(b)
+    case Formation(Shadow) =>
+      shadowAllowed && validResources(b)
     case Formation(f) => validResources(b)
     case _ => false
   }

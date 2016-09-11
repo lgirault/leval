@@ -170,10 +170,12 @@ class GameScreenControl
   }
 
   def drawAndLook(origin: CardOrigin) : Unit = {
+
     def doDrawAndLook() = ignore(
       new DrawAndLookAction(this, origin,
         () => MoveSeq.end(origin) foreach (actor ! _)
       ).apply())
+
     origin match {
       case CardOrigin.Being(b, s) =>
         actor !  Reveal(b.face, s)
@@ -187,7 +189,6 @@ class GameScreenControl
 
 
   def jokerEffectFromHand(joker : J) : Seq[Move[_]] ={
-    println("joker from hand")
     joker.color match {
       case Joker.Red =>
         actor ! MajestyEffect(1, playerGameIdx) // heart effect
@@ -273,11 +274,8 @@ class GameScreenControl
   def checkEveryBeingHasActedAndEndPhase() =
     game.currentPhase match {
       case ActPhase(activatedBeings) =>
-        println("checking it !")
         if (activatedBeings.size == game.beingsOwnBy(currentStarId).size &&
           isCurrentPlayer) {
-          println("EveryBeingHasActedAndEndPhase !")
-
           new Alert(AlertType.Information) {
             delegate.initOwner(pane.scene().getWindow)
             title = txt.end_of_act_phase
@@ -296,7 +294,7 @@ class GameScreenControl
   }
 
   def notify[A](m: Move[A], res: A): Unit = {
-    println(game.stars(playerGameIdx).name +"'s controller notified of " + m)
+    //println(game.stars(playerGameIdx).name +"'s controller notified of " + m)
 
     if(game.ended) endGame()
     else
@@ -313,7 +311,6 @@ class GameScreenControl
           }
 
         case RemoveFromHand(_) =>
-          println(game.deathRiver)
           pane.riverPane.update()
           pane.handPane.update()
           pane.opponentHandPane.update()
@@ -336,7 +333,6 @@ class GameScreenControl
           if(res) pane.riverPane.update()
 
         case Reveal(fc, s) =>
-          println(s"reveal ($fc, $s)")
           pane.beingPanesMap get fc foreach (_.update())
           if(res) pane.riverPane.update()
 
@@ -362,29 +358,33 @@ class GameScreenControl
             case _ =>()
           }
           pane.beingPanesMap get target.face foreach (_.update())
-          game.beings(target.face) match {
-            case Formation(f) => ()
-            case b =>
-              pane.riverPane.update()
-              val (toBury, toDraw) = res
-              if(b.owner != playerGameIdx) {
+          val (toBury, toDraw) = res
+          val b = game.beings(target.face)
 
-                if(toDraw > 0)
-                  new DrawAndLookAction(this, origin,
-                    () => MoveSeq.end(origin) foreach (actor ! _)
-                  ).apply()
+          def checkAndDoDraw() =
+            if(b.owner != playerGameIdx && toDraw > 0)
+              new DrawAndLookAction(this, origin, () => ()).apply()
 
-                if(toBury.size > 1) {
-                  actor ! BuryRequest(target, toBury)
-                  alertWaitEndOfBurial()
-                }
-                else {
-                  actor ! Bury(target.face, toBury.toList)
-                }
+          def checkAndDoBury() = {
+            if(b.owner != playerGameIdx) {
+              if(toBury.size > 1) {
+                actor ! BuryRequest(target, toBury)
+                alertWaitEndOfBurial()
               }
-              if(toBury.size > 1)
-                burialOnGoing = true
+              else {
+                actor ! Bury(target.face, toBury.toList)
+              }
+            }
 
+            burialOnGoing = true
+          }
+
+          b match {
+            case Formation(f) => checkAndDoDraw()
+            case _ =>
+              pane.riverPane.update()
+              checkAndDoDraw()
+              checkAndDoBury()
               updateStarPanels()
           }
           origin match {

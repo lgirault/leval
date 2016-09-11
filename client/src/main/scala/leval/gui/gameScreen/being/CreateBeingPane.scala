@@ -245,9 +245,9 @@ class CreateBeingPane
     }
   }
 
-  def legalFormation : Boolean = {
+  def legalFormation : Boolean =
     being exists (rules.isValidBeingAtCreation(controller.game.game, _,
       controller.playerGameIdx))
-  }
+
 
 }
