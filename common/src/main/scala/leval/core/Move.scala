@@ -48,7 +48,7 @@ case class Collect(origin: Origin, target: CollectTarget) extends Move[Card]
 case class Reveal(target : Card, resource : Suit) extends Move[Boolean]
 case class LookCard(origin: CardOrigin, target : Card, resource : Suit) extends Move[Boolean]
 
-case class PlaceBeing(being: Being, side : StarIdx) extends Move[Unit]
+case class PlaceBeing(being: Being, side : StarIdx) extends Move[Option[Card]]
 case class Bury(target : Card, order : List[Card]) extends Move[Unit]
 case class BuryRequest(target : Being, toBury : Set[Card]) extends Serializable
 

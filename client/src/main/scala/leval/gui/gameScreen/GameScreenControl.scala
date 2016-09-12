@@ -310,6 +310,17 @@ class GameScreenControl
             pane.opponentHandPane.update()
           }
 
+          res match {
+            case None => ()
+            case Some(darkLady) =>
+              burialOnGoing = true
+              updateStarPanels()
+              val b = beings(darkLady)
+              if(b.owner == playerGameIdx)
+                burry(BuryRequest(b, b.cards.toSet))
+              else
+                alertWaitEndOfBurial()
+          }
         case RemoveFromHand(_) =>
           pane.riverPane.update()
           pane.handPane.update()
@@ -462,7 +473,6 @@ class GameScreenControl
         delegate.initOwner(pane.scene().getWindow)
         title = txt.burying
         headerText = txt.wait_end_burial
-        //contentText = "Every being has acted"
       }.showAndWait()
     }
 

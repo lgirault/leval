@@ -93,9 +93,23 @@ case class Game
   }
 
 
-  def placeBeing(being : Being, side : StarIdx) : Game =
-    setStar(side, _ -- being.cards)
+  def placeBeing(being : Being, side : StarIdx) : (Game, Option[Card]) = {
+    val g1 = setStar(side, _ -- being.cards)
       .copy(beings = beings + (being.face -> being))
+    being.face match {
+      case Card(King, s)  =>
+        beings.find {
+          case (Card(Queen, `s`), Spectre(BlackLady)) => true
+          case _ => false
+        } map {
+          case (c, b) => (g1.directEffect(15, b.owner), Some(c))
+        } getOrElse ((g1, None))
+      case _ => (g1, None)
+    }
+
+
+  }
+
 
   def burry(target : Card, cards : List[Card])  : Game =
     copy(beings = beings - target,
@@ -256,7 +270,9 @@ class MutableGame(var game : Game) /*extends (Move ~> Id)*/ {
       game = g
       cardRemoved
 
-    case PlaceBeing(being, side) => game = game.placeBeing(being, side)
+    case PlaceBeing(being, side) =>
+      val (g, darkLadyRemoved) = game.placeBeing(being, side)
+      darkLadyRemoved
     case Bury(target, cards) => game = game.burry(target, cards)
     case e : Educate => game = game.educate(e)
     case p : Phase => game = game.beginPhase(p)
