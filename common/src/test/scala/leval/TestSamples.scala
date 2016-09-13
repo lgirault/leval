@@ -31,7 +31,7 @@ object TestSamples {
       Diamond -> ((3, Diamond)),
       Spade -> ((Jack, Spade))
     ),
-    lover = true)
+    lovedOne = Some((King, Spade)))
 
   val loverAcomplished = new Being(1,
     (King, Spade),
@@ -40,7 +40,7 @@ object TestSamples {
       Diamond -> ((3, Diamond)),
       Spade -> ((Jack, Spade))
     ),
-    lover = true)
+    lovedOne = Some((Queen, Spade)))
   val acomplished = new Being(1,
     (King, Spade),
     Map(Club -> ((3, Club)),

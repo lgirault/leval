@@ -73,7 +73,7 @@ trait Rules {
    attacked : Being
   ) : Game = //attack self -5 points
   if(attacker.owner == attacked.owner){
-    val malus = if(attacked.lover) 10
+    val malus = if(attacked.inLove) 10
     else 5
     g.copy(stars = g.stars.set(attacked.owner, _ - malus))
   }
@@ -225,7 +225,7 @@ trait Rules {
   def isValidBeingAtCreation(g : Game, b : Being, side : StarIdx) : Boolean =
     b match {
       case Formation(f) =>
-        isValidBeing(b) && (!b.lover ||
+        isValidBeing(b) && (!b.inLove ||
           legalLoverFormationAtCreation(f)) && {
 
           val playerBeings = g beingsOwnBy side
@@ -268,7 +268,7 @@ trait Rules {
                     c : Card, pos : Suit) : Boolean
 
   def validResources(b : Being) : Boolean =  b.resources forall {
-    case (Heart, c : C ) if b.lover => checkLegalLover(b.face, c)
+    case (Heart, c : C ) if b.inLove => checkLegalLover(b.face, c)
     case (pos, c) => validResource(b.face, b.resources, c, pos)
   }
 

@@ -97,9 +97,12 @@ case class Game
     val g1 = setStar(side, _ -- being.cards)
       .copy(beings = beings + (being.face -> being))
     being.face match {
-      case Card(King, s)  =>
+      case Card(King, _) | Card(Jack, Heart)  =>
         beings.find {
-          case (Card(Queen, `s`), Spectre(BlackLady)) => true
+          case (Card(Queen, _), b @ Spectre(BlackLady)) =>
+            b.lovedOne contains being.face
+          //TODO check if 4 players game requires lover to be same card
+          //or just same card value
           case _ => false
         } map {
           case (c, b) => (g1.directEffect(15, b.owner), Some(c))
@@ -182,7 +185,6 @@ case class Game
           val (newB, oldC) = b.educateWith(c)
           (s.copy(hand = s.hand - c + oldC), newB)
         case Rise(target, cards) =>
-
           (s.copy(hand = s.hand -- cards.values), b.educateWith(e))
       }
 

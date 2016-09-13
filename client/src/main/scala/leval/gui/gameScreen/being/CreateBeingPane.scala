@@ -197,12 +197,13 @@ class CreateBeingPane
 
   def being : Option[Being] = {
     face.card map {
-      case fc : Card => new Being(playerGameIdx,
-        fc, resources, heart.card exists {
-          case Card(King | Queen, _) => true
-          case _ => false
+      case fc : Card =>
+        val lovedOne = (heart.card, fc) match {
+          case (sc @ Some(Card(King | Queen, _)), _) => sc
+          case (sc @ Some(Card(Jack, Heart)), Card(_, Heart)) => sc
+          case _ => None
         }
-      )
+        new Being(playerGameIdx, fc, resources, lovedOne)
       case _ => leval.error()
     }
   }

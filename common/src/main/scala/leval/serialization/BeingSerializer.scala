@@ -11,7 +11,9 @@ object BeingSerializer {
 
   def binarySize(b : Being) : Int =
     int + CardSerializer.cardSize +
-      b.resources.size * (1 + CardSerializer.cardSize) + 1
+      b.resources.size * (1 + CardSerializer.cardSize) + 1 +
+      (if(b.inLove) CardSerializer.cardSize
+      else 0)
 
   def put(bb : ByteBuffer, being : Being) : Unit = {
     bb putInt being.owner
@@ -19,7 +21,7 @@ object BeingSerializer {
 
     var numResourcesAndBools : Byte = being.resources.size.toByte
     numResourcesAndBools = (numResourcesAndBools << 2).toByte
-    if(being.lover)
+    if(being.inLove)
       numResourcesAndBools = (numResourcesAndBools | 0x01).toByte
     numResourcesAndBools = (numResourcesAndBools << 2).toByte
     if(being.hasAlreadyDrawn)
@@ -32,6 +34,8 @@ object BeingSerializer {
         bb put (CardSerializer toByte s)
         CardSerializer.put(bb, c)
     }
+    if(being.inLove)
+      CardSerializer.put(bb, being.lovedOne.get)
   }
   def toBinary(being : Being) : Array[Byte] = {
     val bb = ByteBuffer allocate  binarySize(being)
@@ -48,7 +52,7 @@ object BeingSerializer {
     var numResourcesAndBools = bb.get()
     val hasDrawn = (numResourcesAndBools & 0x01) == 0x01
     numResourcesAndBools = (numResourcesAndBools >> 2).toByte
-    val isLover = (numResourcesAndBools & 0x01) == 0x01
+    val isInLove = (numResourcesAndBools & 0x01) == 0x01
     numResourcesAndBools = (numResourcesAndBools >> 2).toByte
     val numRessources = numResourcesAndBools.toInt
 
@@ -58,7 +62,9 @@ object BeingSerializer {
         val c = CardSerializer fromBinary bb
         m + ( s -> c)
     }
-
-    Being(starIdx, face, resources, isLover, hasDrawn)
+    val lovedOne =
+      if(isInLove) Some( CardSerializer fromBinary bb )
+      else None
+    Being(starIdx, face, resources, lovedOne, hasDrawn)
   }
 }

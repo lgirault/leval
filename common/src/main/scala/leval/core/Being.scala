@@ -34,9 +34,11 @@ case class Being
 (owner : StarIdx,
  face : Card,
  resources : Map[Suit, Card],
- lover : Boolean = false,
+ lovedOne : Option[Card] = None,
  hasAlreadyDrawn : Boolean = false //for Helios rule
  ){
+
+  def inLove : Boolean = lovedOne.nonEmpty
 
 
   def -( s :Suit) = copy(resources = resources - s)
@@ -56,8 +58,8 @@ case class Being
   //a being cannot be educated to become messianic or possessed so no ambiguity here
   def educateWith(card : C) : (Being, Card) = card match {
     case Card(King | Queen, _)
-    | Card(Jack, Heart) => (copy(resources = resources + (Heart -> card), lover = true), resources(Heart))
-    case Card(_ , Heart) => (copy(resources = resources + (Heart -> card), lover = false), resources(Heart))
+    | Card(Jack, Heart) => (copy(resources = resources + (Heart -> card), lovedOne = Some(card)), resources(Heart))
+    case Card(_ , Heart) => (copy(resources = resources + (Heart -> card), lovedOne = None), resources(Heart))
     case Card(_, suit) => (copy(resources = resources + (suit -> card)), resources(suit))
   }
 
@@ -67,7 +69,7 @@ case class Being
     case Rise(`face`, cards) =>
       val b1 = copy(resources = cards.foldLeft(resources)(_ + _), hasAlreadyDrawn = false)
       b1.resources get Heart match {
-        case Some(Card(King | Queen | Jack, _)) if ! b1.lover => b1.copy(lover = true)
+        case sc @ Some(Card(King | Queen | Jack, _)) if ! b1.inLove => b1.copy(lovedOne = sc)
         case _ => b1
       }
     case _ => this
@@ -128,7 +130,7 @@ case object Child extends Formation
 case object Wizard extends Formation
 case object Shadow extends Formation
 case object Spectre extends Formation {
-  def unapply(b: Being): Option[Spectre] = (b, b.lover, b.face) match {
+  def unapply(b: Being): Option[Spectre] = (b, b.inLove, b.face) match {
     case (Formation(Spectre), false, _) => Some(Regular)
     case (Formation(Spectre), true, Card(King, _)) => Some(Royal)
     case (Formation(Spectre), true, Card(Queen, _)) => Some(BlackLady)
