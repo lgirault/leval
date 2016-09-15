@@ -3,9 +3,9 @@ package leval.network.client
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
 import akka.event.Logging
 import com.typesafe.config.Config
-import leval.core.{BuryRequest, GameInit, Move, PlayerId, Rules}
+import leval.core.{BuryRequest, GameInit, InfluencePhase, Move, OsteinSelection, PlayerId, Rules, Twilight}
 import leval.gui.{GameListPane, ViewController, WaitingRoom}
-import leval.gui.gameScreen.{GameScreenControl, ObservableGame}
+import leval.gui.gameScreen.{GameScreenControl, ObservableGame, OsteinHandler}
 import leval.gui.text.ValText
 import leval.network._
 import leval.network.client.GameListView.JoinAction
@@ -56,6 +56,7 @@ trait NetWorkController extends ViewController {
 }
 
 
+
 trait InGame {
   this : Actor =>
   def control: NetWorkController
@@ -87,7 +88,26 @@ trait InGame {
   }
 }
 
-trait WaitinPlayers extends InGame {
+trait Drafting extends InGame {
+  this: Actor =>
+  def control: NetWorkController
+  def drafting(scheduler : ActorRef,
+               observableGame: ObservableGame,
+               handler : OsteinHandler) : Actor.Receive = {
+    case os @ OsteinSelection(c) =>
+      if(context.sender() == context.system.deadLetters)
+        scheduler ! os
+      else
+        handler opponentPick c
+
+    case t @ Twilight(_) =>
+      context.unbecome()
+      handler.control.showTwilight(t)
+      context.become(ingame(scheduler, observableGame, handler.control))
+  }
+}
+
+trait WaitinPlayers extends Drafting {
   this : Actor =>
 
   def waitingPlayers(gameMaker : ActorRef,
@@ -110,13 +130,29 @@ trait WaitinPlayers extends InGame {
         println("sending gameStart !")
         gameMaker ! GameStart
 
-      case gi : GameInit =>
+      case gi : GameInit   =>
         println("gameInit received")
-        val og = new ObservableGame(gi.game)
-        val gameControl = control.gameScreen(og)
-        gameControl.showTwilight(gi.twilight)
+        val g =
+          if(gi.rules.ostein)
+            gi.game.copy(currentPhase = InfluencePhase(-1))
+          else gi.game
 
-        context.become(ingame(gameMaker, og, gameControl))
+        val og = new ObservableGame(g)
+        val gameControl = control.gameScreen(og)
+
+        if(gi.rules.ostein) {
+          val oh = new OsteinHandler(gameControl)
+          oh.start()
+          println("oh oh oh !")
+          context.become(drafting(gameMaker, og, oh))
+        }
+        else {
+          gameControl.showTwilight(gi.twilight)
+          context.become(ingame(gameMaker, og, gameControl))
+        }
+
+
+
 
       case Disconnect(netId)  =>
         if(netId == owner) {

@@ -99,6 +99,12 @@ trait ValText {
 
   val connect : String
   val empty_login : String
+
+  val draft : String
+  val chose_card : String
+
+  val allow_mulligan : String
+  val draft_ongoing : String
 }
 
 object Fr extends ValText {
@@ -176,6 +182,13 @@ object Fr extends ValText {
   val rules : String = "Règle"
   val connect : String = "Connexion"
   val empty_login : String = "Identifiant vide"
+
+  val draft = "Draft"
+  val chose_card: String = "Choisissez une carte"
+
+  val allow_mulligan : String = "Autoriser le mulligan"
+
+  val draft_ongoing : String = "Draft en cours"
 }
 
 object Eng extends ValText {
@@ -257,4 +270,10 @@ object Eng extends ValText {
 
   val connect : String = "Connect"
   val empty_login : String = "Empty login"
+
+  val draft = "Draft"
+  val chose_card: String = "Chose a card"
+
+  val allow_mulligan : String = "Allow mulligan"
+  val draft_ongoing : String = "Draft ongoing"
 }

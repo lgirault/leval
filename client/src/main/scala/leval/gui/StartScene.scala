@@ -1,7 +1,7 @@
 package leval.gui
 
 import leval.LevalConfig
-import leval.core.{Antares, Helios, Rules, Sinnlos}
+import leval.core.{Antares, CoreRules, Helios, Rules, Sinnlos}
 import leval.network.client.NetWorkController
 
 import scalafx.scene.control._
@@ -15,20 +15,34 @@ class StartScene
   import network.config
   import LevalConfig._
   val texts = config.lang()
-  val rulesCBox = new ComboBox[Rules](Seq(Sinnlos, Antares, Helios)){
+  val rulesCBox = new ComboBox[CoreRules](Seq(Sinnlos, Antares, Helios)){
     value = config.rules()
   }
-  def rules = rulesCBox.value.value
-  val osteinn = new CheckBox(s"O'Stein (${texts.unsupported})")
+  val ostein = new CheckBox("O'Stein")
+  val osteinMulligan = new CheckBox(texts.allow_mulligan)
 
-  val nedemone = new CheckBox(s"Nédémone (${texts.unsupported})")
+  val nedemone = new CheckBox(s"Nédémone (${texts.unsupported})"){
+    selected = false
+    disable = true
+  }
 
-  val janus = new CheckBox(s"Janus (${texts.unsupported})")
+  val janus = new CheckBox(s"Janus (${texts.unsupported})"){
+    selected = false
+    disable = true
+  }
+
+  def coreRules = rulesCBox.value.value
+  def rules =
+    Rules(coreRules,
+      ostein.selected(),
+      osteinMulligan.selected(),
+      nedemone.selected(),
+      janus.selected())
 
   val createGameButton = new Button(texts.create_game){
     handleEvent(MouseEvent.MouseClicked) {
       () =>
-        network.config = config.withAnyRefValue(Keys.defaultRules, rules.id)
+        network.config = config.withAnyRefValue(Keys.defaultRules, coreRules.id)
         network createGame rules
     }
   }
@@ -53,6 +67,6 @@ class StartScene
   }
   //padding = Insets(25)
   center = new VBox(new HBox(new Label(texts.rules + " :"), rulesCBox),
-    osteinn, nedemone, janus,
+    ostein, nedemone, janus,
     createGameButton, listGameButton, settingsButton)
 }

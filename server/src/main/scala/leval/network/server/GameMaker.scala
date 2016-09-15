@@ -10,12 +10,19 @@ import akka.actor._
 import akka.event.Logging
 
 object GameMaker {
+  type NetPlayerId = (ActorRef, PlayerId)
+
+  implicit class NetPlayerIdOps( val nid : NetPlayerId) extends AnyVal {
+    def actor = nid._1
+    def id = nid._2
+  }
+
   def props(ownerRef : ActorRef,
             description : GameDescription) =
     Props(new GameMaker(ownerRef, description))
 }
 
-
+import GameMaker._
 
 class GameMaker
 ( ownerRef : ActorRef,
@@ -23,8 +30,6 @@ class GameMaker
   extends Actor {
 
   val log = Logging.getLogger(context.system, this)
-
-
 
 
   def scheduling(orderedPlayers : Array[NetPlayerId]) : Receive = {
@@ -37,7 +42,7 @@ class GameMaker
 
     {
       case m: Move[_] =>
-       log debug m.toString
+        log debug m.toString
         orderedPlayers map (_.actor) foreach {
           a => if (a != sender())
             a ! m
@@ -120,7 +125,11 @@ class GameMaker
 
       case GameStart =>
         println("GameStart received, sending GameInit !")
-        val gi = GameInit.gameWithoutMulligan(players map (_.id), description.rules)
+        val gi =
+          if(description.rules.ostein)
+            GameInit.gameWithoutMulligan(players map (_.id), description.rules)
+          else
+            GameInit(players map (_.id), description.rules)
 
         players.foreach {
           _.actor ! gi

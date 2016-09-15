@@ -18,7 +18,7 @@ class GameSerializerSpec
   "A game serializer" - {
     "should encode and decode a GameInit" in {
       val g = GameInit.gameWithoutMulligan(Seq(PlayerId(0, "toto"),
-        PlayerId(1, "titi")), Helios)
+        PlayerId(1, "titi")), Rules(Helios))
       val b = toBinary(g)
       fromBinary(b, GameManifest.initGame) shouldBe g
     }
@@ -111,6 +111,26 @@ class GameSerializerSpec
         Seq[Card]((Queen, Heart), (King, Diamond))))
       val b = toBinary(m)
       fromBinary(b, GameManifest.twilight) shouldBe m
+    }
+
+    "should encode and decode Rules" in {
+      val r = Rules(Helios,
+            ostein = true,
+        allowMulligan = true)
+      val b = GameSerializer.rulesToBinary(r)
+      GameSerializer.getRules(b(0)) shouldBe r
+    }
+    "should encode and decode Rules (2)" in {
+      val r = Rules(Antares,
+        janus = true)
+      val b = GameSerializer.rulesToBinary(r)
+      GameSerializer.getRules(b(0)) shouldBe r
+    }
+    "should encode and decode Rules (3)" in {
+      val r = Rules(Sinnlos,
+        nedemone = true)
+      val b = GameSerializer.rulesToBinary(r)
+      GameSerializer.getRules(b(0)) shouldBe r
     }
   }
 }

@@ -100,7 +100,7 @@ class TwoPlayerGamePane
   minWidth = widthInit
   minHeight = heightInit
 
-  import controller.{opponentId, txt}
+  import controller.{opponentId, texts}
   import oGame.{game => _, _}
 
   style = "-fx-background-color: white"
@@ -238,7 +238,7 @@ class TwoPlayerGamePane
       cardWidth, cardHeight)
 
   val endPhaseButton =
-    new Button(txt.do_end_phase){
+    new Button(texts.do_end_phase){
       onMouseClicked = {
         me : MouseEvent =>
           if(createBeeingPane.isOpen)

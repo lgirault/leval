@@ -12,20 +12,51 @@ object GameSerializer {
 
   val ruleSize = 1
 
-  def rulesToBinary(r : Rules): Array[Byte] = {
-    val rid : Byte = r match {
+  val ostein_b : Byte = 0x8
+  val allowMulligan_b : Byte = 0x4
+  val nedemone_b : Byte = 0x2
+  val janus_b : Byte = 0x1
+
+  def coreRulesToBinary(r : CoreRules): Byte =
+    r match {
       case Sinnlos => 0x00
       case Antares => 0x01
       case Helios =>  0x02
     }
 
-    Array[Byte](rid)
-  }
 
-  private val rules = Array(Sinnlos, Antares, Helios)
+  def valOr0(b : Boolean, v : Byte) : Byte =
+    if(b) v
+    else 0
+
+  def rulesToBinary(r : Rules): Array[Byte] = {
+    val b1 : Byte = valOr0(r.ostein, ostein_b)
+    val b2 : Byte = valOr0(r.allowMulligan, allowMulligan_b)
+    val b3 : Byte = valOr0(r.nedemone, nedemone_b)
+    val b4 : Byte = valOr0(r.janus, janus_b)
+    val br : Byte  =
+      ((b1 | b2 | b3 | b4) << 4 | coreRulesToBinary(r.coreRules)).toByte
+    Array(br)
+  }
+  private val coreRules = Array(Sinnlos, Antares, Helios)
+
+  def getCoreRules(bb : ByteBuffer) : CoreRules =
+    coreRules(bb.get().toInt)
 
   def getRules(bb : ByteBuffer) : Rules =
-    rules(bb.get().toInt)
+    getRules(bb.get)
+
+  def getRules(b : Byte) : Rules = {
+    val variantes = b >> 4
+    val ostein = (variantes & ostein_b) != 0
+    val allowMulligan = (variantes & allowMulligan_b) != 0
+    val nedemone = (variantes & nedemone_b) != 0
+    val janus = (variantes & janus_b) != 0
+
+    Rules(coreRules(b & 0xF), ostein, allowMulligan, nedemone, janus)
+  }
+
+
 
 }
 
@@ -43,6 +74,7 @@ object GameManifest{
   val placeBeing = "placeBeing"
   val bury = "bury"
   val buryRequest = "buryRequest"
+  val osteinSelection = "osteinSelection"
   val educateSwitch = "educateSwitch"
   val educateRise = "educateRise"
   val influencePhase = "influencePhase"
@@ -73,6 +105,7 @@ class GameSerializer
     case _ : Bury => GameManifest.bury
 
     case _ : BuryRequest => GameManifest.buryRequest //not a move
+    case _ : OsteinSelection => GameManifest.osteinSelection
 
     case _ : Switch => GameManifest.educateSwitch
     case _ : Rise => GameManifest.educateRise
@@ -176,6 +209,12 @@ class GameSerializer
       bb putInt toBury.size
       toBury foreach (CardSerializer.put(bb, _))
       bb.array()
+
+    case OsteinSelection(c)=>
+      val bb = ByteBuffer.allocate(CardSerializer.cardSize)
+      CardSerializer.put(bb, c)
+      bb.array()
+
     case Switch(tgt, c) =>
       val bb = ByteBuffer.allocate(CardSerializer.cardSize * 2)
       CardSerializer.put(bb, tgt)
@@ -299,6 +338,10 @@ class GameSerializer
           s += CardSerializer.fromBinary(bb)
         }
         BuryRequest(tgt, s)
+
+      case GameManifest.osteinSelection =>
+        val bb = ByteBuffer wrap bytes
+        OsteinSelection(CardSerializer fromBinary bb)
 
       case GameManifest.educateSwitch =>
         val bb = ByteBuffer wrap bytes

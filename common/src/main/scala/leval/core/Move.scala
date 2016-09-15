@@ -51,6 +51,7 @@ case class LookCard(origin: CardOrigin, target : Card, resource : Suit) extends 
 case class PlaceBeing(being: Being, side : StarIdx) extends Move[Option[Card]]
 case class Bury(target : Card, order : List[Card]) extends Move[Unit]
 case class BuryRequest(target : Being, toBury : Set[Card]) extends Serializable
+case class OsteinSelection(card : Card) extends Serializable
 
 //delate Educate and make EducationType a move ??
 sealed abstract class Educate extends Move[Unit] {

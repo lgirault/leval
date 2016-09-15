@@ -4,7 +4,7 @@ import akka.testkit.{TestActorRef, TestProbe}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import leval.AcceptanceSpec
-import leval.core.{PlayerId, Sinnlos}
+import leval.core.{PlayerId, Rules, Sinnlos}
 import leval.network.server.GameMaker
 
 import scala.concurrent.duration._
@@ -24,8 +24,8 @@ class GameMakerSpec
   val tutuId = PlayerId(2, "Tutu")
 
 
-  val gameMakerRef = TestActorRef(new GameMaker(???, GameDescription(
-    totoId, Sinnlos)))
+  val gameMakerRef = TestActorRef(new GameMaker(???,
+    GameDescription( totoId, Rules(Sinnlos))))
   val gameMaker = gameMakerRef.underlyingActor
 
   val mapSize = 5

@@ -27,7 +27,7 @@ object Game {
 }
 
 case class Game
-(rules : Rules,
+(rules : CoreRules,
  stars : Seq[Star], // for 4 or 3 players ??
  source : Deck,
  currentStarIdx : StarIdx = 0,
@@ -242,6 +242,7 @@ case class Game
 
 
 
+
 }
 
 
@@ -250,6 +251,30 @@ case class Game
 
 //import cats.{Id, ~>}
 class MutableGame(var game : Game) /*extends (Move ~> Id)*/ {
+
+  def source = game.source
+  def stars : Seq[Star] = game.stars
+  def currentStarId : Int = game.currentStarIdx
+  def currentPhase : Phase = game.currentPhase
+  def deathRiver: List[Card] = game.deathRiver
+  def currentRound : Int = game.currentRound
+  def currentStar : Star = game.currentStar
+  def ended : Boolean = game.ended
+  def result = game.result
+  def beings = game.beings
+  def beingsOwnBy(idx: StarIdx) = game.beingsOwnBy(idx)
+
+  def nextPhase = game.nextPhase
+
+  def beingsState = game.beingsState
+  def lookedCards = game.lookedCards
+  def revealedCard = game.revealedCard
+
+  def rules = game.rules
+
+  def value(b : Being, s : Suit) : Option[Int] = game.beingValue(b, s)
+  def arcaneBonus(b : Being, s : Suit ) = game.arcaneBonus(b, s)
+
 
   def apply[A](ma: Move[A]): A /*Id[A]*/ = ma match {
     case MajestyEffect(v, ps) => game = game.directEffect(v, ps)

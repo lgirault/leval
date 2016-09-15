@@ -3,7 +3,7 @@ package leval
 import java.io.{File, FileWriter}
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
-import leval.core.{Antares, Helios, Rules, Sinnlos}
+import leval.core.{Antares, Helios, CoreRules, Sinnlos}
 import leval.gui.text.{Eng, Fr, ValText}
 
 /**
@@ -73,7 +73,7 @@ object LevalConfig {
       (arr(0).toDouble, arr(1).toDouble)
     }
 
-    def rules() : Rules =
+    def rules() : CoreRules =
       cfg getString Keys.defaultRules match {
         case "sinnlos" => Sinnlos
         case "antares" => Antares

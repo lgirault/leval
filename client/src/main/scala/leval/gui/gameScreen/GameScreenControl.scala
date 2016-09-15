@@ -55,7 +55,7 @@ class GameScreenControl
 
   val (widthRatio, heightRatio) = cfg.screenRatio()
 
-  implicit val txt = cfg.lang()
+  implicit val texts = cfg.lang()
 
   val opponentId = (playerGameIdx + 1) % 2
 
@@ -111,8 +111,8 @@ class GameScreenControl
   def cannotAttackAlert() : Unit =
     ignore(new Alert(AlertType.Information){
       delegate.initOwner(pane.scene().getWindow)
-      title = txt.forbidden
-      headerText = txt.cannot_attack_on_first_round
+      title = texts.forbidden
+      headerText = texts.cannot_attack_on_first_round
     }.showAndWait())
 
   def directEffect(origin: CardOrigin) : Unit =
@@ -194,8 +194,8 @@ class GameScreenControl
         actor ! MajestyEffect(1, playerGameIdx) // heart effect
         new Alert(AlertType.Information){
           delegate.initOwner(pane.scene().getWindow)
-          title = txt.mind
-          headerText = txt.select_to_attack
+          title = texts.mind
+          headerText = texts.select_to_attack
         }.showAndWait()
         ignore(new JokerMindEffectTargetSelector(this, joker))
       case Joker.Black =>
@@ -251,11 +251,11 @@ class GameScreenControl
     game.observers.remove(game.observers.indexOf(this))
     new Alert(AlertType.Information){
       delegate.initOwner(pane.scene().getWindow)
-      title = txt.game_over
+      title = texts.game_over
       headerText = game.result match {
-        case None => txt.both_lose
+        case None => texts.both_lose
         case Some((winner, loser)) =>
-          winner.name + txt.wins
+          winner.name + texts.wins
       }
       //contentText = "Every being has acted"
     }.showAndWait()
@@ -265,8 +265,8 @@ class GameScreenControl
   def disconnectedPlayerAlert(name : String) : Unit = {
     new Alert(AlertType.Information) {
       delegate.initOwner(pane.scene().getWindow)
-      title = txt.game_over
-      headerText = txt.disconnected(name)
+      title = texts.game_over
+      headerText = texts.disconnected(name)
     }.showAndWait()
     actor ! StartScreen
   }
@@ -278,8 +278,8 @@ class GameScreenControl
           isCurrentPlayer) {
           new Alert(AlertType.Information) {
             delegate.initOwner(pane.scene().getWindow)
-            title = txt.end_of_act_phase
-            headerText = txt.every_beings_have_acted
+            title = texts.end_of_act_phase
+            headerText = texts.every_beings_have_acted
             //contentText = "Every being has acted"
           }.showAndWait()
 
@@ -435,8 +435,8 @@ class GameScreenControl
           else
             new Alert(AlertType.Information) {
               delegate.initOwner(pane.scene().getWindow)
-              title = txt.end_of_act_phase
-              headerText = txt.end_of_act_phase
+              title = texts.end_of_act_phase
+              headerText = texts.end_of_act_phase
               //contentText = "Every being has acted"
             }.showAndWait()
 
@@ -455,6 +455,15 @@ class GameScreenControl
         case _ => ()
       }
   }
+
+
+
+
+
+
+
+
+
   def showTwilight(t : Twilight) : Unit =
     ignore(new TwilightDialog(this, t){
       delegate.initOwner(pane.scene().getWindow)
@@ -471,8 +480,8 @@ class GameScreenControl
     ignore {
       new Alert(AlertType.Information) {
         delegate.initOwner(pane.scene().getWindow)
-        title = txt.burying
-        headerText = txt.wait_end_burial
+        title = texts.burying
+        headerText = texts.wait_end_burial
       }.showAndWait()
     }
 

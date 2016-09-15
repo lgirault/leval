@@ -189,7 +189,7 @@ object QuickCreatorClient extends QuickTestClient {
   }
 
   val onTestActorCreate: (NetWorkController) => Unit = {
-    ctrl => ctrl.createGame(Helios)
+    ctrl => ctrl.createGame(Rules(Helios))
   }
 }
 

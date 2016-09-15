@@ -6,7 +6,19 @@ package leval.core
 
 import Game.{SeqOps, StarIdx}
 
-trait Rules {
+case class Rules
+( coreRules: CoreRules,
+  ostein : Boolean = false,
+  allowMulligan: Boolean = false,
+  nedemone : Boolean = false,
+  janus : Boolean = false) {
+
+  val maxPlayer : Int =
+    if(janus) 4
+    else 2
+}
+
+trait CoreRules {
 
   val id : String
 
@@ -17,7 +29,7 @@ trait Rules {
   val losingMajesty : Int = 0
   val winningMajesty : Int = 100
 
-  val maxPlayer : Int = 2
+  //TODO : move into Rules ?
 
   //way to specific
   //we could generalize that with a (situation, being)=> effect kind of function
@@ -284,7 +296,7 @@ trait Rules {
 }
 
 trait SinnlosAntaresCommon {
-  self : Rules =>
+  self : CoreRules =>
 
   def value(c: Card): Int = Card.value(c)
 
@@ -302,7 +314,7 @@ trait SinnlosAntaresCommon {
 }
 
 object Sinnlos
-  extends Rules
+  extends CoreRules
     with SinnlosAntaresCommon
     with Serializable {
 
@@ -320,7 +332,7 @@ object Sinnlos
 
 }
 
-trait AntaresHeliosCommon extends Rules {
+trait AntaresHeliosCommon extends CoreRules {
 
   def legalLoverFormationAtCreation(c : Formation) : Boolean = true
 

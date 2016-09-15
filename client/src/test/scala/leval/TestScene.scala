@@ -3,7 +3,7 @@ package leval
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.testkit.TestActorRef
 import leval.core._
-import leval.gui.gameScreen.{BurialDialog, CardImg, GameScreenControl, ObservableGame}
+import leval.gui.gameScreen._
 import leval.gui.text.Fr
 
 import scalafx.application.JFXApp
@@ -120,4 +120,18 @@ object BurialTestScene extends JFXApp {
   new BurialDialog(BuryRequest(b, b.cards.toSet),
     CardImg.width, CardImg.height,
     fp).showAndWait()
+}
+
+object OsteinDialogTest extends JFXApp {
+  val fp = new FlowPane
+
+  stage = new JFXApp.PrimaryStage {
+    title = "Test"
+    implicit val txt = Fr
+    scene = new Scene {
+      root = fp
+    }
+  }
+
+  println(new OSteinDialog(fp, acomplished.cards.toSet)(Fr).showAndWait())
 }
