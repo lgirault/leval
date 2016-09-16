@@ -1,6 +1,7 @@
 package leval.core
 
 import leval.core.Game.StarIdx
+import leval.core.Joker.{Black, Red}
 
 import scala.collection.immutable.SortedSet
 
@@ -97,7 +98,15 @@ case class Being
   }
 
   def value(resource : Suit, v : Card => Int)  : Option[Int] =
-    resources get resource map ( v(_) + bonus(resource, v) )
+    ((resource, resources get resource) match {
+      case (_, Some(Card(Jack,_ ))) => Some(5)
+      case (Diamond | Heart, Some(Joker(Black))) => Some(1)
+      case (Diamond | Heart, Some(Joker(Red))) => Some(6)
+      case (Club | Spade, Some(Joker(Red))) => Some(1)
+      case (Club | Spade, Some(Joker(Black))) => Some(6)
+      case (_, sc) => sc map v
+    }) map (_ + bonus(resource, v) )
+
 
 
   def firstDraw : Boolean = ! hasAlreadyDrawn
