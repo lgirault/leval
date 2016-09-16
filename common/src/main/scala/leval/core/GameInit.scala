@@ -9,7 +9,16 @@ case class GameInit
  source : Deck,
  rules : Rules) extends Serializable {
 
-  def game : Game = Game(rules.coreRules, stars, source)
+  def game : Game = {
+    val g = Game(rules.coreRules, stars, source)
+    if(rules.ostein)
+      g.copy(
+        currentStarIdx = -1,
+        currentPhase = InfluencePhase(-1))
+    else g
+
+  }
+
 
   def doTwilight : GameInit = {
     //tant qu'on a pas deux cartes égales, on continue de piocher (le val 1, p 20)

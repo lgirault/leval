@@ -6,7 +6,7 @@ import leval.gui.SearchingServerScene
 import leval.network._
 import leval.network.client._
 import leval.core._
-import leval.gui.gameScreen.ObservableGame
+import leval.gui.gameScreen.{ObservableGame, OsteinHandler}
 
 import scala.collection.mutable.ListBuffer
 import scalafx.application.JFXApp
@@ -19,7 +19,7 @@ import scalafx.scene.Scene
 
 trait WaitinPlayersTest
   extends Actor
-    with InGame {
+    with Drafting {
   val control : NetWorkController
 
   def waitingPlayers(gameMaker : ActorRef,
@@ -38,10 +38,19 @@ trait WaitinPlayersTest
           }
 
       case gi : GameInit =>
+
         val og = new ObservableGame(gi.game)
         val gameControl = control.gameScreen(og)
-        gameControl.showTwilight(gi.twilight)
-        context.become(ingame(gameMaker, og, gameControl))
+
+        if(gi.rules.ostein) {
+          val oh = new OsteinHandler(gameControl)
+          oh.start()
+          context.become(drafting(gameMaker, og, oh))
+        }
+        else {
+          gameControl.showTwilight(gi.twilight)
+          context.become(ingame(gameMaker, og, gameControl))
+        }
 
       case Disconnect(netId)  => println(netId + " disconnected")
 
@@ -125,7 +134,7 @@ abstract class QuickTestClient extends JFXApp {
 
   //val conf = ConnectionHelper.conf("client")
 
-  val server = conf getString "leval.server.hostname"
+  val server = "127.0.0.1"//conf getString "leval.server.hostname"
   val serverPort = conf getString "leval.server.port"
 
   println(s"hostname = ${conf getString "akka.remote.netty.tcp.hostname"}")
@@ -189,7 +198,7 @@ object QuickCreatorClient extends QuickTestClient {
   }
 
   val onTestActorCreate: (NetWorkController) => Unit = {
-    ctrl => ctrl.createGame(Rules(Helios))
+    ctrl => ctrl.createGame(Rules(Antares, ostein = true))
   }
 }
 

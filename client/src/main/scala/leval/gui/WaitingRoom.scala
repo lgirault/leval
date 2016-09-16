@@ -1,7 +1,7 @@
 package leval
 package gui
 
-import leval.core.{CoreRules, PlayerId, Rules}
+import leval.core.{PlayerId, Rules}
 import leval.gui.text.ValText
 import leval.network.client._
 

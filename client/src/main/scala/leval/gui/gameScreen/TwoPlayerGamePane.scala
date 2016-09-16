@@ -25,7 +25,12 @@ abstract class CardDropTarget extends HighlightableRegion {
 
 class RiverPane
 (control : GameScreenControl,
- fitHeight : Double) extends HBox {
+ fitHeight : Double) extends CardDropTarget {
+  val content = new HBox()
+  decorated = content
+  def onDrop(origin: CardOrigin): Unit =
+    control.drawAndLook(origin)
+
   def river = control.game.deathRiver
 
   private def images : Seq[CardImageView] =
@@ -37,8 +42,8 @@ class RiverPane
       }
 
   def update() : Unit = Platform.runLater {
-    children.clear()
-    children = images
+    content.children.clear()
+    content.children = images
   }
 
 }
@@ -52,14 +57,10 @@ class TwoPlayerGamePane
   extends GridPane {
   pane =>
 
-
-
-
   val cardHeight = (heightInit / 10).floor
   val cardResizeRatio = cardHeight / CardImg.height
 
   val cardWidth = CardImg.width * cardResizeRatio
-
 
   val riverAreaHeight = cardHeight
 
@@ -70,16 +71,11 @@ class TwoPlayerGamePane
 
 
 
-      //= ~ 0.15 * heightInit
+  //= ~ 0.15 * heightInit
 
 
   val leftColumnInfo = new ColumnConstraints(0.1 * widthInit)
   val gameAreaInfo = new ColumnConstraints(0.9 * widthInit)
-
-//  println(s"width init = $widthInit, height init = $heightInit")
-//  println(s"cardWidth = $cardWidth, cardHeight = $cardHeight")
-//  println(s"riverAreaHeight = $riverAreaHeight, playerAreaHeight = $playerAreaHeight, handAreaHeight = $handAreaHeight")
-//  println(s"left column width = ${0.1 * widthInit}, game area width = ${0.9 * widthInit}")
 
 
   Seq(new RowConstraints(handAreaHeight),
@@ -112,9 +108,9 @@ class TwoPlayerGamePane
       val Formation(f) = bp.being
       //println(bp.being.face + " : " + f)
       bp.being match {
-      case Formation(Spectre) => true
-      case _ => false
-    }} map (_.resourcePane(Club).get)
+        case Formation(Spectre) => true
+        case _ => false
+      }} map (_.resourcePane(Club).get)
 
   def targetBeingResource(s: Suit, sides : Seq[Int]) : Iterable[BeingResourcePane]  = {
     val bps = sides match {
@@ -135,8 +131,8 @@ class TwoPlayerGamePane
         case j : J =>
           val resources = educateBeingPane.being.resources
           educateBeingPane.targets(j) filter {
-          t => (resources get t.pos).isEmpty
-        }
+            t => (resources get t.pos).isEmpty
+          }
       }
       else {
         val highlighteds0 : Seq[CardDropTarget] =
@@ -144,7 +140,7 @@ class TwoPlayerGamePane
             case SelfStar => Seq(playerStarPanel)
             case OpponentStar => Seq(opponentStarPanel)
             case Source => Seq(deck)
-            case DeathRiver => Seq(riverWrapper)
+            case DeathRiver => Seq(riverPane)
             case OpponentSpectrePower =>
               opponentSpectrePower
             case TargetBeingResource(s, sides) =>
@@ -157,11 +153,6 @@ class TwoPlayerGamePane
           case _ => highlighteds0
         }
       }
-
-
-//    println(Target(oGame.game, origin.card))
-//    println(highlighteds)
-
     highlighteds foreach (_.activateHighlight())
     highlightableRegions = highlighteds
   }
@@ -224,11 +215,6 @@ class TwoPlayerGamePane
   }
 
   val riverPane = new RiverPane(controller, cardHeight)
-  val riverWrapper = new CardDropTarget {
-    decorated = riverPane
-    def onDrop(origin: CardOrigin): Unit =
-      controller.drawAndLook(origin)
-  }
 
   val handPane = new PlayerHandPane(controller, handAreaHeight)
 
@@ -270,7 +256,7 @@ class TwoPlayerGamePane
   }
 
   val playerBeingsPane = new FlowPane(){
-      style = playerAreasStyle
+    style = playerAreasStyle
   }
   def beingsPane(o : Orientation) = o match {
     case Player => playerBeingsPane
@@ -333,7 +319,7 @@ class TwoPlayerGamePane
 
   val gameAreas: List[Node] =
     List(opponentHandPane,
-      opponentBeingsPane, riverWrapper,
+      opponentBeingsPane, riverPane,
       playerArea, handPaneWrapper)
 
 

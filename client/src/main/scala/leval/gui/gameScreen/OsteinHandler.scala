@@ -6,6 +6,7 @@ import leval.core.{Card, GameInit, InfluencePhase, MutableGame, OsteinSelection,
 import scalafx.application.Platform
 import scalafx.geometry.Pos
 import scalafx.scene.control.Label
+import scalafx.scene.layout.{FlowPane, GridPane}
 
 /**
   * Created by lorilan on 9/15/16.
@@ -25,6 +26,7 @@ object OsteinHandler {
     def addCard(sId : StarIdx, c : Card) : Unit =
       setStars(mg.stars.set(sId, _ + c))
 
+
     def doTwilight() : Twilight = {
       val (newSource, Seq(h1, h2)) = GameInit.doTwilight(mg.source)
       val firstPlayer =
@@ -34,6 +36,7 @@ object OsteinHandler {
       val Seq(s1, s2) = mg.stars
       mg.game = mg.game.copy(source = newSource,
         stars = Seq(s1 ++ h1, s2 ++ h2),
+        currentStarIdx = firstPlayer,
         currentPhase = InfluencePhase(firstPlayer))
       Twilight(Seq(h1, h2))
     }
@@ -64,45 +67,52 @@ class OsteinHandler
       pick()
     }
   }
+  def pick(starIdx: StarIdx, card: Card) = {
+    game.addCard(starIdx, card)
+    hands(starIdx) -= card
+  }
 
   def opponentPick(card : Card) : Unit = {
-    game.addCard(playerGameIdx + 1 % 2, card)
+    pick((playerGameIdx + 1) % 2, card)
+    pane.opponentHandPane.update()
     opponentChose = true
     checkAndSwap()
   }
 
-  def resetRiver() ={
-    pane.riverWrapper.decorated = pane.riverPane
+  val msg = new FlowPane {
+    children = new Label(texts.draft_ongoing){
+      alignmentInParent = Pos.Center
+    }
   }
 
   def pick(): Unit =
     if(hand.isEmpty) {
-      resetRiver()
+      pane.children remove msg
       actor ! game.doTwilight()
     }
     else
       Platform runLater (new OSteinDialog(pane, hand).showAndWait() match {
         case Some(c : Card) =>
-          game.addCard(playerGameIdx, c)
+          pick(playerGameIdx, c)
+          pane.handPane.update()
           control.actor ! OsteinSelection(c)
           thisChose = true
           checkAndSwap()
         case _ => leval.error()
       })
 
-
-
-
   def start() : Unit = {
-    pane.riverWrapper.children =
-      new Label(texts.draft_ongoing){
-        alignmentInParent = Pos.Center
-      }
+    GridPane.setConstraints(msg, 1, 2)
+    pane.children add msg
     game.stars.zipWithIndex foreach {
       case (star, idx) =>
         hands(idx) = star.hand
+        println(hands(idx).size)
     }
+
     game.clearHands()
+    pane.handPane.update()
+    pane.opponentHandPane.update()
     pick()
   }
 }

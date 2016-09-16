@@ -113,6 +113,17 @@ class GameSerializerSpec
       fromBinary(b, GameManifest.twilight) shouldBe m
     }
 
+    "should encode and decode an empty Twilight" in {
+      val m = Twilight(Seq())
+      val b = toBinary(m)
+      fromBinary(b, GameManifest.twilight) shouldBe m
+    }
+    "should encode and decode a Twilight with empty seqs" in {
+      val m = Twilight(Seq(Seq(), Seq()))
+      val b = toBinary(m)
+      fromBinary(b, GameManifest.twilight) shouldBe m
+    }
+
     "should encode and decode Rules" in {
       val r = Rules(Helios,
             ostein = true,

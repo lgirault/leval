@@ -127,23 +127,15 @@ trait WaitinPlayers extends Drafting {
         waitingScreen.gameReady(control, status)
 
       case GameStart =>
-        println("sending gameStart !")
         gameMaker ! GameStart
 
       case gi : GameInit   =>
-        println("gameInit received")
-        val g =
-          if(gi.rules.ostein)
-            gi.game.copy(currentPhase = InfluencePhase(-1))
-          else gi.game
-
-        val og = new ObservableGame(g)
+        val og = new ObservableGame(gi.game)
         val gameControl = control.gameScreen(og)
 
         if(gi.rules.ostein) {
           val oh = new OsteinHandler(gameControl)
           oh.start()
-          println("oh oh oh !")
           context.become(drafting(gameMaker, og, oh))
         }
         else {

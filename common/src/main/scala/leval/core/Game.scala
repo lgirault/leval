@@ -59,7 +59,9 @@ case class Game
   def setStar(numStar : Int, f : Star => Star) : Game =
   copy(stars = stars.set(numStar, f))
 
-  def +(b : Being) = copy(beings = beings + (b.face -> b))
+  def +(b : Being) =
+    copy(beings = beings + (b.face -> b))
+
 
 
   def directEffect(value : Int, target : Int) : Game = {
@@ -299,6 +301,7 @@ class MutableGame(var game : Game) /*extends (Move ~> Id)*/ {
 
     case PlaceBeing(being, side) =>
       val (g, darkLadyRemoved) = game.placeBeing(being, side)
+      game = g
       darkLadyRemoved
     case Bury(target, cards) => game = game.burry(target, cards)
     case e : Educate => game = game.educate(e)

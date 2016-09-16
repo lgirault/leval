@@ -3,7 +3,7 @@ package network
 package server
 
 import akka.actor.{Actor, ActorRef, Props, Terminated}
-import leval.core.{BuryRequest, GameInit, Move, PlayerId}
+import leval.core.{BuryRequest, GameInit, Move, OsteinSelection, PlayerId}
 
 import scala.collection.mutable.ListBuffer
 import akka.actor._
@@ -41,7 +41,7 @@ class GameMaker
     }
 
     {
-      case m: Move[_] =>
+      case m @ (_: Move[_] | _ :OsteinSelection) =>
         log debug m.toString
         orderedPlayers map (_.actor) foreach {
           a => if (a != sender())
@@ -127,9 +127,9 @@ class GameMaker
         println("GameStart received, sending GameInit !")
         val gi =
           if(description.rules.ostein)
-            GameInit.gameWithoutMulligan(players map (_.id), description.rules)
-          else
             GameInit(players map (_.id), description.rules)
+          else
+            GameInit.gameWithoutMulligan(players map (_.id), description.rules)
 
         players.foreach {
           _.actor ! gi

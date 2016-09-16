@@ -21,7 +21,8 @@ class StatusPane
   alignment = Pos.Center
 
   def update() : Unit = {
-    val text =
+    val text = if(game.currentStarId == -1) "" // during draft
+    else
       s"${txt.round} ${game.currentRound}\n" +
         game.currentStar.name+"\n" +
         phaseTxt(game.currentPhase)

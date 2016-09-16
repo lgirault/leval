@@ -294,7 +294,7 @@ class GameScreenControl
   }
 
   def notify[A](m: Move[A], res: A): Unit = {
-    //println(game.stars(playerGameIdx).name +"'s controller notified of " + m)
+    println(game.stars(playerGameIdx).name +"'s controller notified of " + m)
 
     if(game.ended) endGame()
     else
@@ -464,10 +464,14 @@ class GameScreenControl
 
 
 
-  def showTwilight(t : Twilight) : Unit =
-    ignore(new TwilightDialog(this, t){
+  def showTwilight(t : Twilight) : Unit = {
+    new TwilightDialog(this, t) {
       delegate.initOwner(pane.scene().getWindow)
-    }.showAndWait())
+    }.showAndWait()
+    notify(game.currentPhase, ())
+    pane.handPane.update()
+    pane.opponentHandPane.update()
+  }
 
   def canDragAndDropOnInfluencePhase() : Boolean =
     game.currentPhase match {

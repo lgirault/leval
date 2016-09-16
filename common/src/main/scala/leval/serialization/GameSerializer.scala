@@ -347,7 +347,7 @@ class GameSerializer
         val bb = ByteBuffer wrap bytes
         val tgt = CardSerializer.fromBinary(bb)
         val c = CardSerializer.fromBinary(bb).asInstanceOf[C]
-       Switch(tgt, c)
+        Switch(tgt, c)
 
       case GameManifest.educateRise =>
         val bb = ByteBuffer wrap bytes
@@ -384,11 +384,14 @@ class GameSerializer
 object TwilightSerializer {
 
 
-  def binarySize(t : Twilight) = {
-    val s = t.cards.size
-    CardSerializer.cardSize *
-      (t.cards.head.size * t.cards.size) + 2 * byte
-  }
+  def binarySize(t : Twilight) =
+    if(t.cards.isEmpty) byte
+    else if(t.cards.head.isEmpty)
+      2 * byte
+    else {
+      CardSerializer.cardSize *
+        (t.cards.head.size * t.cards.size) + 2 * byte
+    }
 
 
   def toBinary(twilight: Twilight) : Array[Byte] = {
@@ -399,11 +402,14 @@ object TwilightSerializer {
 
   def put(bb : ByteBuffer, t : Twilight) : Unit = {
     bb put t.cards.size.toByte
-    bb put t.cards.head.size.toByte
+    if(t.cards.nonEmpty) {
+      bb put t.cards.head.size.toByte
 
-    t.cards.reverseIterator.foreach {
-      cs =>
-        cs.reverseIterator foreach (CardSerializer.put(bb, _))
+      if(t.cards.head.nonEmpty)
+        t.cards.reverseIterator.foreach {
+          cs =>
+            cs.reverseIterator foreach (CardSerializer.put(bb, _))
+        }
     }
   }
 
@@ -412,16 +418,19 @@ object TwilightSerializer {
 
   def fromBinary(bb : ByteBuffer) : Twilight = {
     val size = bb.get().toInt
-    val s = bb.get().toInt
-    var cards = List[Seq[Card]]()
-    for( _ <- 1 to size) {
-      var cs = List[Card]()
-      for( _ <- 1 to s) {
-        cs ::= (CardSerializer fromBinary bb)
+    if (size == 0) Twilight(List())
+    else {
+      val s = bb.get().toInt
+      var cards = List[List[Card]]()
+      for (_ <- 1 to size) {
+        var cs = List[Card]()
+        for (_ <- 1 to s) {
+          cs ::= (CardSerializer fromBinary bb)
+        }
+        cards ::= cs
       }
-      cards ::= cs
+      Twilight(cards)
     }
-    Twilight(cards)
   }
 }
 
