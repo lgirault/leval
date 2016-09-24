@@ -124,7 +124,7 @@ class GameMaker
         }
 
       case GameStart =>
-        println("GameStart received, sending GameInit !")
+        log info "GameStart received, sending GameInit !"
         val gi =
           if(description.rules.ostein)
             GameInit(players map (_.id), description.rules)

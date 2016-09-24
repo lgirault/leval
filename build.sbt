@@ -25,7 +25,7 @@ def classPathFileNameTask(cfg : Configuration): Def.Initialize[Task[File]] = Def
 def commonSettings(module: String) = Seq[Setting[_]](
   organization := "",
   name := s"leval-$module",
-  version := "0.13",
+  version := "0.14",
   scalaVersion := "2.12.0-M4", //RC1
   maintainer := "L. Girault ( loic.girault@gmail.com )",
 
