@@ -2,7 +2,7 @@ package leval
 package gui
 
 import leval.core.{PlayerId, Rules}
-import leval.gui.text.ValText
+import leval.gui.text.{ShowRules, ValText}
 import leval.network.client._
 
 import scala.collection.mutable.ListBuffer
@@ -17,7 +17,7 @@ class WaitingRoom
 (control : NetWorkController,
  partyName : String,
  rules : Rules)
-(implicit txt : ValText) extends BorderPane {
+(implicit texts : ValText) extends BorderPane {
   pane =>
 
 
@@ -56,13 +56,13 @@ class WaitingRoom
   }
 
   private def updateCurrentNumPlayer(n : Int) =
-    label.text = s"$partyName - $rules - Waiting for players ... $n / ${rules.maxPlayer}"
+    label.text = s"$partyName - ${ShowRules(rules)} - Waiting for players ... $n / ${rules.maxPlayer}"
 
   def ownerExitAlert() =
     new Alert(AlertType.Information){
       delegate.initOwner(pane.scene().getWindow)
-      title = txt.information
-      headerText = txt.owner_exit
+      title = texts.information
+      headerText = texts.owner_exit
     }.showAndWait()
 
   def gameReady(launcher : NetWorkController, usr : UserMapRelationship) : Unit = {

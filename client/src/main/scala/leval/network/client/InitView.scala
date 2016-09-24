@@ -3,8 +3,6 @@ package network
 package client
 
 
-
-
 object BeforeWaitingRoom{
   type CurrentNumPlayer = Int
 }

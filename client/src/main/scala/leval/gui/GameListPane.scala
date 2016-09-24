@@ -1,5 +1,6 @@
 package leval.gui
 
+import leval.gui.text.ShowRules
 import leval.network.GameDescription
 import leval.network.client.BeforeWaitingRoom.CurrentNumPlayer
 import leval.network.client.GameListView.JoinAction
@@ -16,6 +17,7 @@ class GameListPane
 (control : NetWorkController)
   extends BorderPane  {
 
+  import control.texts
 
 
   val vbox = new VBox()
@@ -35,10 +37,10 @@ class GameListPane
   }
 
   def appendGameToList: (GameDescription, CurrentNumPlayer, JoinAction) => Unit = {
-    case (GameDescription(creator, maxNumPlayer), currentPlayer , join) =>
+    case (GameDescription(creator, rules), currentPlayer , join) =>
 
       val hbox = new HBox()
-      hbox.children += new Label(s"${creator.name} ($currentPlayer/$maxNumPlayer)")
+      hbox.children += new Label(s"${creator.name} - ${ShowRules(rules)} ($currentPlayer/${rules.maxPlayer})")
       val node : Node = new Button("Join"){
         handleEvent(MouseEvent.MouseClicked)(join)
       }

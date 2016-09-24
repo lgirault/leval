@@ -242,13 +242,7 @@ case class Game
   def arcaneBonus(b : Being, s : Suit ) = b.bonus(s, rules.value)
   def beingsOwnBy(idx: StarIdx) = beings.values filter (_.owner == idx)
 
-
-
-
 }
-
-
-
 
 
 //import cats.{Id, ~>}

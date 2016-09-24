@@ -105,6 +105,9 @@ trait ValText {
 
   val allow_mulligan : String
   val draft_ongoing : String
+
+  val with_mulligan : String
+  val four_players : String
 }
 
 object Fr extends ValText {
@@ -189,6 +192,9 @@ object Fr extends ValText {
   val allow_mulligan : String = "Autoriser le mulligan"
 
   val draft_ongoing : String = "Draft en cours"
+
+  val with_mulligan : String = "avec mulligan"
+  val four_players : String = "4 joueurs"
 }
 
 object Eng extends ValText {
@@ -276,4 +282,7 @@ object Eng extends ValText {
 
   val allow_mulligan : String = "Allow mulligan"
   val draft_ongoing : String = "Draft ongoing"
+
+  val with_mulligan : String = "with mulligan"
+  val four_players : String = "4 players"
 }
