@@ -9,4 +9,6 @@ package object client {
   def passive : Actor.Receive = {
     case _ => ()
   }
+
+  type JoinAction = () => Unit
 }

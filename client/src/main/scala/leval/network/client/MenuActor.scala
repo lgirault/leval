@@ -3,12 +3,11 @@ package leval.network.client
 import akka.actor.{Actor, ActorContext, ActorRef, Props}
 import akka.event.Logging
 import com.typesafe.config.Config
-import leval.core.{BuryRequest, GameInit, InfluencePhase, Move, OsteinSelection, PlayerId, Rules, Twilight}
+import leval.core.{BuryRequest, GameInit, Move, OsteinSelection, PlayerId, Rules, Twilight}
 import leval.gui.{GameListPane, ViewController, WaitingRoom}
 import leval.gui.gameScreen.{GameScreenControl, ObservableGame, OsteinHandler}
 import leval.gui.text.ValText
 import leval.network._
-import leval.network.client.GameListView.JoinAction
 
 
 case object StartScreen
@@ -120,11 +119,7 @@ trait WaitinPlayers extends Drafting {
         waitingScreen addPlayer pid
 
       case GameReady =>
-        val status =
-          if (owner == control.thisPlayer) Owner
-          else Joiner
-
-        waitingScreen.gameReady(control, status)
+        waitingScreen.gameReady(control, owner == control.thisPlayer)
 
       case GameStart =>
         gameMaker ! GameStart

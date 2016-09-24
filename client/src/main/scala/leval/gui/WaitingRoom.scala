@@ -65,15 +65,14 @@ class WaitingRoom
       headerText = texts.owner_exit
     }.showAndWait()
 
-  def gameReady(launcher : NetWorkController, usr : UserMapRelationship) : Unit = {
-    val newLine = usr match {
-      case Joiner => new Label("Game Ready ! Waiting to start ...")
-      case Owner => new Button("Start !"){
+  def gameReady(launcher : NetWorkController, isOwner : Boolean) : Unit = {
+    val newLine =
+      if(isOwner) new Button("Start !"){
         handleEvent(MouseEvent.MouseClicked) {
-           () => launcher.startGame()
+          () => launcher.startGame()
         }
       }
-    }
+      else new Label("Game Ready ! Waiting to start ...")
     val _ = playersLabel.children += newLine
   }
 

@@ -2,9 +2,7 @@ package leval.gui
 
 import leval.gui.text.ShowRules
 import leval.network.GameDescription
-import leval.network.client.BeforeWaitingRoom.CurrentNumPlayer
-import leval.network.client.GameListView.JoinAction
-import leval.network.client.NetWorkController
+import leval.network.client.{JoinAction, NetWorkController}
 
 import scalafx.Includes._
 import scalafx.scene.Node
@@ -12,6 +10,11 @@ import scalafx.scene.control.{Button, Label}
 import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.{BorderPane, FlowPane, HBox, VBox}
 
+
+object GameListPane {
+  type CurrentNumPlayer = Int
+}
+import GameListPane.CurrentNumPlayer
 
 class GameListPane
 (control : NetWorkController)
