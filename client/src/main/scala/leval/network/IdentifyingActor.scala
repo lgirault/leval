@@ -1,22 +1,20 @@
-package leval
-package network
-package client
+package leval.network
 
 import akka.actor._
 
 import scala.concurrent.duration._
-
+import scalafx.scene.Scene
 
 object IdentifyingActor {
   type IdReaction = (ActorContext, ActorRef) => Unit
   def props(serverPath : String,
-            onIdentification : IdReaction) =
-    Props(new IdentifyingActor(serverPath, onIdentification)).withDispatcher("javafx-dispatcher")
+            scene : Scene) =
+    Props(new IdentifyingActor(serverPath, scene)).withDispatcher("javafx-dispatcher")
 
 }
 class IdentifyingActor private
 ( val serverPath : String,
-  onIdentification : (ActorContext, ActorRef) => Unit)
+  scene : Scene)
   extends Actor {
 
   def sendIdentifyRequest() : Unit = {
@@ -32,7 +30,8 @@ class IdentifyingActor private
   def identifying: Actor.Receive = {
     case ActorIdentity(`serverPath`, Some(server)) =>
       println("In liaison with server")
-      onIdentification(context, server)
+      context actorOf MenuActor.props(scene, server)
+      context become passive
       //context.watch(server)
       //context.become(active(server))
     case ActorIdentity(`serverPath`, None) => println(s"Server not available: $serverPath")

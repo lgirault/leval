@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.web.*?>
+
+<TabPane xmlns="http://javafx.com/javafx/8"
+         xmlns:fx="http://javafx.com/fxml/1"
+         fx:controller="leval.gui.TabViewController">
+    <tabs>
+        <Tab fx:id="mainChatTab"
+             text="%solarSystem"
+            closable="false">
+            <fx:include fx:id="mainChatPane" source="ChatView.fxml"/>
+        </Tab>
+        <Tab fx:id="createGameTab"
+            text="%game"
+            closable="false" >
+            <fx:include fx:id="createGamePane" source="CreateGameView.fxml"/>
+        </Tab>
+    </tabs>
+</TabPane>

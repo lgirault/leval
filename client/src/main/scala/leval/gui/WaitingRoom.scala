@@ -1,9 +1,10 @@
 package leval
 package gui
 
+import akka.actor.ActorRef
 import leval.core.{PlayerId, Rules}
 import leval.gui.text.{ShowRules, ValText}
-import leval.network.client._
+import leval.network.{GameStart, MenuActor}
 
 import scala.collection.mutable.ListBuffer
 import scalafx.Includes._
@@ -14,13 +15,11 @@ import scalafx.scene.layout.{BorderPane, FlowPane, VBox}
 
 
 class WaitingRoom
-(control : NetWorkController,
+(control : MenuActor,
  partyName : String,
  rules : Rules)
 (implicit texts : ValText) extends BorderPane {
   pane =>
-
-
 
   val label = new Label(s"$partyName - $rules - Waiting for players ...")
 
@@ -65,11 +64,11 @@ class WaitingRoom
       headerText = texts.owner_exit
     }.showAndWait()
 
-  def gameReady(launcher : NetWorkController, isOwner : Boolean) : Unit = {
+  def gameReady(actor : ActorRef, isOwner : Boolean) : Unit = {
     val newLine =
       if(isOwner) new Button("Start !"){
         handleEvent(MouseEvent.MouseClicked) {
-          () => launcher.startGame()
+          () ⇒ actor ! GameStart
         }
       }
       else new Label("Game Ready ! Waiting to start ...")

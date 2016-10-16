@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import leval.core.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.collections.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.web.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="leval.control.CreateGameControl">
+     <center>
+            <VBox>
+                <HBox>
+                    <Label text="%rule"/>
+                    <ComboBox fx:id="rulesCBox"/>
+                </HBox>
+                <CheckBox fx:id="ostein" text="O'Stein"/>
+                <CheckBox fx:id="osteinMulligan" text="%allow_mulligan"/>
+                <CheckBox fx:id="nedemone" text="Nédémone" disable="true"/>
+                <CheckBox fx:id="janus" text="Janus" disable="true"/>
+                <Button text="%join_game" onAction="#list"/>
+                <Button text="%create_game" onAction="#create"/>
+                <Button text="%settings" onAction="#settings"/>
+            </VBox>
+    </center>
+</BorderPane>

@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 import akka.actor.ActorSystem
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
-import org.scalatest.{ConfigMap, Suite, BeforeAndAfterAll}
+import org.scalatest.{Suite, BeforeAndAfterAll}
 
 trait ActorSystemSetup extends BeforeAndAfterAll {
   self : Suite =>
@@ -27,7 +27,7 @@ trait ActorSystemSetup extends BeforeAndAfterAll {
   implicit val requestTimeOut = Timeout(100, TimeUnit.MILLISECONDS)
 
 
-  override def afterAll(configMap: ConfigMap): Unit = {
+  override def afterAll(): Unit = {
     system.terminate()
     super.afterAll()
   }

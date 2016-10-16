@@ -1,10 +1,11 @@
+/*
 package leval
 
 import akka.actor.{Actor, ActorContext, ActorRef, ActorSystem, Props}
 import com.typesafe.config.ConfigFactory
+import leval.control.MenuController
 import leval.gui.SearchingServerScene
 import leval.network._
-import leval.network.client._
 import leval.core._
 import leval.gui.gameScreen.{ObservableGame, OsteinHandler}
 
@@ -20,7 +21,7 @@ import scalafx.scene.Scene
 trait WaitinPlayersTest
   extends Actor
     with Drafting {
-  val control : NetWorkController
+  val control : MenuController
 
   def waitingPlayers(gameMaker : ActorRef,
                      owner : PlayerId) : Actor.Receive = {
@@ -62,13 +63,13 @@ trait WaitinPlayersTest
 
 object CreatorActor {
   def props(serverRef : ActorRef,
-            control : NetWorkController) =
+            control : MenuController) =
     Props(new CreatorActor(serverRef, control)).withDispatcher("javafx-dispatcher")
 
 }
 class CreatorActor
 (serverRef : ActorRef,
- val control : NetWorkController)
+ val control : MenuController)
   extends WaitinPlayersTest {
 
   def receive: Receive = {
@@ -79,13 +80,13 @@ class CreatorActor
 }
 object JoiningActor {
   def props(serverRef : ActorRef,
-            control : NetWorkController) =
+            control : MenuController) =
     Props(new JoiningActor(serverRef, control)).withDispatcher("javafx-dispatcher")
 
 }
 class JoiningActor
 (serverRef : ActorRef,
- val control : NetWorkController)
+ val control : MenuController)
   extends WaitinPlayersTest {
 
   def receive: Receive = {
@@ -104,11 +105,11 @@ abstract class QuickTestClient extends JFXApp {
   val name : String
   val port : Int
 
-  def startTestActor(control : NetWorkController)
+  def startTestActor(control : MenuController)
                     (context : ActorContext,
                      serverRef: ActorRef) : Unit
 
-  val onTestActorCreate : NetWorkController => Unit
+  val onTestActorCreate : MenuController => Unit
 
   val stageScene =  new Scene{
     root = new SearchingServerScene()
@@ -150,34 +151,23 @@ abstract class QuickTestClient extends JFXApp {
   val serverPath = Settings.remotePath(server, serverPort)
   println(s"connecting to $serverPath")
 
-  override def stopApp() : Unit = {
-    control.disconnect()
-    println("Shutting down !!")
-    system.terminate()
-    println("Bye bye !!")
-    System.exit(0)
-  }
-
-  val control = new NetWorkController {
-
-    var config = LevalConfig.default
-
-    val majorVersion: Int = conf getInt "leval.client.version.major"
-    val minorVersion: Int = conf getInt "leval.client.version.minor"
-    def exit() = stopApp()
-
-
-    val scene = stageScene
-
-    system.actorOf(IdentifyingActor.props(serverPath, startTestActor(this)), actorName)
-
+  val control = new MenuController() {
     override def actor_=(r: ActorRef): Unit = {
       super.actor_=(r)
       thisPlayer = PlayerId(uid, name)
       onTestActorCreate(this)
     }
   }
+  control.system = system
+  override def stopApp() : Unit = control.exit()
 
+  import LevalConfig.Keys
+  control.majorVersion = conf getInt Keys.majorVersion
+  control.minorVersion = conf getInt Keys.minorVersion
+  control.scene = stageScene
+  control.config = LevalConfig.default
+
+  system.actorOf(IdentifyingActor.props(serverPath, startTestActor(control)), actorName)
 
 }
 
@@ -187,7 +177,7 @@ object QuickCreatorClient extends QuickTestClient {
   val name = "Creator"
   val port: Int = 1234
 
-  def startTestActor(control : NetWorkController)
+  def startTestActor(control : MenuController)
                     (context : ActorContext,
                      serverRef: ActorRef) : Unit = {
     val menuProps =
@@ -197,7 +187,7 @@ object QuickCreatorClient extends QuickTestClient {
     context become passive
   }
 
-  val onTestActorCreate: (NetWorkController) => Unit = {
+  val onTestActorCreate: (MenuController) => Unit = {
     ctrl => ctrl.createGame(Rules(Antares, ostein = true))
   }
 }
@@ -206,7 +196,7 @@ object QuickJoiningClient extends QuickTestClient {
   val uid = 1
   val name = "Joiner"
   val port: Int = 4567
-  def startTestActor(control : NetWorkController)
+  def startTestActor(control : MenuController)
                     (context : ActorContext,
                      serverRef: ActorRef) : Unit = {
     val menuProps =
@@ -215,7 +205,7 @@ object QuickJoiningClient extends QuickTestClient {
     control.actor = context.actorOf(menuProps)
     context become passive
   }
-  val onTestActorCreate: (NetWorkController) => Unit = {
+  val onTestActorCreate: (MenuController) => Unit = {
     ctrl => ctrl.fetchGameList()
   }
-}
+}*/

@@ -6,6 +6,7 @@ import leval.gui.text.{Eng, Fr, ValText}
 import leval.LevalConfig._
 
 import scalafx.Includes._
+import javafx.scene.Scene
 import scalafx.scene.control.{ButtonType, ComboBox, Dialog, Label}
 import scalafx.scene.layout._
 
@@ -14,7 +15,7 @@ import scalafx.scene.layout._
   */
 class ConfigDialog
 (val cfg: Config,
- p : Pane) extends Dialog[Card] {
+ s : Scene) extends Dialog[Card] {
 
   val languages = new ComboBox[ValText](Seq(Fr, Eng)){
     value = cfg.lang()
@@ -35,15 +36,15 @@ class ConfigDialog
 
     columnConstraints add leftColumn
     columnConstraints add rightColumn
-    for (_ <- 1 to 2)
+    for (_ ← 1 to 2)
       rowConstraints add rowCt
 
     val nodes = Seq(Seq(new Label(texts.screen_ratio), ratios),
        Seq(new Label(texts.language), languages))
 
     for{
-      (rowNodes, rowIdx) <- nodes.zipWithIndex
-      (n, colIdx) <- rowNodes.zipWithIndex
+      (rowNodes, rowIdx) ← nodes.zipWithIndex
+      (n, colIdx) ← rowNodes.zipWithIndex
     } GridPane.setConstraints(n, colIdx, rowIdx)
 
 
@@ -55,12 +56,12 @@ class ConfigDialog
   }
 
   dialogPane().content = makeContent()
-  delegate.initOwner(p.scene().getWindow)
+  delegate.initOwner(s.getWindow)
 
   dialogPane().buttonTypes = Seq(ButtonType.OK, ButtonType.Cancel)
 
-  def modifiedConfig() = {
-    cfg.withAnyRefValue(Keys.screenRatio, ratios.value(): String)
-        .withAnyRefValue(Keys.lang, texts.id)
+  def values() = {
+    List((Keys.screenRatio, ratios.value(): String),
+        (Keys.lang, texts.id))
   }
 }

@@ -1,11 +1,11 @@
-package leval.network
+package leval
 
 import akka.actor.Actor
 
 /**
   * Created by lorilan on 8/27/16.
   */
-package object client {
+package object network {
   def passive : Actor.Receive = {
     case _ => ()
   }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.web.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8"
+         xmlns:fx="http://javafx.com/fxml/1"
+         fx:controller="leval.control.GameListControl">
+    <top>
+        <HBox>
+            <Label text="Game list:"/>
+            <Button text="Refresh" onAction="#refresh"/>
+        </HBox>
+    </top>
+    <center>
+        <FlowPane>
+            <VBox fx:id="vBox"/>
+        </FlowPane>
+    </center>
+    <bottom>
+        <Button text="Back" onAction="#"/>
+    </bottom>
+</BorderPane>

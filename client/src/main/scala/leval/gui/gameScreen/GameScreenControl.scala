@@ -8,7 +8,7 @@ import leval.ignore
 import leval.core.Game.StarIdx
 import leval.core._
 import leval.gui.SceneSizeChangeListener
-import leval.network.client.StartScreen
+import leval.network.StartScreen
 
 import scalafx.scene.Scene
 import scalafx.scene.control.Alert

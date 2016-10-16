@@ -26,7 +26,7 @@ def commonSettings(module: String) = Seq[Setting[_]](
   organization := "",
   name := s"leval-$module",
   version := "0.14",
-  scalaVersion := "2.12.0-M4", //RC1
+  scalaVersion := "2.12.0-RC1",
   maintainer := "L. Girault ( loic.girault@gmail.com )",
 
   classPathFileName := "CLASSPATH",
@@ -36,11 +36,11 @@ def commonSettings(module: String) = Seq[Setting[_]](
 
 
   libraryDependencies ++=
-    Seq("com.typesafe.akka" %% "akka-remote" % "2.4.7",
-      "com.typesafe.akka" %% "akka-slf4j" % "2.4.7",
+    Seq("com.typesafe.akka" %% "akka-remote" % "2.4.10",
+      "com.typesafe.akka" %% "akka-slf4j" % "2.4.10",
       "ch.qos.logback" % "logback-classic" % "1.1.7",
-      "org.scalatest" %% "scalatest" % "2.2.6",
-      "com.typesafe.akka" %% "akka-testkit" % "2.4.7"),
+      "org.scalatest" %% "scalatest" % "3.0.0",
+      "com.typesafe.akka" %% "akka-testkit" % "2.4.10"),
 
   scalacOptions ++= Seq(
     "-deprecation",
@@ -80,7 +80,10 @@ lazy val client = (project
 
   mainClass in Compile := Some("leval.GUIClient"),
 
-  libraryDependencies += "org.scalafx" %% "scalafx" % "8.0.92-R10",
+  libraryDependencies ++=
+    Seq("org.scalafx" %% "scalafx" % "8.0.102-R11"/*, scalafxml ??? */),
+
+  addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
 
   packageSummary := "leval software client",
   packageDescription := "Software to play Le Val online",

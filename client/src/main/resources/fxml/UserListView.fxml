@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<SplitPane xmlns="http://javafx.com/javafx/8"
+           xmlns:fx="http://javafx.com/fxml/1"
+           dividerPositions="1.0"
+           maxWidth="1.7976931348623157E308" minWidth="200.0"
+           orientation="VERTICAL" prefWidth="150.0"
+           SplitPane.resizableWithParent="false">
+    <items>
+        <Accordion fx:id="accordion">
+            <panes>
+                <TitledPane fx:id="onlineTitledPane" text="Online">
+                    <content>
+                        <ScrollPane fitToHeight="true" fitToWidth="true">
+                            <content>
+                                <ListView fx:id="onlineListView" />
+                            </content>
+                        </ScrollPane>
+                    </content>
+                </TitledPane>
+                <TitledPane expanded="false" text="In Progress">
+                    <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" />
+                    </content>
+                </TitledPane>
+                <TitledPane expanded="false" text="Invitations">
+                    <content>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" />
+                    </content>
+                </TitledPane>
+            </panes>
+        </Accordion>
+        <ScrollPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                    minHeight="50.0" prefHeight="100.0"
+                    prefViewportHeight="76.0" prefViewportWidth="202.0"
+                    prefWidth="150.0"
+                    GridPane.rowIndex="1"
+                    SplitPane.resizableWithParent="false">
+            <content>
+                <TextFlow />
+            </content>
+        </ScrollPane>
+    </items>
+</SplitPane>

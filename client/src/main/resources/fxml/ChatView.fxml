@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.web.*?>
+
+<SplitPane xmlns="http://javafx.com/javafx/8"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="leval.gui.ChatController"
+           dividerPositions="1.0" >
+    <items>
+        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+            <children>
+                <SplitPane dividerPositions="1.0" layoutX="149.0" layoutY="114.0" orientation="VERTICAL" prefHeight="398.0" prefWidth="415.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <items>
+                        <GridPane>
+                            <columnConstraints>
+                                <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints minHeight="20.0" vgrow="NEVER" />
+                                <RowConstraints minHeight="10.0" vgrow="ALWAYS" />
+                            </rowConstraints>
+                            <children>
+                                <TextFlow>
+                                    <children>
+                                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Chatting as: " />
+                                        <Text fx:id="usernameText" fill="#1309d0" strokeType="OUTSIDE" strokeWidth="0.0">
+                                            <font>
+                                                <Font name="Monaco" size="12.0" />
+                                            </font>
+                                        </Text>
+                                    </children>
+                                </TextFlow>
+                                <AnchorPane GridPane.rowIndex="1">
+                                    <children>
+                                        <ScrollPane fx:id="chatScrollPane" fitToWidth="true" hbarPolicy="NEVER" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                            <content>
+                                                <AnchorPane fx:id="webViewParent" minHeight="0.0" minWidth="0.0" GridPane.rowIndex="1" />
+                                            </content>
+                                        </ScrollPane>
+                                    </children>
+                                </AnchorPane>
+                            </children>
+                        </GridPane>
+                        <AnchorPane minHeight="-Infinity" minWidth="0.0" prefHeight="150.0" SplitPane.resizableWithParent="false">
+                            <children>
+                                <HTMLEditor fx:id="chatEditor" htmlText="" minHeight="688.0" style="-fx-font: Helvetica;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                <HBox alignment="CENTER" fillHeight="false" layoutX="519.0" layoutY="5.0" spacing="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="7.0">
+                                    <children>
+                                        <CheckBox fx:id="sendOnEnter" layoutX="519.0" layoutY="9.0" mnemonicParsing="false" selected="true" text="Send on Enter" textAlignment="CENTER">
+                                            <font>
+                                                <Font size="12.0" />
+                                            </font>
+                                        </CheckBox>
+                                        <Button fx:id="sendChat" mnemonicParsing="false" onAction="#sendChat" text="SEND" textAlignment="CENTER" textFill="#009000" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0" />
+                                    </children>
+                                </HBox>
+                            </children>
+                        </AnchorPane>
+                    </items>
+                </SplitPane>
+            </children>
+        </AnchorPane>
+
+        <fx:include source="UserListView.fxml"/>
+    </items>
+</SplitPane>

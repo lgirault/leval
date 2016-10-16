@@ -1,6 +1,9 @@
 package leval.gui.text
 
+import java.util.ResourceBundle
+
 import leval.core.{Club, Diamond, Heart, Spade, Suit}
+import leval.utils.UTF8Control
 
 import scalafx.scene.text.Font
 
@@ -25,6 +28,11 @@ object ValText {
 trait ValText {
 
   val id : String
+
+  lazy val resources = ResourceBundle.getBundle(s"lang.UIResources_$id", UTF8Control)
+
+  def game = resources getString "game"
+  def solarSystem = resources getString "solarSystem"
 
   val influence_phase : String
   val act_phase : String
@@ -90,12 +98,7 @@ trait ValText {
   val screen_ratio : String
   val language : String
 
-  val create_game : String
-  val join_game : String
-  val settings : String
-
   val unsupported : String
-  val rules : String
 
   val connect : String
   val empty_login : String
@@ -103,7 +106,6 @@ trait ValText {
   val draft : String
   val chose_card : String
 
-  val allow_mulligan : String
   val draft_ongoing : String
 
   val with_mulligan : String
@@ -177,19 +179,12 @@ object Fr extends ValText {
   val screen_ratio : String = "Format d'image"
   val language : String = "Langue"
 
-  val create_game : String = "Créer une partie"
-  val join_game : String = "Rejoindre une partie"
-  val settings : String = "Options"
-
   val unsupported : String = "non supporté pour le moment"
-  val rules : String = "Règle"
   val connect : String = "Connexion"
   val empty_login : String = "Identifiant vide"
 
   val draft = "Draft"
   val chose_card: String = "Choisissez une carte"
-
-  val allow_mulligan : String = "Autoriser le mulligan"
 
   val draft_ongoing : String = "Draft en cours"
 
@@ -267,12 +262,8 @@ object Eng extends ValText {
   val screen_ratio : String = "Screen format"
 
   val language : String = "Language"
-  val create_game : String = "Create Game"
-  val join_game : String = "Join Game"
-  val settings : String = "Settings"
 
   val unsupported : String = "unsupported for now"
-  val rules : String = "Rules"
 
   val connect : String = "Connect"
   val empty_login : String = "Empty login"
@@ -280,7 +271,7 @@ object Eng extends ValText {
   val draft = "Draft"
   val chose_card: String = "Chose a card"
 
-  val allow_mulligan : String = "Allow mulligan"
+
   val draft_ongoing : String = "Draft ongoing"
 
   val with_mulligan : String = "with mulligan"
