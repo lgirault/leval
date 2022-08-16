@@ -34,10 +34,7 @@ object Joker {
   case object Red extends Color
   case object Black extends Color
 
-  def unapply(c: Card): Option[Color] = c match {
-    case j : J => Some(j.color)
-    case _ => None
-  }
+  def unapply(j: J): Some[Color] = Some(j.color)
 
 }
 
@@ -45,10 +42,9 @@ object Joker {
 
 object Card {
 
-  def unapply(c: C): Option[(Rank, Suit)] = c match {
-    case c1 : C => Some((c.rank, c.suit))
-    case _ => None
-  }
+  def unapply(c: C): Some[(Rank, Suit)] =
+     Some((c.rank, c.suit))
+
 
   def value(c : Card) : Int =
     c match {
@@ -78,17 +74,17 @@ object Card {
   }
 
 
-  implicit val suitOrdering = new Ordering[Suit] {
+  implicit val suitOrdering: Ordering[Suit] = new Ordering[Suit] {
     def compare(x: Suit, y: Suit): Int =
       Ordering.Int.compare(orderingValue(x), orderingValue(y))
   }
 
-  implicit val rankOrdering = new Ordering[Rank] {
+  implicit val rankOrdering: Ordering[Rank] = new Ordering[Rank] {
     def compare(x: Rank, y: Rank): Int =
       Ordering.Int.compare(orderingValue(x), orderingValue(y))
   }
 
-  implicit val cardOrdering = new Ordering[Card] {
+  implicit val cardOrdering : Ordering[Card]= new Ordering[Card] {
 
     def compare(x: Card, y: Card): Int =
       (x,y) match {

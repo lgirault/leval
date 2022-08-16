@@ -70,6 +70,7 @@ trait CoreRules {
       case co @ CardOrigin.Being(b, Diamond) =>
       (wizardOrEminenceGrise(co), 0)
       case Origin.Star(_) => (1, 0)
+      case co @ CardOrigin.Being(_, _) => throw new Exception(s"drawAndLookValues ${co} should not happen")
     }
 
   def isButcher(o : CardOrigin) : Boolean =

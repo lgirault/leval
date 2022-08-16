@@ -2,7 +2,6 @@ package leval.serialization
 
 import java.nio.ByteBuffer
 
-import akka.serialization._
 import leval.core.PlayerId
 import leval.network._
 
@@ -48,8 +47,7 @@ object MessageManifest {
 
 
 
-class MessagesSerializer
-  extends SerializerWithStringManifest {
+class MessagesSerializer {
 
   def identifier: Int = 79658247
 
