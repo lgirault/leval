@@ -1,0 +1,6 @@
+
+how to start :
+
+run `sbt fastOptJS::webpack`
+
+then open index-dev.html in the browser
