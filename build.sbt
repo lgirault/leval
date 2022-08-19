@@ -68,7 +68,10 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
   .jsSettings(
     // Add JS-specific settings here
     scalaJSUseMainModuleInitializer := true,
-    libraryDependencies ++= Seq("com.github.japgolly.scalajs-react" %%% "core" % "2.1.1"),
+    libraryDependencies ++= Seq(
+    "com.github.japgolly.scalajs-react" %%% "core" % "2.1.1",
+    "com.github.japgolly.scalajs-react" %%% "extra" % "2.1.1"
+    ),
 
     // copy  javascript files to js folder,that are generated using fastOptJS/fullOptJS
 //    Compile/ fullOptJS / crossTarget := file("js"),
