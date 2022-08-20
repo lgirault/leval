@@ -5,11 +5,10 @@ import leval.core._
 import leval.serialization._
 import leval.TestSamples._
 import leval.core.Joker.{Black, Red}
-/**
-  * Created by lorilan on 9/1/16.
+
+/** Created by lorilan on 9/1/16.
   */
-class GameSerializerSpec
-  extends AcceptanceSpec {
+class GameSerializerSpec extends AcceptanceSpec {
 
   val serializer = new GameSerializer
 
@@ -17,8 +16,10 @@ class GameSerializerSpec
 
   "A game serializer" - {
     "should encode and decode a GameInit" in {
-      val g = GameInit.gameWithoutMulligan(Seq(PlayerId(0, "toto"),
-        PlayerId(1, "titi")), Rules(Helios))
+      val g = GameInit.gameWithoutMulligan(
+        Seq(PlayerId(0, "toto"), PlayerId(1, "titi")),
+        Rules(Helios)
+      )
       val b = toBinary(g)
       fromBinary(b, GameManifest.initGame) shouldBe g
     }
@@ -83,9 +84,10 @@ class GameSerializerSpec
       fromBinary(b, GameManifest.educateSwitch) shouldBe m
     }
     "should encode and decode a Rise" in {
-      val m = Rise((King, Heart),
-        Map[Suit, Card](Club -> ((10, Club)),
-        Spade -> ((1, Spade))))
+      val m = Rise(
+        (King, Heart),
+        Map[Suit, Card](Club -> ((10, Club)), Spade -> ((1, Spade)))
+      )
       val b = toBinary(m)
       fromBinary(b, GameManifest.educateRise) shouldBe m
     }
@@ -106,9 +108,13 @@ class GameSerializerSpec
     }
 
     "should encode and decode a Twilight" in {
-      val m = Twilight(Seq(Seq[Card]((10, Club), (1, Spade)),
-        Seq[Card](J(0, Red), (3, Spade)),
-        Seq[Card]((Queen, Heart), (King, Diamond))))
+      val m = Twilight(
+        Seq(
+          Seq[Card]((10, Club), (1, Spade)),
+          Seq[Card](J(0, Red), (3, Spade)),
+          Seq[Card]((Queen, Heart), (King, Diamond))
+        )
+      )
       val b = toBinary(m)
       fromBinary(b, GameManifest.twilight) shouldBe m
     }
@@ -125,21 +131,17 @@ class GameSerializerSpec
     }
 
     "should encode and decode Rules" in {
-      val r = Rules(Helios,
-            ostein = true,
-        allowMulligan = true)
+      val r = Rules(Helios, ostein = true, allowMulligan = true)
       val b = GameSerializer.rulesToBinary(r)
       GameSerializer.getRules(b(0)) shouldBe r
     }
     "should encode and decode Rules (2)" in {
-      val r = Rules(Antares,
-        janus = true)
+      val r = Rules(Antares, janus = true)
       val b = GameSerializer.rulesToBinary(r)
       GameSerializer.getRules(b(0)) shouldBe r
     }
     "should encode and decode Rules (3)" in {
-      val r = Rules(Sinnlos,
-        nedemone = true)
+      val r = Rules(Sinnlos, nedemone = true)
       val b = GameSerializer.rulesToBinary(r)
       GameSerializer.getRules(b(0)) shouldBe r
     }

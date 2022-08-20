@@ -5,23 +5,22 @@ import java.nio.ByteBuffer
 import leval.core.PlayerId
 import leval.network._
 
-/**
-  * Created by lorilan on 8/28/16.
+/** Created by lorilan on 8/28/16.
   */
 object MessageManifest {
   // 1 - Generic protocol
 
-  //initial handshake
+  // initial handshake
   val guestConnect = "guestConnect"
   val connect = "connect"
 
   val connectAck = "connectAck"
   val connectNack = "connectNack"
 
-  //exit
+  // exit
   val disconnect = "disconnect"
 
-  //2 - Meta-Game protocol
+  // 2 - Meta-Game protocol
 
   val gameDescription = "gameDescription"
 
@@ -42,44 +41,40 @@ object MessageManifest {
   val joinAck = "joinAck"
   val joinNack = "joinNack"
 
-
 }
-
-
 
 class MessagesSerializer {
 
   def identifier: Int = 79658247
 
-
   def manifest(o: AnyRef): String = o match {
-    case _ : GuestConnect => MessageManifest.guestConnect
-    case _ : Connect => MessageManifest.connect
-    case _ : ConnectAck => MessageManifest.connectAck
-    case _ : ConnectNack => MessageManifest.connectNack
+    case _: GuestConnect => MessageManifest.guestConnect
+    case _: Connect      => MessageManifest.connect
+    case _: ConnectAck   => MessageManifest.connectAck
+    case _: ConnectNack  => MessageManifest.connectNack
 
-    case _ : Disconnect => MessageManifest.disconnect
+    case _: Disconnect => MessageManifest.disconnect
 
-    case _ : GameDescription => MessageManifest.gameDescription
-    case _ : CreateGame => MessageManifest.createGame
-    case _ : CreateGameAck => MessageManifest.createGameAck
-    case GameReady => MessageManifest.gameReady
-    case GameStart => MessageManifest.gameStart
+    case _: GameDescription => MessageManifest.gameDescription
+    case _: CreateGame      => MessageManifest.createGame
+    case _: CreateGameAck   => MessageManifest.createGameAck
+    case GameReady          => MessageManifest.gameReady
+    case GameStart          => MessageManifest.gameStart
 
-    case ListGame => MessageManifest.listGame
-    case _ : PlayDescription => MessageManifest.playDescription
-    case _ : Join => MessageManifest.join
-    case _ : JoinAck => MessageManifest.joinAck
-    case JoinNack => MessageManifest.joinNack
+    case ListGame           => MessageManifest.listGame
+    case _: PlayDescription => MessageManifest.playDescription
+    case _: Join            => MessageManifest.join
+    case _: JoinAck         => MessageManifest.joinAck
+    case JoinNack           => MessageManifest.joinNack
   }
 
   def toBinary(o: AnyRef): Array[Byte] = o match {
-    case p : PlayerId => playerIdToBinary(p)
+    case p: PlayerId => playerIdToBinary(p)
 
     case GuestConnect(clientVersion, login) =>
       val cvb = clientVersion.getBytes(UTF_8)
       val lb = login.getBytes(UTF_8)
-      val bb = ByteBuffer.allocate( int * 2 + cvb.length + lb.length)
+      val bb = ByteBuffer.allocate(int * 2 + cvb.length + lb.length)
       bb putInt cvb.length
       bb put cvb
       bb putInt lb.length
@@ -90,7 +85,7 @@ class MessagesSerializer {
 
     case ConnectNack(msg) =>
       val msgb = msg.getBytes(UTF_8)
-      val bb = ByteBuffer.allocate( int + msgb.length)
+      val bb = ByteBuffer.allocate(int + msgb.length)
 
       bb putInt msgb.length
       bb put msgb
@@ -106,7 +101,7 @@ class MessagesSerializer {
       bb put GameSerializer.rulesToBinary(r)
       bb.array()
 
-    case CreateGame(desc) => toBinary(desc)
+    case CreateGame(desc)    => toBinary(desc)
     case CreateGameAck(desc) => toBinary(desc)
 
     case GameReady => Array.empty
@@ -121,76 +116,72 @@ class MessagesSerializer {
       bb putInt numPlayer
       bb.array()
 
-    case Join(pid) => playerIdToBinary(pid)
+    case Join(pid)     => playerIdToBinary(pid)
     case JoinAck(desc) => toBinary(desc)
 
     case JoinNack => Array.empty
   }
 
-
-
-
-  def gameDescFromBinary(bb: ByteBuffer) : GameDescription = {
+  def gameDescFromBinary(bb: ByteBuffer): GameDescription = {
     val pid = playerIdFromBinary(bb)
     val rules = GameSerializer.getRules(bb)
     GameDescription(pid, rules)
   }
 
-  def gameDescFromBinary(bytes: Array[Byte]) : GameDescription =
+  def gameDescFromBinary(bytes: Array[Byte]): GameDescription =
     gameDescFromBinary(ByteBuffer.wrap(bytes))
 
+  def fromBinary(bytes: Array[Byte], manifest: String): AnyRef =
+    manifest match {
 
-  def fromBinary(bytes: Array[Byte], manifest: String): AnyRef = manifest match {
+      case MessageManifest.guestConnect =>
+        val bb = ByteBuffer.wrap(bytes)
+        val clientVersion = getString(bb)
+        val login = getString(bb)
+        GuestConnect(clientVersion, login)
 
-    case MessageManifest.guestConnect =>
-      val bb = ByteBuffer.wrap(bytes)
-      val clientVersion = getString(bb)
-      val login = getString(bb)
-      GuestConnect(clientVersion, login)
+      case MessageManifest.connectAck =>
+        ConnectAck(playerIdFromBinary(bytes))
 
-    case MessageManifest.connectAck =>
-      ConnectAck(playerIdFromBinary(bytes))
+      case MessageManifest.connectNack =>
+        val bb = ByteBuffer.wrap(bytes)
+        val ms = bb.getInt()
+        val msg = new Array[Byte](ms)
+        bb get msg
+        ConnectNack(new String(msg, UTF_8))
 
-    case MessageManifest.connectNack =>
-      val bb = ByteBuffer.wrap(bytes)
-      val ms =  bb.getInt()
-      val msg = new Array[Byte](ms)
-      bb get msg
-      ConnectNack(new String(msg, UTF_8))
+      case MessageManifest.disconnect =>
+        Disconnect(playerIdFromBinary(bytes))
 
-    case MessageManifest.disconnect =>
-      Disconnect(playerIdFromBinary(bytes))
+      case MessageManifest.gameDescription =>
+        gameDescFromBinary(bytes)
 
+      case MessageManifest.createGame =>
+        CreateGame(gameDescFromBinary(bytes))
+      case MessageManifest.createGameAck =>
+        CreateGameAck(gameDescFromBinary(bytes))
 
-    case MessageManifest.gameDescription =>
-      gameDescFromBinary(bytes)
+      case MessageManifest.gameReady =>
+        GameReady
 
-    case MessageManifest.createGame =>
-      CreateGame(gameDescFromBinary(bytes))
-    case MessageManifest.createGameAck =>
-      CreateGameAck(gameDescFromBinary(bytes))
+      case MessageManifest.gameStart =>
+        GameStart
 
-    case MessageManifest.gameReady =>
-      GameReady
+      case MessageManifest.listGame =>
+        ListGame
 
-    case MessageManifest.gameStart =>
-      GameStart
+      case MessageManifest.playDescription =>
+        val bb = ByteBuffer.wrap(bytes)
+        val desc = gameDescFromBinary(bb)
+        PlayDescription(desc, bb.getInt)
 
-    case MessageManifest.listGame =>
-      ListGame
+      case MessageManifest.join =>
+        Join(playerIdFromBinary(bytes))
 
-    case MessageManifest.playDescription =>
-      val bb = ByteBuffer.wrap(bytes)
-      val desc = gameDescFromBinary(bb)
-      PlayDescription(desc, bb.getInt)
+      case MessageManifest.joinAck =>
+        JoinAck(gameDescFromBinary(bytes))
 
-    case MessageManifest.join =>
-      Join(playerIdFromBinary(bytes))
-
-    case MessageManifest.joinAck =>
-      JoinAck(gameDescFromBinary(bytes))
-
-    case MessageManifest.joinNack =>
-      JoinNack
-  }
+      case MessageManifest.joinNack =>
+        JoinNack
+    }
 }

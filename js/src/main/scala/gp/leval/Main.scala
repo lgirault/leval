@@ -10,6 +10,8 @@ import japgolly.scalajs.react.vdom.html_<^.*
 import scala.scalajs.js.annotation.JSExport
 val HelloMessage = ScalaComponent
   .builder[String]
+  .stateless
+  .noBackend
   .render($ => <.div("Hello ", $.props))
   .build
 

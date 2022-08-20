@@ -4,62 +4,58 @@ import java.nio.ByteBuffer
 
 import leval.core._
 
-/**
-  * Created by Loïc Girault on 31/08/16.
+/** Created by Loïc Girault on 31/08/16.
   */
 object GameSerializer {
 
   val ruleSize = 1
 
-  val ostein_b : Byte = 0x8
-  val allowMulligan_b : Byte = 0x4
-  val nedemone_b : Byte = 0x2
-  val janus_b : Byte = 0x1
+  val ostein_b: Byte = 0x8
+  val allowMulligan_b: Byte = 0x4
+  val nedemone_b: Byte = 0x2
+  val janus_b: Byte = 0x1
 
-  def coreRulesToBinary(r : CoreRules): Byte =
+  def coreRulesToBinary(r: CoreRules): Byte =
     r match {
       case Sinnlos => 0x00
       case Antares => 0x01
-      case Helios =>  0x02
+      case Helios  => 0x02
     }
 
-
-  def valOr0(b : Boolean, v : Byte) : Byte =
-    if(b) v
+  def valOr0(b: Boolean, v: Byte): Byte =
+    if (b) v
     else 0
 
-  def rulesToBinary(r : Rules): Array[Byte] = {
-    val b1 : Byte = valOr0(r.ostein, ostein_b)
-    val b2 : Byte = valOr0(r.allowMulligan, allowMulligan_b)
-    val b3 : Byte = valOr0(r.nedemone, nedemone_b)
-    val b4 : Byte = valOr0(r.janus, janus_b)
-    val br : Byte  =
+  def rulesToBinary(r: Rules): Array[Byte] = {
+    val b1: Byte = valOr0(r.ostein, ostein_b)
+    val b2: Byte = valOr0(r.allowMulligan, allowMulligan_b)
+    val b3: Byte = valOr0(r.nedemone, nedemone_b)
+    val b4: Byte = valOr0(r.janus, janus_b)
+    val br: Byte =
       ((b1 | b2 | b3 | b4) << 4 | coreRulesToBinary(r.coreRules)).toByte
     Array(br)
   }
   private val coreRules = Array(Sinnlos, Antares, Helios)
 
-  def getCoreRules(bb : ByteBuffer) : CoreRules =
+  def getCoreRules(bb: ByteBuffer): CoreRules =
     coreRules(bb.get().toInt)
 
-  def getRules(bb : ByteBuffer) : Rules =
+  def getRules(bb: ByteBuffer): Rules =
     getRules(bb.get)
 
-  def getRules(b : Byte) : Rules = {
+  def getRules(b: Byte): Rules = {
     val variantes = b >> 4
     val ostein = (variantes & ostein_b) != 0
     val allowMulligan = (variantes & allowMulligan_b) != 0
     val nedemone = (variantes & nedemone_b) != 0
     val janus = (variantes & janus_b) != 0
 
-    Rules(coreRules(b & 0xF), ostein, allowMulligan, nedemone, janus)
+    Rules(coreRules(b & 0xf), ostein, allowMulligan, nedemone, janus)
   }
-
-
 
 }
 
-object GameManifest{
+object GameManifest {
   val initGame = "initGame"
 
   // moves
@@ -84,43 +80,41 @@ object GameManifest{
 
 }
 
-
 class GameSerializer {
 
   def identifier: Int = 667815469
 
   def manifest(o: AnyRef): String = o match {
-    case _ : GameInit => GameManifest.initGame //not a move
+    case _: GameInit => GameManifest.initGame // not a move
 
-    case _ : MajestyEffect => GameManifest.majestyEffect
-    case _ : AttackBeing => GameManifest.attackBeing
-    case _ : RemoveFromHand => GameManifest.removeFromHand
-    case _ : ActivateBeing => GameManifest.activateBeing
-    case _ : Collect => GameManifest.collect
-    case _ : Reveal => GameManifest.reveal
-    case _ : LookCard => GameManifest.lookCard
-    case _ : PlaceBeing => GameManifest.placeBeing
-    case _ : Bury => GameManifest.bury
+    case _: MajestyEffect  => GameManifest.majestyEffect
+    case _: AttackBeing    => GameManifest.attackBeing
+    case _: RemoveFromHand => GameManifest.removeFromHand
+    case _: ActivateBeing  => GameManifest.activateBeing
+    case _: Collect        => GameManifest.collect
+    case _: Reveal         => GameManifest.reveal
+    case _: LookCard       => GameManifest.lookCard
+    case _: PlaceBeing     => GameManifest.placeBeing
+    case _: Bury           => GameManifest.bury
 
-    case _ : BuryRequest => GameManifest.buryRequest //not a move
-    case _ : OsteinSelection => GameManifest.osteinSelection
+    case _: BuryRequest     => GameManifest.buryRequest // not a move
+    case _: OsteinSelection => GameManifest.osteinSelection
 
-    case _ : Switch => GameManifest.educateSwitch
-    case _ : Rise => GameManifest.educateRise
-    case _ : InfluencePhase => GameManifest.influencePhase
-    case _ : ActPhase => GameManifest.actPhase
-    case SourcePhase => GameManifest.sourcePhase
+    case _: Switch         => GameManifest.educateSwitch
+    case _: Rise           => GameManifest.educateRise
+    case _: InfluencePhase => GameManifest.influencePhase
+    case _: ActPhase       => GameManifest.actPhase
+    case SourcePhase       => GameManifest.sourcePhase
 
-    case _ : Twilight => GameManifest.twilight //not a move
+    case _: Twilight => GameManifest.twilight // not a move
   }
 
   def toBinary(o: AnyRef): Array[Byte] = o match {
     case GameInit(twilight, stars, source, rules) =>
-
       val pids = stars map (_.id) map playerIdToBinary
 
       val handSize = CardSerializer.cardSize * stars.head.hand.size
-      //all hands have same size
+      // all hands have same size
       val starsSize = byte * 2 + /*numStar + card per hand*/
         pids.map(_.length).sum +
         stars.size * (int + handSize)
@@ -134,11 +128,10 @@ class GameSerializer {
 
       bb put stars.size.toByte
       bb put stars.head.hand.size.toByte
-      (pids zip stars).reverseIterator foreach {
-        case (pid, Star(_, maj, h)) =>
-          bb put pid
-          bb putInt maj
-          h.foreach(CardSerializer.put(bb, _))
+      (pids zip stars).reverseIterator foreach { case (pid, Star(_, maj, h)) =>
+        bb put pid
+        bb putInt maj
+        h.foreach(CardSerializer.put(bb, _))
       }
 
       bb put source.size.toByte
@@ -147,15 +140,17 @@ class GameSerializer {
       bb put GameSerializer.rulesToBinary(rules)
       bb.array()
     case MajestyEffect(v, tgt) =>
-      val bb = ByteBuffer.allocate( int * 2)
+      val bb = ByteBuffer.allocate(int * 2)
       bb putInt v
       bb putInt tgt
       bb.array()
 
     case AttackBeing(origin, tgtBeing, tgtSuit) =>
-      val bb = ByteBuffer.allocate(OriginSerializer.binarySize(origin) +
-        BeingSerializer.binarySize(tgtBeing) +
-        CardSerializer.suitSize)
+      val bb = ByteBuffer.allocate(
+        OriginSerializer.binarySize(origin) +
+          BeingSerializer.binarySize(tgtBeing) +
+          CardSerializer.suitSize
+      )
       OriginSerializer.put(bb, origin)
       BeingSerializer.put(bb, tgtBeing)
       bb put (CardSerializer toByte tgtSuit)
@@ -169,7 +164,7 @@ class GameSerializer {
     case Collect(or, tgt) =>
       val bb = ByteBuffer.allocate(OriginSerializer.binarySize(or) + byte)
       OriginSerializer.put(bb, or)
-      if(tgt == Source)
+      if (tgt == Source)
         bb.put(0x00.toByte)
       else bb.put(0x01.toByte)
       bb.array()
@@ -180,9 +175,11 @@ class GameSerializer {
       bb.put(CardSerializer toByte s)
       bb.array()
 
-    case LookCard(or, tgt , s) =>
-      val bb = ByteBuffer.allocate(OriginSerializer.binarySize(or) +
-        CardSerializer.cardSize + byte)
+    case LookCard(or, tgt, s) =>
+      val bb = ByteBuffer.allocate(
+        OriginSerializer.binarySize(or) +
+          CardSerializer.cardSize + byte
+      )
       OriginSerializer.put(bb, or)
       CardSerializer.put(bb, tgt)
       bb.put(CardSerializer toByte s)
@@ -195,20 +192,23 @@ class GameSerializer {
       bb.array()
 
     case Bury(tgt, order) =>
-      val bb = ByteBuffer.allocate(CardSerializer.cardSize * (order.size + 1) + int)
+      val bb =
+        ByteBuffer.allocate(CardSerializer.cardSize * (order.size + 1) + int)
       CardSerializer.put(bb, tgt)
       bb putInt order.size
       order.reverseIterator foreach (CardSerializer.put(bb, _))
       bb.array()
     case BuryRequest(tgt, toBury) =>
-      val bb = ByteBuffer.allocate(BeingSerializer.binarySize(tgt) +
-        int + toBury.size * CardSerializer.cardSize )
+      val bb = ByteBuffer.allocate(
+        BeingSerializer.binarySize(tgt) +
+          int + toBury.size * CardSerializer.cardSize
+      )
       BeingSerializer.put(bb, tgt)
       bb putInt toBury.size
       toBury foreach (CardSerializer.put(bb, _))
       bb.array()
 
-    case OsteinSelection(c)=>
+    case OsteinSelection(c) =>
       val bb = ByteBuffer.allocate(CardSerializer.cardSize)
       CardSerializer.put(bb, c)
       bb.array()
@@ -220,13 +220,14 @@ class GameSerializer {
       bb.array()
 
     case Rise(tgt, cs) =>
-      val bb = ByteBuffer.allocate((CardSerializer.cardSize + byte) * (cs.size + 1) + int)
+      val bb = ByteBuffer.allocate(
+        (CardSerializer.cardSize + byte) * (cs.size + 1) + int
+      )
       CardSerializer.put(bb, tgt)
       bb putInt cs.size
-      cs foreach {
-        case (s, c) =>
-          bb put (CardSerializer toByte s)
-          CardSerializer.put(bb, c)
+      cs foreach { case (s, c) =>
+        bb put (CardSerializer toByte s)
+        CardSerializer.put(bb, c)
       }
       bb.array()
     case InfluencePhase(newPlayer) =>
@@ -234,9 +235,11 @@ class GameSerializer {
       bb.putInt(newPlayer)
       bb.array()
     case ActPhase(activatedBeings) =>
-      val bb = ByteBuffer.allocate(int + CardSerializer.cardSize * activatedBeings.size)
+      val bb = ByteBuffer.allocate(
+        int + CardSerializer.cardSize * activatedBeings.size
+      )
       bb putInt activatedBeings.size
-      activatedBeings foreach ( CardSerializer.put(bb, _) )
+      activatedBeings foreach (CardSerializer.put(bb, _))
       bb.array()
     case SourcePhase => Array.empty
     case t: Twilight =>
@@ -252,11 +255,11 @@ class GameSerializer {
         val numStar = bb.get().toInt
         val handSize = bb.get().toInt
         var ss = List[Star]()
-        for(_ <- 1 to numStar) {
+        for (_ <- 1 to numStar) {
           val pid = playerIdFromBinary(bb)
           val m = bb.getInt()
           var hand = Star.emptyHand
-          for(_ <- 1 to handSize){
+          for (_ <- 1 to handSize) {
             hand += CardSerializer fromBinary bb
           }
           ss ::= Star(pid, m, hand)
@@ -264,7 +267,7 @@ class GameSerializer {
 
         val deckSize = bb.get().toInt
         var deck = List[Card]()
-        for(_ <- 1 to deckSize) {
+        for (_ <- 1 to deckSize) {
           deck ::= CardSerializer fromBinary bb
         }
         val rules = GameSerializer.getRules(bb)
@@ -292,7 +295,7 @@ class GameSerializer {
         val bb = ByteBuffer wrap bytes
         val or = OriginSerializer.fromBinary(bb)
         val tgt =
-          if(bb.get == 0) Source
+          if (bb.get == 0) Source
           else DeathRiver
         Collect(or, tgt)
 
@@ -322,7 +325,7 @@ class GameSerializer {
         val tgt = CardSerializer.fromBinary(bb)
         val size = bb.getInt()
         var l = List[Card]()
-        for( _ <- 1 to size ){
+        for (_ <- 1 to size) {
           l ::= CardSerializer.fromBinary(bb)
         }
         Bury(tgt, l)
@@ -332,7 +335,7 @@ class GameSerializer {
         val tgt = BeingSerializer.fromBinary(bb)
         val size = bb.getInt()
         var s = Set[Card]()
-        for( _ <- 1 to size ){
+        for (_ <- 1 to size) {
           s += CardSerializer.fromBinary(bb)
         }
         BuryRequest(tgt, s)
@@ -353,7 +356,7 @@ class GameSerializer {
         val tgt = CardSerializer.fromBinary(bb)
         val size = bb.getInt()
         var m = Map[Suit, Card]()
-        for( _ <- 1 to size ){
+        for (_ <- 1 to size) {
           val s = CardSerializer.suits(bb.get.toInt)
           val c = CardSerializer.fromBinary(bb)
           m += (s -> c)
@@ -367,7 +370,7 @@ class GameSerializer {
         val bb = ByteBuffer wrap bytes
         val s = bb.getInt
         var set = Set[Card]()
-        for( _ <- 1 to s){
+        for (_ <- 1 to s) {
           set += CardSerializer fromBinary bb
         }
         ActPhase(set)
@@ -381,40 +384,37 @@ class GameSerializer {
 }
 object TwilightSerializer {
 
-
-  def binarySize(t : Twilight) =
-    if(t.cards.isEmpty) byte
-    else if(t.cards.head.isEmpty)
+  def binarySize(t: Twilight) =
+    if (t.cards.isEmpty) byte
+    else if (t.cards.head.isEmpty)
       2 * byte
     else {
       CardSerializer.cardSize *
         (t.cards.head.size * t.cards.size) + 2 * byte
     }
 
-
-  def toBinary(twilight: Twilight) : Array[Byte] = {
-    val bb = ByteBuffer.allocate( binarySize(twilight))
+  def toBinary(twilight: Twilight): Array[Byte] = {
+    val bb = ByteBuffer.allocate(binarySize(twilight))
     put(bb, twilight)
     bb.array()
   }
 
-  def put(bb : ByteBuffer, t : Twilight) : Unit = {
+  def put(bb: ByteBuffer, t: Twilight): Unit = {
     bb put t.cards.size.toByte
-    if(t.cards.nonEmpty) {
+    if (t.cards.nonEmpty) {
       bb put t.cards.head.size.toByte
 
-      if(t.cards.head.nonEmpty)
-        t.cards.reverseIterator.foreach {
-          cs =>
-            cs.reverseIterator foreach (CardSerializer.put(bb, _))
+      if (t.cards.head.nonEmpty)
+        t.cards.reverseIterator.foreach { cs =>
+          cs.reverseIterator foreach (CardSerializer.put(bb, _))
         }
     }
   }
 
-  def fromBinary(bytes : Array[Byte]) : Twilight =
+  def fromBinary(bytes: Array[Byte]): Twilight =
     fromBinary(ByteBuffer wrap bytes)
 
-  def fromBinary(bb : ByteBuffer) : Twilight = {
+  def fromBinary(bb: ByteBuffer): Twilight = {
     val size = bb.get().toInt
     if (size == 0) Twilight(List())
     else {
@@ -431,4 +431,3 @@ object TwilightSerializer {
     }
   }
 }
-

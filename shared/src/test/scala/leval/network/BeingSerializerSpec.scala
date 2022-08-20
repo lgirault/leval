@@ -2,11 +2,10 @@ package leval.network
 
 import leval.AcceptanceSpec
 import leval.TestSamples._
-/**
-  * Created by lorilan on 9/1/16.
+
+/** Created by lorilan on 9/1/16.
   */
-class BeingSerializerSpec
-  extends AcceptanceSpec {
+class BeingSerializerSpec extends AcceptanceSpec {
 
   import leval.serialization.BeingSerializer._
   "A being serializer" - {

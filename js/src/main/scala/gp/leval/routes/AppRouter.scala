@@ -30,7 +30,7 @@ private val config = RouterConfigDsl[AppPage].buildConfig { dsl =>
       HomeMenu(HomeMenu.Props(r))
     )
     | staticRoute("createGame", AppPage.CreateGameForm) ~> render(
-      CreateGameForm(CreateGameFormText())
+      CreateGameForm(CreateGameForm.Text())
     ))
     .notFound(redirectToPage(AppPage.Home)(HistoryReplace))
     .renderWith(layout)
@@ -46,4 +46,6 @@ private def layout(c: RouterCtl[AppPage], r: Resolution[AppPage]) =
 
 private val baseUrl = BaseUrl.fromWindowOrigin / "index.html"
 
+//doc :
+//https://github.com/japgolly/scalajs-react/blob/master/doc/ROUTER.md#features
 val AppRouter = Router(baseUrl, config)

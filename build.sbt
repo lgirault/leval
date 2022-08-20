@@ -1,5 +1,11 @@
 import java.io.FileWriter
 
+val Http4sVersion = "1.0.0-M35"
+val CirceVersion = "0.14.2"
+val LogbackVersion = "1.2.11"
+  
+val ScalaTestVersion = "3.2.13"
+  
 val printClassPathFile = taskKey[File]("create a file containing the fullclass path")
 
 val classPathFileName = settingKey[String]("Location of generated classpath script")
@@ -33,8 +39,7 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
       Seq(
         //      "com.typesafe.akka" %% "akka-remote" % "2.4.7",
         //      "com.typesafe.akka" %% "akka-slf4j" % "2.4.7",
-        "ch.qos.logback" % "logback-classic" % "1.2.11",
-        "org.scalatest" %%% "scalatest" % "3.2.13"
+        "org.scalatest" %%% "scalatest" % ScalaTestVersion
         //  "com.typesafe.akka" %% "akka-testkit" % "2.4.7"
       ),
     scalacOptions ++= Seq(
@@ -62,7 +67,12 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
   .jvmSettings(
     libraryDependencies ++=
       Seq(
-        "ch.qos.logback" % "logback-classic" % "1.2.11"
+        "org.http4s"      %% "http4s-ember-server" % Http4sVersion,
+        "org.http4s"      %% "http4s-ember-client" % Http4sVersion,
+        "org.http4s"      %% "http4s-circe"        % Http4sVersion,
+        "org.http4s"      %% "http4s-dsl"          % Http4sVersion,      
+        "io.circe"        %% "circe-generic"       % CirceVersion,
+        "ch.qos.logback" % "logback-classic" % LogbackVersion % Runtime,
       )
   )
   .jsSettings(
