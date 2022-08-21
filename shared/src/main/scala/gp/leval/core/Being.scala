@@ -1,7 +1,9 @@
-package leval.core
+package gp.leval.core
 
-import leval.core.Game.StarIdx
-import leval.core.Joker.{Black, Red}
+import gp.leval
+
+import Game.StarIdx
+import Joker.{Black, Red}
 
 import scala.collection.immutable.SortedSet
 

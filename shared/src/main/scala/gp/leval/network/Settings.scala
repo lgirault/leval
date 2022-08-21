@@ -1,4 +1,4 @@
-package leval.network
+package gp.leval.network
 
 object Settings {
   val serverName = "SolarServer"

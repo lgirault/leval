@@ -1,9 +1,10 @@
-package leval
+package gp.leval
+
+import gp.leval.core.PlayerId
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-
-import leval.core.PlayerId
+import gp.leval.core.PlayerId
 
 /** Created by Loïc Girault on 31/08/16.
   */

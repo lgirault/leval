@@ -1,8 +1,9 @@
-package leval.serialization
+package gp.leval.serialization
 
 import java.nio.ByteBuffer
 
-import leval.core.{CardOrigin, Origin}
+import gp.leval
+import gp.leval.core.{CardOrigin, Origin}
 
 /** Created by Loïc Girault on 01/09/16.
   */

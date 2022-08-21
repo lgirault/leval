@@ -2,7 +2,7 @@ package gp.leval
 
 import cats.effect.{Concurrent, Sync}
 import cats.implicits.*
-import leval.core.{Antares, CoreRules, Helios, Rules, Sinnlos}
+import gp.leval.core.{Antares, CoreRules, Helios, Rules, Sinnlos}
 import org.http4s.{FormDataDecoder, HttpRoutes, ParseFailure, QueryParamDecoder}
 import org.http4s.FormDataDecoder.*
 import org.http4s.dsl.Http4sDsl

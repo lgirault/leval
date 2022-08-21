@@ -2,24 +2,11 @@ package gp.leval
 
 import cats.effect.{Concurrent, Sync}
 import cats.implicits.*
-import leval.core.{
-  Antares,
-  AntaresHeliosCommon,
-  CoreRules,
-  Helios,
-  Rules,
-  Sinnlos
-}
-import org.http4s.{
-  EntityEncoder,
-  FormDataDecoder,
-  HttpRoutes,
-  ParseFailure,
-  QueryParamDecoder
-}
+import gp.leval.core.{Antares, AntaresHeliosCommon, CoreRules, Helios, Rules, Sinnlos}
+import org.http4s.{EntityEncoder, FormDataDecoder, HttpRoutes, ParseFailure, QueryParamDecoder}
 import org.http4s.FormDataDecoder.*
 import org.http4s.dsl.Http4sDsl
-import io.circe.{Json, Decoder, Encoder}
+import io.circe.{Decoder, Encoder, Json}
 import io.circe.generic.semiauto.*
 //import org.http4s._
 //import org.http4s.implicits._
@@ -55,6 +42,17 @@ object RulesCodecs {
     field[Boolean]("nedemone"),
     field[Boolean]("janus")
   ).mapN(Rules.apply)
+
+  implicit val coreJsonRulesDecoder: Decoder[CoreRules] =
+    Decoder.decodeString.emap { s =>
+      coreRulesMap
+        .get(s.toLowerCase)
+        .toRight(
+          s"Expected one of ${coreRulesMap.keys.mkString("'", "','", "'")} but got ${s}"
+        )
+    }
+
+  implicit val rulesJsonDecoder: Decoder[Rules] = deriveDecoder[Rules]
 
   implicit val coreJsonRulesEncoder: Encoder[CoreRules] =
     Encoder.instance[CoreRules] {

@@ -1,4 +1,4 @@
-package leval.core
+package gp.leval.core
 
 /** Created by lorilan on 6/21/16.
   */

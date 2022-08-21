@@ -1,4 +1,4 @@
-package leval
+package gp.leval
 
 import scala.util.Random
 

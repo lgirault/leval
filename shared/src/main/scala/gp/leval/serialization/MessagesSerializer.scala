@@ -1,9 +1,10 @@
-package leval.serialization
+package gp.leval.serialization
+
+import gp.leval.core.PlayerId
 
 import java.nio.ByteBuffer
-
-import leval.core.PlayerId
-import leval.network._
+import gp.leval.core.PlayerId
+import gp.leval.network.*
 
 /** Created by lorilan on 8/28/16.
   */

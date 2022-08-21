@@ -1,8 +1,9 @@
-package leval.serialization
+package gp.leval.serialization
+
+import gp.leval.core.{DeathRiver, Source, Star}
 
 import java.nio.ByteBuffer
-
-import leval.core._
+import gp.leval.core.*
 
 /** Created by Loïc Girault on 31/08/16.
   */

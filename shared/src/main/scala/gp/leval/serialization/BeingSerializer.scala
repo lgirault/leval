@@ -1,8 +1,9 @@
-package leval.serialization
+package gp.leval.serialization
+
+import gp.leval.core.Being
 
 import java.nio.ByteBuffer
-
-import leval.core.{Being, Card, Suit}
+import gp.leval.core.{Being, Card, Suit}
 
 /** Created by Loïc Girault on 01/09/16.
   */

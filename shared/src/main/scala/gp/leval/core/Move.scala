@@ -1,6 +1,7 @@
-package leval.core
+package gp.leval.core
 
-import leval.core.Game.StarIdx
+import gp.leval.core
+import gp.leval.core.Game.StarIdx
 
 /** Created by Loïc Girault on 06/07/16.
   */
@@ -23,7 +24,7 @@ sealed abstract class CardOrigin extends Origin {
 
 object CardOrigin {
   case class Hand(owner: StarIdx, card: Card) extends CardOrigin
-  import leval.core
+  import gp.leval.core
   case class Being(b: core.Being, suit: Suit) extends CardOrigin {
     def card = b resources suit
     def owner: Int = b.owner

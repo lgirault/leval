@@ -1,8 +1,9 @@
-package leval.serialization
+package gp.leval.serialization
 
+import gp.leval
 import java.nio.ByteBuffer
 
-import leval.core._
+import gp.leval.core._
 
 /** Created by Loïc Girault on 31/08/16.
   */

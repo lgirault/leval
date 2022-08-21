@@ -1,6 +1,7 @@
-package leval.network
+package gp.leval.network
 
-import leval.core.{PlayerId, Rules}
+import gp.leval.core.{PlayerId, Rules}
+import gp.leval.core.{PlayerId, Rules}
 
 abstract class Message extends Serializable
 
