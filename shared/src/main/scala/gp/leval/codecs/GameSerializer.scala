@@ -1,4 +1,4 @@
-package gp.leval.serialization
+package gp.leval.codecs
 
 import gp.leval.core.{DeathRiver, Source, Star}
 

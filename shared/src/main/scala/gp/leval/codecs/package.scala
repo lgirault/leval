@@ -4,11 +4,10 @@ import gp.leval.core.PlayerId
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import gp.leval.core.PlayerId
 
 /** Created by Loïc Girault on 31/08/16.
   */
-package object serialization {
+package object codecs {
   val UTF_8 = StandardCharsets.UTF_8.name()
   val int = 4
   val byte = 1
