@@ -1,13 +1,30 @@
 package gp.leval
 
-import cats.effect.{Concurrent, Sync}
+import cats.effect.{Concurrent, Ref, Sync}
+import cats.effect.std.Queue
 import cats.implicits.*
-import gp.leval.core.{Antares, CoreRules, Helios, Rules, Sinnlos}
+import monocle.syntax.all._
+import fs2.Stream
+
+import gp.leval.codecs.entities.*
+import gp.leval.core.{Antares, CoreRules, Helios, PlayerId, Rules, Sinnlos}
+import gp.leval.network.ServerToClientMessage
+import gp.leval.network.ClientToServerMessage.GameDescription
+
+import org.http4s.dsl.Http4sDsl
 import org.http4s.{FormDataDecoder, HttpRoutes, ParseFailure, QueryParamDecoder}
 import org.http4s.FormDataDecoder.*
-import org.http4s.dsl.Http4sDsl
+import org.http4s.server.websocket.WebSocketBuilder
+import org.http4s.websocket.WebSocketFrame
+import org.http4s.websocket.WebSocketFrame.{Close, Text}
+
+import java.util.UUID
 
 object LevalRoutes {
+
+  type InputMessage = String
+  type OutputMessage = String
+
   def helloWorldRoutes[F[_]: Sync](H: HelloWorld[F]): HttpRoutes[F] = {
     val dsl = Http4sDsl[F]
     import dsl._
@@ -19,19 +36,68 @@ object LevalRoutes {
     }
   }
 
-  def gameRoutes[F[_]: Concurrent](H: HelloWorld[F]): HttpRoutes[F] = {
+  def gameRoutes[F[_]](
+    state: Ref[F, GameServerState[F]]
+  )(webSocketBuilder: WebSocketBuilder[F])(implicit F: Concurrent[F]): HttpRoutes[F] = {
     val dsl = Http4sDsl[F]
     import RulesCodecs._
     import dsl._
-    HttpRoutes.of[F] { case req @ POST -> Root / "createGame" =>
-      for {
-        rules <- req.as[Rules]
-        // greeting <- H.hello(HelloWorld.Name(name))
-        resp <- Ok(rules)
-      } yield resp
+    HttpRoutes.of[F] {
+      case req @ POST -> Root / "createGame" =>
+        for {
+          gameDesc <- req.as[GameDescription]
+          room <- F.delay{
+            GameRoom(UUID.randomUUID(),
+              gameDesc.rules,
+              gameDesc.owner,
+              Nil)
+
+          }
+          _ <- state.update(_.focus(_.rooms).modify(_ + room.id -> room))
+          resp <- Ok(GameRoomId(room.id))
+        } yield resp
+
+      case req @ POST -> Root / "joinGame" / roomId =>
+        def processInput(wsfStream: Stream[F, WebSocketFrame]): Stream[F, Unit] = {
+          val parsedWebSocketInput: Stream[F, InputMessage] =
+            wsfStream
+              .collect {
+                case Text(text, _) => ??? // InputMessage.parse(userName, text)
+
+                // Convert the terminal WebSocket event to a User disconnect message
+                case Close(_) => ??? // /Disconnect(userName)
+              }
+
+          ???              
+        }
+
+        for {
+
+          playerId <- req.as[PlayerId]
+
+          output <- Queue.bounded[F, ServerToClientMessage](10)
+
+          toClient = Stream
+            .fromQueueUnterminated(output, 10)
+            .map(msg => Text(msg.toString))
+
+          _ <- state.update(_.focus(_.rooms.index(room.id).players).modify((playerId -> toClient) :: _))
+
+          response <- webSocketBuilder.build(toClient, processInput)
+        } yield response
+
     }
   }
 }
+
+case class GameServerState[F[_]](rooms: Map[UUID, GameRoom[F]])
+
+case class GameRoom[F[_]](
+  id: UUID,
+  rules: Rules,
+  owner: PlayerId,
+  players: List[(PlayerId, Queue[F, ServerToClientMessage])]
+)
 
 import cats.Applicative
 import cats.implicits._

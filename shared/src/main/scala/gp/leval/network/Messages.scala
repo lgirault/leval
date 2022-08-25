@@ -3,6 +3,30 @@ package gp.leval.network
 import gp.leval.core.{PlayerId, Rules}
 import gp.leval.core.{PlayerId, Rules}
 
+import java.util.UUID
+
+
+sealed trait ServerToClientMessage
+
+object ServerToClientMessage {
+  // new player join
+  //game start
+
+  case class GameRoomId(id: UUID) extends ServerToClientMessage
+}
+
+
+sealed trait ClientToServerMessage
+
+object ClientToServerMessage {
+
+  case class GameDescription(owner: PlayerId, rules: Rules) extends ServerToClientMessage
+  //heartbeat
+  //start the game
+  //kick/ban player
+
+}
+
 abstract class Message extends Serializable
 
 // 1 - Generic protocol

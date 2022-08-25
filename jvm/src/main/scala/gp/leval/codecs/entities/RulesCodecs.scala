@@ -1,11 +1,11 @@
-package gp.leval
+package gp.leval.codecs.entities
 
 import cats.effect.{Concurrent, Sync}
 import cats.implicits.*
 import gp.leval.core.{Antares, AntaresHeliosCommon, CoreRules, Helios, Rules, Sinnlos}
 import org.http4s.{EntityEncoder, FormDataDecoder, HttpRoutes, ParseFailure, QueryParamDecoder}
 import org.http4s.FormDataDecoder.*
-import org.http4s.dsl.Http4sDsl
+
 import io.circe.{Decoder, Encoder, Json}
 import io.circe.generic.semiauto.*
 //import org.http4s._

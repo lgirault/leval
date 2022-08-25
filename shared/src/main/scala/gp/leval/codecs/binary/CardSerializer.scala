@@ -1,9 +1,9 @@
-package gp.leval.codecs
+package gp.leval.codecs.binary
 
 import gp.leval
-import java.nio.ByteBuffer
+import gp.leval.core.*
 
-import gp.leval.core._
+import java.nio.ByteBuffer
 
 /** Created by Loïc Girault on 31/08/16.
   */

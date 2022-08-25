@@ -1,11 +1,9 @@
-package gp.leval
+package gp.leval.core
 
 import scala.util.Random
 
 /** Created by Loïc Girault on 20/06/16.
   */
-package object core {
-
   type Deck = Seq[Card]
 
   val suits = Seq(Diamond, Club, Heart, Spade)
@@ -33,5 +31,3 @@ package object core {
       aux(n, d, Seq())
     }
   }
-
-}

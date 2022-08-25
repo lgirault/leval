@@ -2,6 +2,8 @@ import java.io.FileWriter
 
 val Http4sVersion = "1.0.0-M35"
 val CirceVersion = "0.14.2"
+val CatsVersion = "2.8.0"
+val CatsEffectVersion = "3.3.14"
 val LogbackVersion = "1.2.11"
   
 val ScalaTestVersion = "3.2.13"
@@ -39,7 +41,10 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
       Seq(
         //      "com.typesafe.akka" %% "akka-remote" % "2.4.7",
         //      "com.typesafe.akka" %% "akka-slf4j" % "2.4.7",
-        "org.scalatest" %%% "scalatest" % ScalaTestVersion
+        "org.typelevel" %%% "cats-core" % CatsVersion,
+        "io.circe" %%% "circe-generic" % CirceVersion,
+        "org.scalatest" %%% "scalatest" % ScalaTestVersion,
+        "dev.optics" %%% "monocle-core" % "3.1.0",
         //  "com.typesafe.akka" %% "akka-testkit" % "2.4.7"
       ),
     scalacOptions ++= Seq(
@@ -61,7 +66,8 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
       //    "-Xfuture",
       //    "-Ywarn-unused-import",
       // "-rewrite",
-      "-source:3.0-migration"
+      "-source:3.0-migration",
+      "-explain"
     )
   )
   .jvmSettings(
@@ -70,8 +76,7 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
         "org.http4s"      %% "http4s-ember-server" % Http4sVersion,
         "org.http4s"      %% "http4s-ember-client" % Http4sVersion,
         "org.http4s"      %% "http4s-circe"        % Http4sVersion,
-        "org.http4s"      %% "http4s-dsl"          % Http4sVersion,      
-        "io.circe"        %% "circe-generic"       % CirceVersion,
+        "org.http4s"      %% "http4s-dsl"          % Http4sVersion,
         "ch.qos.logback" % "logback-classic" % LogbackVersion % Runtime,
       )
   )

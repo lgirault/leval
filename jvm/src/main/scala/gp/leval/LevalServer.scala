@@ -1,13 +1,14 @@
 package gp.leval
 
-import cats.effect.{Async, Resource}
-import cats.syntax.all._
-import com.comcast.ip4s._
+import cats.effect.{Async, Resource, Ref}
+import cats.syntax.all.*
+import com.comcast.ip4s.*
 import fs2.Stream
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.server.EmberServerBuilder
-import org.http4s.implicits._
+import org.http4s.implicits.*
 import org.http4s.server.middleware.Logger
+import org.http4s.server.websocket.WebSocketBuilder
 
 object LevalServer {
 
@@ -21,22 +22,27 @@ object LevalServer {
       // Can also be done via a Router if you
       // want to extract segments not checked
       // in the underlying routes.
-      httpApp = (
+
+      state <- Stream.eval(Ref.of[F, GameServerState[F]](GameServerState(Map.empty)))
+      
+      httpApp = (wsb: WebSocketBuilder[F]) => (
         LevalRoutes
-          .helloWorldRoutes[F](helloWorldAlg) // <+>
+          .helloWorldRoutes[F](helloWorldAlg)  <+>
+          LevalRoutes.gameRoutes[F](state)(wsb)
           // Hellohttp4sRoutes.jokeRoutes[F](jokeAlg)
         )
         .orNotFound
 
       // With Middlewares in place
-      finalHttpApp = Logger.httpApp(true, true)(httpApp)
+      finalHttpApp = (wsb: WebSocketBuilder[F]) =>
+        Logger.httpApp(true, true)(httpApp(wsb))
 
       exitCode <- Stream.resource(
         EmberServerBuilder
           .default[F]
           .withHost(ipv4"0.0.0.0")
           .withPort(port"8080")
-          .withHttpApp(finalHttpApp)
+          .withHttpWebSocketApp(finalHttpApp)
           .build >>
           Resource.eval(Async[F].never)
       )

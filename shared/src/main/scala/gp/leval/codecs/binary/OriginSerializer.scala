@@ -1,9 +1,10 @@
-package gp.leval.codecs
-
-import java.nio.ByteBuffer
+package gp.leval.codecs.binary
 
 import gp.leval
+import gp.leval.codecs.binary.{BeingSerializer, CardSerializer, byte}
 import gp.leval.core.{CardOrigin, Origin}
+
+import java.nio.ByteBuffer
 
 /** Created by Loïc Girault on 01/09/16.
   */

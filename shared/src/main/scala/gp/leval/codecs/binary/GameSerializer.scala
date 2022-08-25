@@ -1,9 +1,9 @@
-package gp.leval.codecs
+package gp.leval.codecs.binary
 
-import gp.leval.core.{DeathRiver, Source, Star}
+import gp.leval.codecs.*
+import gp.leval.core.*
 
 import java.nio.ByteBuffer
-import gp.leval.core.*
 
 /** Created by Loïc Girault on 31/08/16.
   */

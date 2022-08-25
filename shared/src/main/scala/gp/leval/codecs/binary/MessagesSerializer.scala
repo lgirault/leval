@@ -1,10 +1,10 @@
-package gp.leval.codecs
+package gp.leval.codecs.binary
 
-import gp.leval.core.PlayerId
-
-import java.nio.ByteBuffer
+import gp.leval.codecs.*
 import gp.leval.core.PlayerId
 import gp.leval.network.*
+
+import java.nio.ByteBuffer
 
 /** Created by lorilan on 8/28/16.
   */
