@@ -20,7 +20,7 @@ object AppPage {
 }
 
 private val config = RouterConfigDsl[AppPage].buildConfig { dsl =>
-  import dsl._
+  import dsl.*
   // val itemRoutes: Rule =
   //   Item.routes.prefixPath_/("#items").pmap[AppPage](Items) {
   //     case Items(p) => p

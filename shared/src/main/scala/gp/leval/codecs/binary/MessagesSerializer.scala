@@ -76,10 +76,10 @@ class MessagesSerializer {
       val cvb = clientVersion.getBytes(UTF_8)
       val lb = login.getBytes(UTF_8)
       val bb = ByteBuffer.allocate(int * 2 + cvb.length + lb.length)
-      bb putInt cvb.length
-      bb put cvb
-      bb putInt lb.length
-      bb put lb
+      bb.putInt(cvb.length)
+      bb.put(cvb)
+      bb.putInt(lb.length)
+      bb.put(lb)
       bb.array()
 
     case ConnectAck(p) => playerIdToBinary(p)
@@ -88,8 +88,8 @@ class MessagesSerializer {
       val msgb = msg.getBytes(UTF_8)
       val bb = ByteBuffer.allocate(int + msgb.length)
 
-      bb putInt msgb.length
-      bb put msgb
+      bb.putInt(msgb.length)
+      bb.put(msgb)
 
       bb.array()
 
@@ -98,8 +98,8 @@ class MessagesSerializer {
     case GameDescription(p, r) =>
       val pid = playerIdToBinary(p)
       val bb = ByteBuffer.allocate(pid.length + GameSerializer.ruleSize)
-      bb put pid
-      bb put GameSerializer.rulesToBinary(r)
+      bb.put(pid)
+      bb.put(GameSerializer.rulesToBinary(r))
       bb.array()
 
     case CreateGame(desc)    => toBinary(desc)
@@ -113,8 +113,8 @@ class MessagesSerializer {
     case PlayDescription(desc, numPlayer) =>
       val bdesc = toBinary(desc)
       val bb = ByteBuffer.allocate(bdesc.length + int)
-      bb put bdesc
-      bb putInt numPlayer
+      bb.put(bdesc)
+      bb.putInt(numPlayer)
       bb.array()
 
     case Join(pid)     => playerIdToBinary(pid)
@@ -148,7 +148,7 @@ class MessagesSerializer {
         val bb = ByteBuffer.wrap(bytes)
         val ms = bb.getInt()
         val msg = new Array[Byte](ms)
-        bb get msg
+        bb.get(msg)
         ConnectNack(new String(msg, UTF_8))
 
       case MessageManifest.disconnect =>

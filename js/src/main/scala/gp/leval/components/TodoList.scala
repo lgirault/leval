@@ -1,12 +1,12 @@
 package gp.leval.components
 
-import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.extra.Ajax
 
 val TodoList = ScalaFnComponent[List[String]] { props =>
   def createItem(itemText: String) = <.li(itemText)
-  <.ul(props map createItem: _*)
+  <.ul(props.map(createItem)*)
 }
 
 case class State(items: List[String], text: String)

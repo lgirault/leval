@@ -18,32 +18,32 @@ object OriginSerializer {
     case _: Origin.Star     => byte + int
     case _: CardOrigin.Hand => byte + int + CardSerializer.cardSize
     case CardOrigin.Being(b, _) =>
-      byte + (BeingSerializer binarySize b) + CardSerializer.suitSize
+      byte + (BeingSerializer.binarySize(b)) + CardSerializer.suitSize
   }
 
   def put(bb: ByteBuffer, origin: Origin): Unit = origin match {
     case Origin.Star(owner) =>
-      bb put starId
-      leval.ignore(bb putInt owner)
+      bb.put(starId)
+      leval.ignore(bb.putInt(owner))
     case CardOrigin.Hand(owner, card) =>
-      bb put handId
-      bb putInt owner
+      bb.put(handId)
+      bb.putInt(owner)
       CardSerializer.put(bb, card)
     case CardOrigin.Being(being, s) =>
-      bb put beingId
+      bb.put(beingId)
       BeingSerializer.put(bb, being)
-      leval.ignore(bb put (CardSerializer toByte s))
+      leval.ignore(bb.put(CardSerializer.toByte(s)))
   }
 
   def fromBinary(bb: ByteBuffer, kindId: Byte): CardOrigin =
     kindId match {
       case `handId` =>
         val owner = bb.getInt()
-        val card = CardSerializer fromBinary bb
+        val card = CardSerializer.fromBinary(bb)
         CardOrigin.Hand(owner, card)
 
       case `beingId` =>
-        val being = BeingSerializer fromBinary bb
+        val being = BeingSerializer.fromBinary(bb)
         val s = CardSerializer.suits(bb.get.toInt)
         CardOrigin.Being(being, s)
 
@@ -52,7 +52,7 @@ object OriginSerializer {
 
   def fromBinary(bb: ByteBuffer): Origin = {
     val kindId = bb.get()
-    if (kindId == starId) Origin.Star(bb.getInt)
+    if kindId == starId then Origin.Star(bb.getInt)
     else fromBinary(bb, kindId)
 
   }

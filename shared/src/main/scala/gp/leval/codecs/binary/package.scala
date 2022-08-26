@@ -15,7 +15,7 @@ package object binary {
   def getString(bb: ByteBuffer): String = {
     val length = bb.getInt()
     val bytes = new Array[Byte](length)
-    bb get bytes
+    bb.get(bytes)
     new String(bytes, UTF_8)
   }
 
@@ -28,12 +28,12 @@ package object binary {
     playerIdFromBinary(ByteBuffer.wrap(bytes))
 
   def playerIdToBinary(p: PlayerId): Array[Byte] = {
-    val nameb = p.name getBytes UTF_8
+    val nameb = p.name.getBytes(UTF_8)
 
     val bb = ByteBuffer.allocate(int * 2 + nameb.length)
-    bb putInt p.uuid.getOrElse(0)
-    bb putInt nameb.length
-    bb put nameb
+    bb.putInt(p.uuid.getOrElse(0))
+    bb.putInt(nameb.length)
+    bb.put(nameb)
     bb.array()
   }
 }

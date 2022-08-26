@@ -274,8 +274,8 @@ class GameScreenControl
   def checkEveryBeingHasActedAndEndPhase() =
     game.currentPhase match {
       case ActPhase(activatedBeings) =>
-        if (activatedBeings.size == game.beingsOwnBy(currentStarId).size &&
-          isCurrentPlayer) {
+        if activatedBeings.size == game.beingsOwnBy(currentStarId).size &&
+          isCurrentPlayer then {
           new Alert(AlertType.Information) {
             delegate.initOwner(pane.scene().getWindow)
             title = texts.end_of_act_phase
@@ -302,13 +302,13 @@ class GameScreenControl
         case MajestyEffect(_, _) => updateStarPanels()
 
         case PlaceBeing(b, side) =>
-          if (playerGameIdx == side) {
+          if playerGameIdx == side then 
             pane.addPlayerBeingPane(b)
             pane.createBeeingPane.menuMode()
-          } else {
+          else 
             pane.addOpponentBeingPane(b)
             pane.opponentHandPane.update()
-          }
+          
 
           res match {
             case None => ()
@@ -331,10 +331,9 @@ class GameScreenControl
           if(tgt == DeathRiver)
             pane.riverPane.update()
 
-          if (playerGameIdx == origin.owner) {
+          if playerGameIdx == origin.owner then
             new CardDialog(res, pane).showAndWait()
             pane.handPane.update()
-          }
           else
             pane.opponentHandPane.update()
 
@@ -416,7 +415,7 @@ class GameScreenControl
             }
 
           pane.statusPane.update()
-          if (isCurrentPlayer) {
+          if isCurrentPlayer then {
             pane.endPhaseButton.visible = true
           }
 
@@ -428,7 +427,7 @@ class GameScreenControl
           pane.statusPane.update()
 
         case SourcePhase =>
-          if (isCurrentPlayer)
+          if isCurrentPlayer then
             new DrawAndLookAction(this, Origin.Star(playerGameIdx),
               () => actor ! game.nextPhase
             ).apply()

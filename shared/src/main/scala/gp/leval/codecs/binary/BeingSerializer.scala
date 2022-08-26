@@ -12,32 +12,32 @@ object BeingSerializer {
   def binarySize(b: Being): Int =
     int + CardSerializer.cardSize +
       b.resources.size * (1 + CardSerializer.cardSize) + 1 +
-      (if (b.inLove) CardSerializer.cardSize
+      (if b.inLove then CardSerializer.cardSize
        else 0)
 
   def put(bb: ByteBuffer, being: Being): Unit = {
-    bb putInt being.owner
+    bb.putInt(being.owner)
     CardSerializer.put(bb, being.face)
 
     var numResourcesAndBools: Byte = being.resources.size.toByte
     numResourcesAndBools = (numResourcesAndBools << 2).toByte
-    if (being.inLove)
+    if being.inLove then
       numResourcesAndBools = (numResourcesAndBools | 0x01).toByte
     numResourcesAndBools = (numResourcesAndBools << 2).toByte
-    if (being.hasAlreadyDrawn)
+    if being.hasAlreadyDrawn then
       numResourcesAndBools = (numResourcesAndBools | 0x01).toByte
 
-    bb put numResourcesAndBools
+    bb.put(numResourcesAndBools)
 
     being.resources.foreach { case (s, c) =>
-      bb put (CardSerializer toByte s)
+      bb.put(CardSerializer.toByte(s))
       CardSerializer.put(bb, c)
     }
-    if (being.inLove)
+    if being.inLove then
       CardSerializer.put(bb, being.lovedOne.get)
   }
   def toBinary(being: Being): Array[Byte] = {
-    val bb = ByteBuffer allocate binarySize(being)
+    val bb = ByteBuffer.allocate(binarySize(being))
     put(bb, being)
     bb.array()
   }
@@ -47,7 +47,7 @@ object BeingSerializer {
 
   def fromBinary(bb: ByteBuffer): Being = {
     val starIdx = bb.getInt()
-    val face = CardSerializer fromBinary bb
+    val face = CardSerializer.fromBinary(bb)
     var numResourcesAndBools = bb.get()
     val hasDrawn = (numResourcesAndBools & 0x01) == 0x01
     numResourcesAndBools = (numResourcesAndBools >> 2).toByte
@@ -58,11 +58,11 @@ object BeingSerializer {
     val resources = (1 to numRessources).foldLeft(Map[Suit, Card]()) {
       case (m, _) =>
         val s = CardSerializer suits bb.get().toInt
-        val c = CardSerializer fromBinary bb
+        val c = CardSerializer.fromBinary(bb)
         m + (s -> c)
     }
     val lovedOne =
-      if (isInLove) Some(CardSerializer fromBinary bb)
+      if isInLove then Some(CardSerializer.fromBinary(bb))
       else None
     Being(starIdx, face, resources, lovedOne, hasDrawn)
   }

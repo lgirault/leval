@@ -12,7 +12,7 @@ import io.circe.generic.semiauto.*
 //import org.http4s.implicits._
 //import org.http4s.client.Client
 //import org.http4s.client.dsl.Http4sClientDsl
-import org.http4s.circe._
+import org.http4s.circe.*
 //import org.http4s.Method._
 
 object RulesCodecs {

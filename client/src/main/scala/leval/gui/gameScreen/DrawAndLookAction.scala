@@ -44,24 +44,23 @@ class DrawAndLookAction
   def remainingEffect: Seq[ButtonType] = {
 
     val s0 =
-      if (canLook) {
-        if (collect > 0) Seq(lookResource)
+      if canLook then
+        if collect > 0 then Seq(lookResource)
         else Seq(lookResource, doNothing)
-      } else Seq()
+      else Seq()
 
-    if (collect > 0) {
-      if (canCollectFromRiver && controller.game.deathRiver.nonEmpty)
+    if collect > 0 then 
+      if canCollectFromRiver && controller.game.deathRiver.nonEmpty then
         collectFromSource +: collectFromRiver +: s0
       else
         collectFromSource +: s0
-    }
     else s0
   }
 
   def canSelect(b : Being, pos : Suit) : Boolean = true
 
   def onClick(brp : BeingResourcePane) : Unit =
-    if (!(controller.game.lookedCards contains ((brp.being.face, brp.position))) ) {
+    if !(controller.game.lookedCards contains ((brp.being.face, brp.position))) then 
       new CardDialog(brp.card, pane).showAndWait() match {
         case Some(_) =>
           controller.actor ! LookCard(origin.asInstanceOf[CardOrigin],
@@ -69,23 +68,21 @@ class DrawAndLookAction
         case None => leval.error()
       }
       this.apply()
-    }
+    
 
 
   val subscriptions =
-    if (! canLook) Iterable.empty
-    else {
+    if ! canLook then Iterable.empty
+    else 
       pane.resourcesPanes foreach (_.unsetCardDragAndDrop())
       suscribe(pane.resourcesPanes)
-    }
 
 
   def apply() : Unit =
-    if (remainingEffect.isEmpty) {
+    if remainingEffect.isEmpty then 
       unsuscribeSelector(subscriptions)
       pane.resourcesPanes foreach (_.setCardDragAndDrap())
       onFinish()
-    }
     else {
       val result =
         if( ! canLook && ! canCollectFromRiver)  Some(collectFromSource)

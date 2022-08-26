@@ -14,7 +14,7 @@ case class Rules(
 ) {
 
   val maxPlayer: Int =
-    if (janus) 4
+    if janus then 4
     else 2
 }
 
@@ -58,10 +58,10 @@ sealed trait CoreRules {
       case co @ CardOrigin.Being(b, Club) =>
         (b, co.card) match {
           case (Formation(Fool), Card(Jack, _)) =>
-            if (b.firstDraw) (foolFirstCollect + 1, 3)
+            if b.firstDraw then (foolFirstCollect + 1, 3)
             else (3, 3)
           case (Formation(Fool), _) =>
-            if (b.firstDraw) (foolFirstCollect, 1)
+            if b.firstDraw then (foolFirstCollect, 1)
             else (2, 1)
           case (_, Card(Jack, _)) => (2, 2)
           case _                  => (1, 1)
@@ -85,9 +85,9 @@ sealed trait CoreRules {
       attacker: CardOrigin,
       attacked: Being
   ): Game = // attack self -5 points
-    if (attacker.owner == attacked.owner) {
+    if attacker.owner == attacked.owner then {
       val malus =
-        if (attacked.inLove) 10
+        if attacked.inLove then 10
         else 5
       g.copy(stars = g.stars.set(attacked.owner, _ - malus))
     } else g
@@ -154,7 +154,7 @@ sealed trait CoreRules {
       killer: CardOrigin,
       killed: Being
   ): (Game, Set[Card]) =
-    if (isButcher(killer)) {
+    if isButcher(killer) then {
       val f: Card => Boolean = {
         case c @ (Card(King | Queen | Jack, _) | Joker(_)) =>
           Game.goesToRiver(c)
@@ -194,7 +194,7 @@ sealed trait CoreRules {
   // default = 2 players
   // winner, loser
   def result(g: Game): Option[(PlayerId, PlayerId)] =
-    if (g.source.isEmpty) None
+    if g.source.isEmpty then None
     else {
       val someWinner = g.stars.zipWithIndex.find { case (s, i) =>
         s.majesty >= winningMajesty
@@ -202,7 +202,7 @@ sealed trait CoreRules {
       val result = someWinner map { case (s, i) =>
         (s.id, g.stars((i + 1) % 2).id)
       }
-      if (result.nonEmpty) result
+      if result.nonEmpty then result
       else {
         val someLoser = g.stars.zipWithIndex.find { case (s, i) =>
           s.majesty <= losingMajesty
@@ -234,7 +234,7 @@ sealed trait CoreRules {
         isValidBeing(b) && (!b.inLove ||
           legalLoverFormationAtCreation(f)) && {
 
-          val playerBeings = g beingsOwnBy side
+          val playerBeings = g.beingsOwnBy(side)
 
           val hasSameFormation = playerBeings exists {
             case Formation(`f`) => true

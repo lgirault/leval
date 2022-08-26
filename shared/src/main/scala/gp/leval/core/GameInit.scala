@@ -13,7 +13,7 @@ case class GameInit(
 
   def game: Game = {
     val g = Game(rules.coreRules, stars, source)
-    if (rules.ostein)
+    if rules.ostein then
       g.copy(currentStarIdx = -1, currentPhase = InfluencePhase(-1))
     else g
 
@@ -26,7 +26,7 @@ case class GameInit(
     val Seq(s01, s02) = stars
     val (s1, s2) = (s01 ++ h1, s02 ++ h2)
 
-    if (Card.value(h1.head) > Card.value(h2.head))
+    if Card.value(h1.head) > Card.value(h2.head) then
       copy(Twilight(Seq(h1, h2)), stars = Seq(s1, s2), source = d)
     else
       copy(Twilight(Seq(h2, h1)), stars = Seq(s2, s1), source = d)
@@ -42,7 +42,7 @@ object GameInit {
   def apply(pid1: PlayerId, pid2: PlayerId, rules: Rules): GameInit = {
     val deck = deck54()
 
-    import rules.{coreRules => crules}
+    import rules.{coreRules as crules}
     // on pioche 9 carte
     val (d2, hand1) = deck.pick(9)
     val (d3, hand2) = d2.pick(9)
@@ -69,7 +69,7 @@ object GameInit {
 
   def gameWithoutMulligan(players: Seq[PlayerId], rules: Rules): GameInit = {
     val gi = GameInit(players, rules).doTwilight
-    if (mulligan(gi.game)) gameWithoutMulligan(players, rules)
+    if mulligan(gi.game) then gameWithoutMulligan(players, rules)
     else gi
   }
 

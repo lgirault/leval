@@ -15,7 +15,7 @@ object Target {
     case Heart => Seq(SelfStar)
     case Club =>
       val riverAvailable =
-        game beingsOwnBy game.currentStarIdx exists {
+        game.beingsOwnBy(game.currentStarIdx) exists {
           case Formation(Spectre) => true
           case _                  => false
         }
@@ -24,16 +24,16 @@ object Target {
         s <- Suit.list
       } yield TargetBeingResource(s, game.stars.indices))
 
-      if (riverAvailable) DeathRiver +: tgts
+      if riverAvailable then DeathRiver +: tgts
       else tgts
 
     case Spade => // hard coded for two Players
       val opponentStarAvailable = {
         val opponentId = (game.currentStarIdx + 1) % 2
-        game beingsOwnBy opponentId forall (_.heart.isEmpty)
+        game.beingsOwnBy(opponentId).forall(_.heart.isEmpty)
       }
       val tgts = Seq(TargetBeingResource(Heart, game.stars.indices))
-      if (opponentStarAvailable)
+      if opponentStarAvailable then
         OpponentStar +: tgts
       else tgts
 
@@ -41,12 +41,12 @@ object Target {
       val opponentId = (game.currentStarIdx + 1) % 2
       val opponentStar = game.stars(opponentId)
       val opponentHasSpectre = {
-        game beingsOwnBy opponentId exists {
+        game.beingsOwnBy(opponentId) exists {
           case Formation(Spectre) => true
           case _                  => false
         }
       }
-      if (opponentHasSpectre) Seq(OpponentSpectrePower)
+      if opponentHasSpectre then Seq(OpponentSpectrePower)
       else Seq(OpponentStar, TargetBeingResource(Club, Seq(opponentId)))
   }
 }

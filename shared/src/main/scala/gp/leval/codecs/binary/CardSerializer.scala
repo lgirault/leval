@@ -41,8 +41,8 @@ object CardSerializer {
 
   def put(bb: ByteBuffer, card: Card): Unit = {
     val (id, c) = toByte(card)
-    bb put id
-    leval.ignore(bb put c)
+    bb.put(id)
+    leval.ignore(bb.put(c))
   }
 
   def toBinary(c: Card): Array[Byte] = {
@@ -70,7 +70,7 @@ object CardSerializer {
   }
 
   def fromBinary(bytes: Array[Byte]): Card =
-    fromBinary(ByteBuffer wrap bytes)
+    fromBinary(ByteBuffer.wrap(bytes))
 
   def fromBinary(bb: ByteBuffer): Card = {
     val id = bb.get()

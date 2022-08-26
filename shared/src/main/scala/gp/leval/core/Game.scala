@@ -8,12 +8,12 @@ object Game {
   type StarIdx = Int
   implicit class SeqOps[T](val s: Seq[T]) extends AnyVal {
     def set(idx: Int, newVal: T): Seq[T] = {
-      val (s0, _ +: s1) = s.splitAt(idx)
+      val (s0, _ +: s1) = s.splitAt(idx) : @unchecked
       s0 ++: (newVal +: s1)
     }
 
     def set(idx: Int, f: T => T): Seq[T] = {
-      val (s0, sidx +: s1) = s.splitAt(idx)
+      val (s0, sidx +: s1) = s.splitAt(idx) : @unchecked
       s0 ++: (f(sidx) +: s1)
     }
   }
@@ -72,7 +72,7 @@ case class Game(
   def removeFromHand(card: Card): Game = {
     val newStars = stars map (_ - card)
 
-    if (goesToRiver(card))
+    if goesToRiver(card) then
       copy(stars = newStars, deathRiver = card :: deathRiver)
     else copy(stars = newStars)
   }
@@ -123,7 +123,7 @@ case class Game(
       .revealCard(target.face, targetedSuit, Some(origin))
 
     val (g1, removed1) =
-      if (removed0) (g0, removed0)
+      if removed0 then (g0, removed0)
       else {
         val amplitude: Int = origin match {
           case CardOrigin.Hand(_, c)  => rules.value(c)
@@ -136,10 +136,10 @@ case class Game(
         val targetNewState = targetState.add(targetedSuit, amplitude)
 
         val globalNewState = beingsState + (target.face -> targetNewState)
-        val removeCard = (targetNewState get targetedSuit) >= hp
+        val removeCard = (targetNewState. get(targetedSuit)) >= hp
 
         (
-          (if (removeCard)
+          (if removeCard then
              rules.removeArcanumFromBeing(
                g0,
                Some(origin),
@@ -158,12 +158,12 @@ case class Game(
     }
 
     val toDraw =
-      if (removed1 && targetedSuit == Club)
+      if removed1 && targetedSuit == Club then
         rules.wizardOrEminenceGrise(origin)
       else 0
 
     val (g3, toBury) =
-      if (removed1) target - targetedSuit match {
+      if removed1 then target - targetedSuit match {
         case Formation(_) => (g2, Set[Card]())
         case b            => rules.onDeath(g2, origin, target, targetedSuit)
       }

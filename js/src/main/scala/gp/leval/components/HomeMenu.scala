@@ -1,7 +1,7 @@
 package gp.leval.components
 
-import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.extra.router.RouterCtl
 import gp.leval.routes.AppPage
 
@@ -22,7 +22,7 @@ object HomeMenu {
       .render_P { P =>
         val txt = P.text
         <.menu(
-          <.li(txt.createGame, P.ctrl setOnClick AppPage.CreateGameForm),
+          <.li(txt.createGame, P.ctrl.setOnClick(AppPage.CreateGameForm)),
           <.li(txt.joinGame),
           <.li(txt.logIn)
         )

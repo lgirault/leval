@@ -3,7 +3,7 @@ package gp.leval
 import cats.effect.{Concurrent, Ref, Sync}
 import cats.effect.std.Queue
 import cats.implicits.*
-import monocle.syntax.all._
+import monocle.syntax.all.*
 import fs2.Stream
 
 import gp.leval.codecs.entities.*
@@ -27,7 +27,7 @@ object LevalRoutes {
 
   def helloWorldRoutes[F[_]: Sync](H: HelloWorld[F]): HttpRoutes[F] = {
     val dsl = Http4sDsl[F]
-    import dsl._
+    import dsl.*
     HttpRoutes.of[F] { case GET -> Root / "hello" / name =>
       for {
         greeting <- H.hello(HelloWorld.Name(name))
@@ -40,8 +40,8 @@ object LevalRoutes {
     state: Ref[F, GameServerState[F]]
   )(webSocketBuilder: WebSocketBuilder[F])(implicit F: Concurrent[F]): HttpRoutes[F] = {
     val dsl = Http4sDsl[F]
-    import RulesCodecs._
-    import dsl._
+    import RulesCodecs.*
+    import dsl.*
     HttpRoutes.of[F] {
       case req @ POST -> Root / "createGame" =>
         for {
@@ -100,10 +100,10 @@ case class GameRoom[F[_]](
 )
 
 import cats.Applicative
-import cats.implicits._
+import cats.implicits.*
 import io.circe.{Encoder, Json}
 import org.http4s.EntityEncoder
-import org.http4s.circe._
+import org.http4s.circe.*
 
 trait HelloWorld[F[_]] {
   def hello(n: HelloWorld.Name): F[HelloWorld.Greeting]

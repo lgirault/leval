@@ -9,7 +9,7 @@ import scala.util.Random
   val suits = Seq(Diamond, Club, Heart, Spade)
   val ranks = (for (i <- 1 to 10) yield Numeric(i)) ++ Seq(Jack, Queen, King)
   def jokers(deckId: Byte) = {
-    import Joker._
+    import Joker.*
     Seq[Card](J(deckId, Red), J(deckId, Black))
   }
   def deck54(deckId: Byte = 0): Deck = {
@@ -25,7 +25,7 @@ import scala.util.Random
     def pick(n: Int): (Deck, Seq[Card]) = {
 
       def aux(n: Int, remaining: Deck, picked: Seq[Card]): (Deck, Seq[Card]) =
-        if (n == 0 | remaining.isEmpty) (remaining, picked)
+        if n == 0 | remaining.isEmpty then (remaining, picked)
         else aux(n - 1, remaining.tail, remaining.head +: picked)
 
       aux(n, d, Seq())

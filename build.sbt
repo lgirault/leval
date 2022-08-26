@@ -65,8 +65,10 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
       //    "-Ywarn-value-discard",
       //    "-Xfuture",
       //    "-Ywarn-unused-import",
-      // "-rewrite",
+      "-rewrite",
       "-source:3.0-migration",
+      "-new-syntax",
+      "-source:future", 
       "-explain"
     )
   )

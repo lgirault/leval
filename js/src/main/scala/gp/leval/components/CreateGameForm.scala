@@ -1,10 +1,10 @@
 package gp.leval.components
 
-import monocle.syntax.all._
+import monocle.syntax.all.*
 import gp.leval.core.{PlayerId, CoreRules, Rules, Antares, Helios, Sinnlos}
 import gp.leval.network.GameDescription
-import japgolly.scalajs.react._
-import japgolly.scalajs.react.vdom.html_<^._
+import japgolly.scalajs.react.*
+import japgolly.scalajs.react.vdom.html_<^.*
 import japgolly.scalajs.react.extra.Ajax
 
 object CreateGameForm {
@@ -54,8 +54,8 @@ object CreateGameForm {
           <.select(
             coreRulesList.toTagMod(r =>
               <.option(
-                ^.value := r,
-                ^.selected := state.rules.coreRules == r,
+                ^.value := r.id,
+                ^.selected := state.rules.coreRules.id == r.id,
                 ^.onClick ==> handleSelectCoreRules(r),
                 r.toString
               )

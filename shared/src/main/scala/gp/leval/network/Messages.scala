@@ -8,24 +8,23 @@ import java.util.UUID
 
 sealed trait ServerToClientMessage
 
-object ServerToClientMessage {
+object ServerToClientMessage:
   // new player join
   //game start
 
   case class GameRoomId(id: UUID) extends ServerToClientMessage
-}
+
 
 
 sealed trait ClientToServerMessage
 
-object ClientToServerMessage {
+object ClientToServerMessage:
 
   case class GameDescription(owner: PlayerId, rules: Rules) extends ServerToClientMessage
   //heartbeat
   //start the game
   //kick/ban player
 
-}
 
 abstract class Message extends Serializable
 
