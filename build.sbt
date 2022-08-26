@@ -48,15 +48,14 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
         //  "com.typesafe.akka" %% "akka-testkit" % "2.4.7"
       ),
     scalacOptions ++= Seq(
+      "-encoding", "UTF-8",
       "-deprecation",
-      "-encoding",
-      "UTF-8", // yes, this is 2 args
+      "-unchecked",
       "-feature",
       "-language:existentials",
       "-language:higherKinds",
       "-language:implicitConversions",
       "-language:postfixOps",
-      "-unchecked",
       "-Xfatal-warnings",
       //    "-Xlint",
       //    "-Yno-adapted-args",
@@ -65,8 +64,7 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
       //    "-Ywarn-value-discard",
       //    "-Xfuture",
       //    "-Ywarn-unused-import",
-      "-rewrite",
-      "-source:3.0-migration",
+      // "-rewrite",
       "-new-syntax",
       "-source:future", 
       "-explain"

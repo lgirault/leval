@@ -7,20 +7,22 @@ import java.util.UUID
 
 
 sealed trait ServerToClientMessage
+sealed trait ClientToServerMessage
 
-object ServerToClientMessage:
+//object ServerToClientMessage:
   // new player join
   //game start
 
-  case class GameRoomId(id: UUID) extends ServerToClientMessage
+case class GameRoomId(id: UUID) extends ServerToClientMessage
 
 
 
-sealed trait ClientToServerMessage
 
-object ClientToServerMessage:
+//object ClientToServerMessage:
 
-  case class GameDescription(owner: PlayerId, rules: Rules) extends ServerToClientMessage
+case class GameDescription(owner: PlayerId, rules: Rules) 
+  extends ServerToClientMessage
+  with ClientToServerMessage
   //heartbeat
   //start the game
   //kick/ban player
@@ -43,7 +45,7 @@ case class ConnectNack(msg: String) extends Message
 case class Disconnect(pid: PlayerId) extends Message
 
 //2 - Meta-Game protocol
-case class GameDescription(owner: PlayerId, rules: Rules) extends Message
+//case class GameDescription(owner: PlayerId, rules: Rules) extends Message
 
 // game creation
 case class CreateGame(desc: GameDescription) extends Message

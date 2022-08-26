@@ -1,6 +1,6 @@
 package gp.leval
 
-import cats.effect.{Concurrent, Ref, Sync}
+import cats.effect.{Async, Ref, Sync}
 import cats.effect.std.Queue
 import cats.implicits.*
 import monocle.syntax.all.*
@@ -8,8 +8,7 @@ import fs2.Stream
 
 import gp.leval.codecs.entities.*
 import gp.leval.core.{Antares, CoreRules, Helios, PlayerId, Rules, Sinnlos}
-import gp.leval.network.ServerToClientMessage
-import gp.leval.network.ClientToServerMessage.GameDescription
+import gp.leval.network.{ServerToClientMessage, GameDescription, GameRoomId}
 
 import org.http4s.dsl.Http4sDsl
 import org.http4s.{FormDataDecoder, HttpRoutes, ParseFailure, QueryParamDecoder}
@@ -37,28 +36,28 @@ object LevalRoutes {
   }
 
   def gameRoutes[F[_]](
-    state: Ref[F, GameServerState[F]]
-  )(webSocketBuilder: WebSocketBuilder[F])(implicit F: Concurrent[F]): HttpRoutes[F] = {
+      state: Ref[F, GameServerState[F]]
+  )(
+      webSocketBuilder: WebSocketBuilder[F]
+  )(implicit F: Async[F]): HttpRoutes[F] = {
     val dsl = Http4sDsl[F]
-    import RulesCodecs.*
     import dsl.*
     HttpRoutes.of[F] {
       case req @ POST -> Root / "createGame" =>
         for {
           gameDesc <- req.as[GameDescription]
-          room <- F.delay{
-            GameRoom(UUID.randomUUID(),
-              gameDesc.rules,
-              gameDesc.owner,
-              Nil)
+          room <- F.delay {
+            GameRoom[F](UUID.randomUUID(), gameDesc.rules, gameDesc.owner, Nil)
 
           }
-          _ <- state.update(_.focus(_.rooms).modify(_ + room.id -> room))
+          _ <- state.update(_.focus(_.rooms).modify(_ + (room.id -> room)))
           resp <- Ok(GameRoomId(room.id))
         } yield resp
 
       case req @ POST -> Root / "joinGame" / roomId =>
-        def processInput(wsfStream: Stream[F, WebSocketFrame]): Stream[F, Unit] = {
+        def processInput(
+            wsfStream: Stream[F, WebSocketFrame]
+        ): Stream[F, Unit] = {
           val parsedWebSocketInput: Stream[F, InputMessage] =
             wsfStream
               .collect {
@@ -68,7 +67,7 @@ object LevalRoutes {
                 case Close(_) => ??? // /Disconnect(userName)
               }
 
-          ???              
+          ???
         }
 
         for {
@@ -81,7 +80,12 @@ object LevalRoutes {
             .fromQueueUnterminated(output, 10)
             .map(msg => Text(msg.toString))
 
-          _ <- state.update(_.focus(_.rooms.index(room.id).players).modify((playerId -> toClient) :: _))
+          roomUUID <- F.delay(UUID.fromString(roomId))  
+
+          _ <- state.update(
+            _.focus(_.rooms.index(roomUUID).players)
+              .modify((playerId -> output) :: _)
+          )
 
           response <- webSocketBuilder.build(toClient, processInput)
         } yield response
@@ -93,10 +97,10 @@ object LevalRoutes {
 case class GameServerState[F[_]](rooms: Map[UUID, GameRoom[F]])
 
 case class GameRoom[F[_]](
-  id: UUID,
-  rules: Rules,
-  owner: PlayerId,
-  players: List[(PlayerId, Queue[F, ServerToClientMessage])]
+    id: UUID,
+    rules: Rules,
+    owner: PlayerId,
+    players: List[(PlayerId, Queue[F, ServerToClientMessage])]
 )
 
 import cats.Applicative

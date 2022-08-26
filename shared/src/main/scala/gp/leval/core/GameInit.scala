@@ -80,14 +80,15 @@ object GameInit {
     var h2 = Seq(d.head)
     d = d.tail
 
-    while (Card.value(h1.head) == Card.value(h2.head)) d match {
-      case c1 +: c2 +: remainings =>
-        d = remainings
-        h1 = c1 +: h1
-        h2 = c2 +: h2
+    while Card.value(h1.head) == Card.value(h2.head) do
+       d match {
+        case c1 +: c2 +: remainings =>
+          d = remainings
+          h1 = c1 +: h1
+          h2 = c2 +: h2
 
-      case Nil | Seq(_) => leval.error()
-    }
+        case Nil | Seq(_) => leval.error()
+      }
     (d, Seq(h1, h2))
   }
 }
