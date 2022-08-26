@@ -1,6 +1,6 @@
-package leval
+package gp.leval
 
-import leval.core.{
+import gp.leval.core.{
   Being,
   C,
   Club,

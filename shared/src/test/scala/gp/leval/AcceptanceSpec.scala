@@ -1,5 +1,6 @@
-package leval
+package gp.leval
 
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.freespec.AnyFreeSpec
-class AcceptanceSpec extends AnyFreeSpec with Matchers
+
+open class AcceptanceSpec extends AnyFreeSpec with Matchers
