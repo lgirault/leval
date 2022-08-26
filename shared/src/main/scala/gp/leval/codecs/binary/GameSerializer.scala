@@ -165,8 +165,7 @@ class GameSerializer {
     case Collect(or, tgt) =>
       val bb = ByteBuffer.allocate(OriginSerializer.binarySize(or) + byte)
       OriginSerializer.put(bb, or)
-      if tgt == Source then
-        bb.put(0x00.toByte)
+      if tgt == Source then bb.put(0x00.toByte)
       else bb.put(0x01.toByte)
       bb.array()
 
@@ -387,8 +386,7 @@ object TwilightSerializer {
 
   def binarySize(t: Twilight) =
     if t.cards.isEmpty then byte
-    else if t.cards.head.isEmpty then
-      2 * byte
+    else if t.cards.head.isEmpty then 2 * byte
     else {
       CardSerializer.cardSize *
         (t.cards.head.size * t.cards.size) + 2 * byte

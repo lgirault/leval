@@ -33,8 +33,7 @@ object Target {
         game.beingsOwnBy(opponentId).forall(_.heart.isEmpty)
       }
       val tgts = Seq(TargetBeingResource(Heart, game.stars.indices))
-      if opponentStarAvailable then
-        OpponentStar +: tgts
+      if opponentStarAvailable then OpponentStar +: tgts
       else tgts
 
     case Diamond =>

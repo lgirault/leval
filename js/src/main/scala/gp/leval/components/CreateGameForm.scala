@@ -34,9 +34,11 @@ object CreateGameForm {
       val name = e.target.value
       $.modState(_.focus(_.owner.name).replace(name))
     }
-    def handleSelectCoreRules(rule: CoreRules)(e: ReactEventFromInput): Callback =
+    def handleSelectCoreRules(rule: CoreRules)(
+        e: ReactEventFromInput
+    ): Callback =
       e.preventDefaultCB >>
-          $.modState(_.focus(_.rules.coreRules).replace(rule))
+        $.modState(_.focus(_.rules.coreRules).replace(rule))
 
     def handleSubmit(e: ReactEventFromInput): Callback =
       e.preventDefaultCB >>
@@ -60,7 +62,6 @@ object CreateGameForm {
                 r.toString
               )
             )
-
           ),
           <.button(txt.createSubmit)
         )

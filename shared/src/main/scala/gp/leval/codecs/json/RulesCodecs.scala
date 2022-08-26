@@ -1,7 +1,14 @@
 package gp.leval.codecs.json
 
 //import cats.implicits.*
-import gp.leval.core.{Antares, AntaresHeliosCommon, CoreRules, Helios, Rules, Sinnlos}
+import gp.leval.core.{
+  Antares,
+  AntaresHeliosCommon,
+  CoreRules,
+  Helios,
+  Rules,
+  Sinnlos
+}
 
 import io.circe.{Decoder, Encoder, Json}
 import io.circe.generic.semiauto.*
@@ -35,5 +42,3 @@ implicit val coreRulesJsonEncoder: Encoder[CoreRules] =
   }
 
 implicit val rulesJsonEncoder: Encoder[Rules] = deriveEncoder[Rules]
-
-

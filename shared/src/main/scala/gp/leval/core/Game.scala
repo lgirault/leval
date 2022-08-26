@@ -8,12 +8,12 @@ object Game {
   type StarIdx = Int
   implicit class SeqOps[T](val s: Seq[T]) extends AnyVal {
     def set(idx: Int, newVal: T): Seq[T] = {
-      val (s0, _ +: s1) = s.splitAt(idx) : @unchecked
+      val (s0, _ +: s1) = s.splitAt(idx): @unchecked
       s0 ++: (newVal +: s1)
     }
 
     def set(idx: Int, f: T => T): Seq[T] = {
-      val (s0, sidx +: s1) = s.splitAt(idx) : @unchecked
+      val (s0, sidx +: s1) = s.splitAt(idx): @unchecked
       s0 ++: (f(sidx) +: s1)
     }
   }
@@ -136,7 +136,7 @@ case class Game(
         val targetNewState = targetState.add(targetedSuit, amplitude)
 
         val globalNewState = beingsState + (target.face -> targetNewState)
-        val removeCard = (targetNewState. get(targetedSuit)) >= hp
+        val removeCard = (targetNewState.get(targetedSuit)) >= hp
 
         (
           (if removeCard then
@@ -163,10 +163,11 @@ case class Game(
       else 0
 
     val (g3, toBury) =
-      if removed1 then target - targetedSuit match {
-        case Formation(_) => (g2, Set[Card]())
-        case b            => rules.onDeath(g2, origin, target, targetedSuit)
-      }
+      if removed1 then
+        target - targetedSuit match {
+          case Formation(_) => (g2, Set[Card]())
+          case b            => rules.onDeath(g2, origin, target, targetedSuit)
+        }
       else (g2, Set[Card]())
     println(toDraw)
     (g3, toBury, toDraw)

@@ -80,7 +80,7 @@ object LevalRoutes {
             .fromQueueUnterminated(output, 10)
             .map(msg => Text(msg.toString))
 
-          roomUUID <- F.delay(UUID.fromString(roomId))  
+          roomUUID <- F.delay(UUID.fromString(roomId))
 
           _ <- state.update(
             _.focus(_.rooms.index(roomUUID).players)

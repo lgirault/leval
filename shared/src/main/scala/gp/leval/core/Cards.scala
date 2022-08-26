@@ -83,8 +83,7 @@ object Card {
         case (Joker(_), _) => 1
         case (_, Joker(_)) => -1
         case (Card(rx, sx), Card(ry, sy)) =>
-          if sx != sy then
-            suitOrdering.compare(sx, sy)
+          if sx != sy then suitOrdering.compare(sx, sy)
           else rankOrdering.compare(rx, ry)
 
       }

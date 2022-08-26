@@ -63,18 +63,16 @@ implicit def gameDescriptionEntityDecoder[F[_]: Concurrent]
     : EntityDecoder[F, GameDescription] =
   jsonOf
 
-implicit def playerIdEntityEncoder[F[_]]
-    : EntityEncoder[F, PlayerId] =
+implicit def playerIdEntityEncoder[F[_]]: EntityEncoder[F, PlayerId] =
   jsonEncoderOf
 
 implicit def playerIdEntityDecoder[F[_]: Concurrent]
     : EntityDecoder[F, PlayerId] =
   jsonOf
 
-
-implicit def gameRoomIdEntityEncoder[F[_]]: EntityEncoder[F, GameRoomId] = 
+implicit def gameRoomIdEntityEncoder[F[_]]: EntityEncoder[F, GameRoomId] =
   jsonEncoderOf
 
-
-implicit def gameRoomIdEntityDecoder[F[_]: Concurrent]: EntityDecoder[F, GameRoomId] = 
+implicit def gameRoomIdEntityDecoder[F[_]: Concurrent]
+    : EntityDecoder[F, GameRoomId] =
   jsonOf

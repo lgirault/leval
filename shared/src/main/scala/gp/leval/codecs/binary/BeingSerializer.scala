@@ -33,8 +33,7 @@ object BeingSerializer {
       bb.put(CardSerializer.toByte(s))
       CardSerializer.put(bb, c)
     }
-    if being.inLove then
-      CardSerializer.put(bb, being.lovedOne.get)
+    if being.inLove then CardSerializer.put(bb, being.lovedOne.get)
   }
   def toBinary(being: Being): Array[Byte] = {
     val bb = ByteBuffer.allocate(binarySize(being))

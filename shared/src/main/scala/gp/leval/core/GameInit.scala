@@ -28,8 +28,7 @@ case class GameInit(
 
     if Card.value(h1.head) > Card.value(h2.head) then
       copy(Twilight(Seq(h1, h2)), stars = Seq(s1, s2), source = d)
-    else
-      copy(Twilight(Seq(h2, h1)), stars = Seq(s2, s1), source = d)
+    else copy(Twilight(Seq(h2, h1)), stars = Seq(s2, s1), source = d)
   }
 }
 
@@ -81,7 +80,7 @@ object GameInit {
     d = d.tail
 
     while Card.value(h1.head) == Card.value(h2.head) do
-       d match {
+      d match {
         case c1 +: c2 +: remainings =>
           d = remainings
           h1 = c1 +: h1

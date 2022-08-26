@@ -23,15 +23,17 @@ object LevalServer {
       // want to extract segments not checked
       // in the underlying routes.
 
-      state <- Stream.eval(Ref.of[F, GameServerState[F]](GameServerState(Map.empty)))
-      
-      httpApp = (wsb: WebSocketBuilder[F]) => (
-        LevalRoutes
-          .helloWorldRoutes[F](helloWorldAlg)  <+>
-          LevalRoutes.gameRoutes[F](state)(wsb)
+      state <- Stream.eval(
+        Ref.of[F, GameServerState[F]](GameServerState(Map.empty))
+      )
+
+      httpApp = (wsb: WebSocketBuilder[F]) =>
+        (
+          LevalRoutes
+            .helloWorldRoutes[F](helloWorldAlg) <+>
+            LevalRoutes.gameRoutes[F](state)(wsb)
           // Hellohttp4sRoutes.jokeRoutes[F](jokeAlg)
-        )
-        .orNotFound
+        ).orNotFound
 
       // With Middlewares in place
       finalHttpApp = (wsb: WebSocketBuilder[F]) =>

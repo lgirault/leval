@@ -5,28 +5,23 @@ import gp.leval.core.{PlayerId, Rules}
 
 import java.util.UUID
 
-
 sealed trait ServerToClientMessage
 sealed trait ClientToServerMessage
 
 //object ServerToClientMessage:
-  // new player join
-  //game start
+// new player join
+//game start
 
 case class GameRoomId(id: UUID) extends ServerToClientMessage
 
-
-
-
 //object ClientToServerMessage:
 
-case class GameDescription(owner: PlayerId, rules: Rules) 
-  extends ServerToClientMessage
-  with ClientToServerMessage
-  //heartbeat
-  //start the game
-  //kick/ban player
-
+case class GameDescription(owner: PlayerId, rules: Rules)
+    extends ServerToClientMessage
+    with ClientToServerMessage
+//heartbeat
+//start the game
+//kick/ban player
 
 abstract class Message extends Serializable
 
