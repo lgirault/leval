@@ -102,10 +102,20 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
     fullOptJS / scalaJSLinkerConfig ~= {
       _.withSourceMap(false)
     },
-    Compile / npmDependencies ++= Seq("react" -> "18.2.0", "react-dom" -> "18.2.0")
+    Compile / npmDependencies ++= Seq(
+      "react" -> "18.2.0",
+      "react-dom" -> "18.2.0",
+      "pixi.js" -> "6.5.2",
+    ),
+    stIgnore ++= List(
+      "react",
+      "react-dom"
+    ),
+    stFlavour := Flavour.ScalajsReact
   )
   .jsConfigure { project =>
     project.enablePlugins(
-      ScalaJSBundlerPlugin
+      ScalaJSBundlerPlugin,
+      ScalablyTypedConverterPlugin
     )
   }
