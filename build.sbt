@@ -5,9 +5,9 @@ val CirceVersion = "0.14.2"
 val CatsVersion = "2.8.0"
 val CatsEffectVersion = "3.3.14"
 val LogbackVersion = "1.2.11"
-  
+val PixiVersion = "6.5.2"
 val ScalaTestVersion = "3.2.13"
-  
+
 val printClassPathFile = taskKey[File]("create a file containing the fullclass path")
 
 val classPathFileName = settingKey[String]("Location of generated classpath script")
@@ -39,16 +39,16 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
     Compile / printClassPathFile := classPathFileNameTask(Compile).value,
     libraryDependencies ++=
       Seq(
-        //      "com.typesafe.akka" %% "akka-remote" % "2.4.7",
-        //      "com.typesafe.akka" %% "akka-slf4j" % "2.4.7",
         "org.typelevel" %%% "cats-core" % CatsVersion,
         "io.circe" %%% "circe-generic" % CirceVersion,
+        //"io.circe" %%% "circe-generic-extras" % CirceVersion,
+        "io.circe" %%% "circe-parser" % CirceVersion,
         "org.scalatest" %%% "scalatest" % ScalaTestVersion,
-        "dev.optics" %%% "monocle-core" % "3.1.0",
-        //  "com.typesafe.akka" %% "akka-testkit" % "2.4.7"
+        "dev.optics" %%% "monocle-core" % "3.1.0"
       ),
     scalacOptions ++= Seq(
-      "-encoding", "UTF-8",
+      "-encoding",
+      "UTF-8",
       "-deprecation",
       "-unchecked",
       "-feature",
@@ -66,26 +66,26 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
       //    "-Ywarn-unused-import",
       // "-rewrite",
       "-new-syntax",
-      "-source:future", 
+      "-source:future",
       "-explain"
     )
   )
   .jvmSettings(
     libraryDependencies ++=
       Seq(
-        "org.http4s"      %% "http4s-ember-server" % Http4sVersion,
-        "org.http4s"      %% "http4s-ember-client" % Http4sVersion,
-        "org.http4s"      %% "http4s-circe"        % Http4sVersion,
-        "org.http4s"      %% "http4s-dsl"          % Http4sVersion,
-        "ch.qos.logback" % "logback-classic" % LogbackVersion % Runtime,
+        "org.http4s" %% "http4s-ember-server" % Http4sVersion,
+        "org.http4s" %% "http4s-ember-client" % Http4sVersion,
+        "org.http4s" %% "http4s-circe" % Http4sVersion,
+        "org.http4s" %% "http4s-dsl" % Http4sVersion,
+        "ch.qos.logback" % "logback-classic" % LogbackVersion % Runtime
       )
   )
   .jsSettings(
     // Add JS-specific settings here
     scalaJSUseMainModuleInitializer := true,
     libraryDependencies ++= Seq(
-    "com.github.japgolly.scalajs-react" %%% "core" % "2.1.1",
-    "com.github.japgolly.scalajs-react" %%% "extra" % "2.1.1"
+      "com.github.japgolly.scalajs-react" %%% "core" % "2.1.1",
+      "com.github.japgolly.scalajs-react" %%% "extra" % "2.1.1"
     ),
 
     // copy  javascript files to js folder,that are generated using fastOptJS/fullOptJS
@@ -105,17 +105,18 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
     Compile / npmDependencies ++= Seq(
       "react" -> "18.2.0",
       "react-dom" -> "18.2.0",
-      "pixi.js" -> "6.5.2",
-    ),
-    stIgnore ++= List(
-      "react",
-      "react-dom"
-    ),
-    stFlavour := Flavour.ScalajsReact
+      "pixi.js" -> PixiVersion
+    )//,
+//    stIgnore ++= List(
+//      "react",
+//      "react-dom",
+//      "pixi.js"
+//    ),
+//    stFlavour := Flavour.ScalajsReact
   )
   .jsConfigure { project =>
     project.enablePlugins(
       ScalaJSBundlerPlugin,
-      ScalablyTypedConverterPlugin
+      //ScalablyTypedConverterPlugin
     )
   }

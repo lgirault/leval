@@ -18,6 +18,14 @@ case class Rules(
     else 2
 }
 
+val CoreRules = 
+    Map(
+      Antares.id -> Antares,
+      Helios.id -> Helios,
+      Sinnlos.id -> Sinnlos,
+    )
+
+
 sealed trait CoreRules {
 
   val id: String

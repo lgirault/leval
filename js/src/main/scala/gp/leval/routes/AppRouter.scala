@@ -2,21 +2,25 @@ package gp.leval.routes
 
 import gp.leval.components.*
 import japgolly.scalajs.react.extra.router.{
-  Resolution,
-  RouterConfigDsl,
-  RouterCtl,
-  Redirect,
   BaseUrl,
-  Router
+  Redirect,
+  Resolution,
+  Router,
+  RouterConfigDsl,
+  RouterCtl
 }
 import japgolly.scalajs.react.extra.router.SetRouteVia.HistoryReplace
 import japgolly.scalajs.react.vdom.html_<^.*
+
+import java.util.UUID
 
 sealed trait AppPage
 
 object AppPage {
   case object Home extends AppPage
   case object CreateGameForm extends AppPage
+
+  case class GameRoom(id: UUID) extends AppPage
 }
 
 private val config = RouterConfigDsl[AppPage].buildConfig { dsl =>
@@ -26,12 +30,15 @@ private val config = RouterConfigDsl[AppPage].buildConfig { dsl =>
   //     case Items(p) => p
   //   }
   (trimSlashes
-    | staticRoute(root, AppPage.Home) ~> renderR(r =>
-      HomeMenu(HomeMenu.Props(r))
+    | staticRoute(root, AppPage.Home) ~> renderR(routerCtl =>
+      HomeMenu(HomeMenu.Props(routerCtl))
     )
-    | staticRoute("createGame", AppPage.CreateGameForm) ~> render(
-      CreateGameForm(CreateGameForm.Text())
-    ))
+    | staticRoute("#createGame", AppPage.CreateGameForm) ~> renderR(routerCtl =>
+      CreateGameForm(CreateGameForm.Props(routerCtl.narrow[AppPage.GameRoom]))
+    )
+    | dynamicRouteCT(
+      "#gameRoom" / uuid.caseClass[AppPage.GameRoom]
+    ) ~> dynRender(gameRoomPage => gameRoom(gameRoomPage.id)))
     .notFound(redirectToPage(AppPage.Home)(HistoryReplace))
     .renderWith(layout)
 }

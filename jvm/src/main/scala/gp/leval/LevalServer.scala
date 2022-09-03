@@ -7,7 +7,7 @@ import fs2.Stream
 import org.http4s.ember.client.EmberClientBuilder
 import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits.*
-import org.http4s.server.middleware.Logger
+import org.http4s.server.middleware.{Logger, CORS}
 import org.http4s.server.websocket.WebSocketBuilder
 
 object LevalServer {
@@ -32,12 +32,12 @@ object LevalServer {
           LevalRoutes
             .helloWorldRoutes[F](helloWorldAlg) <+>
             LevalRoutes.gameRoutes[F](state)(wsb)
-          // Hellohttp4sRoutes.jokeRoutes[F](jokeAlg)
+            // Hellohttp4sRoutes.jokeRoutes[F](jokeAlg)
         ).orNotFound
 
       // With Middlewares in place
       finalHttpApp = (wsb: WebSocketBuilder[F]) =>
-        Logger.httpApp(true, true)(httpApp(wsb))
+        CORS.policy.withAllowOriginAll(Logger.httpApp(true, true)(httpApp(wsb)))
 
       exitCode <- Stream.resource(
         EmberServerBuilder
