@@ -42,8 +42,8 @@ lazy val `pixi-js` = project
   .settings(
     name := "pixi-js",
     Compile / npmDependencies ++= Seq(
-      //"pixi.js" -> PixiVersion,
-      //following are transitive dependency of pixi.js but explicit them for scalablytypes
+      // "pixi.js" -> PixiVersion,
+      // following are transitive dependency of pixi.js but explicit them for scalablytypes
       "@types/earcut" -> "2.1.1",
       "@types/offscreencanvas" -> "2019.7.0",
       "eventemitter3" -> "3.1.0"
@@ -53,10 +53,11 @@ lazy val `pixi-js` = project
     // ),
     stFlavour := Flavour.ScalajsReact
   )
-  .enablePlugins(ScalaJSPlugin,
-      ScalaJSBundlerPlugin,
-      ScalablyTypedConverterPlugin
-      )
+  .enablePlugins(
+    ScalaJSPlugin,
+    ScalaJSBundlerPlugin,
+    ScalablyTypedConverterPlugin
+  )
 
 lazy val leval = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))
@@ -134,21 +135,35 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
     Compile / npmDependencies ++= Seq(
       "react" -> "18.2.0",
       "react-dom" -> "18.2.0",
-      "pixi.js" -> PixiVersion,
-    )//,
-  //  stIgnore ++= List(
-  //    "react",
-  //    "react-dom",
-  //    //"pixi.js" // https://github.com/ScalablyTyped/Converter/issues/471
-  //  ),
-  //  stFlavour := Flavour.ScalajsReact
+      "pixi.js" -> PixiVersion
+    ),
+    Compile / npmDevDependencies ++= Seq(
+      "webpack-merge" -> "5.7.3",
+      "imports-loader" -> "2.0.0",
+      "expose-loader" -> "2.0.0"
+    ),
+    fastOptJS / webpackConfigFile := Some(
+      baseDirectory.value / "dev.webpack.config.js"
+    ),
+    Test / webpackConfigFile := Some(
+      baseDirectory.value / "test.webpack.config.js"
+    ),
+
+    webpack / version := "4.8.1",
+
+  startWebpackDevServer / version := "3.1.4"
+    //  stIgnore ++= List(
+    //    "react",
+    //    "react-dom",
+    //    //"pixi.js" // https://github.com/ScalablyTyped/Converter/issues/471
+    //  ),
+    //  stFlavour := Flavour.ScalajsReact
   )
   .jsConfigure { project =>
-
     project
       .dependsOn(`pixi-js`)
       .enablePlugins(
-      ScalaJSBundlerPlugin
-      // ScalablyTypedConverterPlugin
-    )
+        ScalaJSBundlerPlugin
+        // ScalablyTypedConverterPlugin
+      )
   }
