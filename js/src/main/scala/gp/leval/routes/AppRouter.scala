@@ -38,7 +38,7 @@ private val config = RouterConfigDsl[AppPage].buildConfig { dsl =>
     )
     | dynamicRouteCT(
       "#gameRoom" / uuid.caseClass[AppPage.GameRoom]
-    ) ~> dynRender(gameRoomPage => gameRoom(gameRoomPage.id)))
+    ) ~> dynRender(gameRoomPage => GameRoom(gameRoomPage.id)))
     .notFound(redirectToPage(AppPage.Home)(HistoryReplace))
     .renderWith(layout)
 }

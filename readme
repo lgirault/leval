@@ -4,3 +4,9 @@ how to start :
 run `sbt fastOptJS::webpack`
 
 then open index-dev.html in the browser
+
+
+TODO :
+  find out how to bring PIXI.js in targets without requiring a 
+  <script src="./test-pixi.js/node_modules/pixi.js/dist/browser/pixi.js"></script>
+  in index.html

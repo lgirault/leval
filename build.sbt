@@ -8,32 +8,61 @@ val LogbackVersion = "1.2.11"
 val PixiVersion = "6.5.2"
 val ScalaTestVersion = "3.2.13"
 
-val printClassPathFile = taskKey[File]("create a file containing the fullclass path")
+val printClassPathFile =
+  taskKey[File]("create a file containing the fullclass path")
 
-val classPathFileName = settingKey[String]("Location of generated classpath script")
+val classPathFileName =
+  settingKey[String]("Location of generated classpath script")
 
-def classPathFileNameTask(cfg: Configuration): Def.Initialize[Task[File]] = Def.task {
-  val f = baseDirectory.value / "target" / classPathFileName.value
+def classPathFileNameTask(cfg: Configuration): Def.Initialize[Task[File]] =
+  Def.task {
+    val f = baseDirectory.value / "target" / classPathFileName.value
 
-  val writter = new FileWriter(f)
-  val fcp = (cfg / fullClasspath).value.map(_.data.absolutePath)
-  writter write "#!/bin/bash\n"
-  writter write fcp.mkString("export CLASSPATH=", ":", "")
-  // fish style :
-  // writter.write(fcp.mkString("set CLASSPATH ", ":", ""))
-  writter.close()
-  f
-}
+    val writter = new FileWriter(f)
+    val fcp = (cfg / fullClasspath).value.map(_.data.absolutePath)
+    writter write "#!/bin/bash\n"
+    writter write fcp.mkString("export CLASSPATH=", ":", "")
+    // fish style :
+    // writter.write(fcp.mkString("set CLASSPATH ", ":", ""))
+    writter.close()
+    f
+  }
 
 ThisBuild / scalaVersion := "3.1.3"
+ThisBuild / developers := List(
+  Developer(
+    "lgirault",
+    "L. Girault",
+    "loic.girault+leval@posteo.net",
+    url("https://github.com/lgirault")
+  )
+)
+
+lazy val `pixi-js` = project
+  .settings(
+    name := "pixi-js",
+    Compile / npmDependencies ++= Seq(
+      //"pixi.js" -> PixiVersion,
+      //following are transitive dependency of pixi.js but explicit them for scalablytypes
+      "@types/earcut" -> "2.1.1",
+      "@types/offscreencanvas" -> "2019.7.0",
+      "eventemitter3" -> "3.1.0"
+    ),
+    // stIgnore ++= List(
+    //   "pixi.js" // https://github.com/ScalablyTyped/Converter/issues/471
+    // ),
+    stFlavour := Flavour.ScalajsReact
+  )
+  .enablePlugins(ScalaJSPlugin,
+      ScalaJSBundlerPlugin,
+      ScalablyTypedConverterPlugin
+      )
 
 lazy val leval = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))
   .settings(
     name := "leval",
     version := "0.15",
-    // maintainer := "L. Girault ( loic.girault@posteo.net )",
-
     classPathFileName := "CLASSPATH",
     Test / printClassPathFile := classPathFileNameTask(Test).value,
     Compile / printClassPathFile := classPathFileNameTask(Compile).value,
@@ -41,7 +70,7 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
       Seq(
         "org.typelevel" %%% "cats-core" % CatsVersion,
         "io.circe" %%% "circe-generic" % CirceVersion,
-        //"io.circe" %%% "circe-generic-extras" % CirceVersion,
+        // "io.circe" %%% "circe-generic-extras" % CirceVersion,
         "io.circe" %%% "circe-parser" % CirceVersion,
         "org.scalatest" %%% "scalatest" % ScalaTestVersion,
         "dev.optics" %%% "monocle-core" % "3.1.0"
@@ -105,18 +134,21 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
     Compile / npmDependencies ++= Seq(
       "react" -> "18.2.0",
       "react-dom" -> "18.2.0",
-      "pixi.js" -> PixiVersion
+      "pixi.js" -> PixiVersion,
     )//,
-//    stIgnore ++= List(
-//      "react",
-//      "react-dom",
-//      "pixi.js"
-//    ),
-//    stFlavour := Flavour.ScalajsReact
+  //  stIgnore ++= List(
+  //    "react",
+  //    "react-dom",
+  //    //"pixi.js" // https://github.com/ScalablyTyped/Converter/issues/471
+  //  ),
+  //  stFlavour := Flavour.ScalajsReact
   )
   .jsConfigure { project =>
-    project.enablePlugins(
-      ScalaJSBundlerPlugin,
-      //ScalablyTypedConverterPlugin
+
+    project
+      .dependsOn(`pixi-js`)
+      .enablePlugins(
+      ScalaJSBundlerPlugin
+      // ScalablyTypedConverterPlugin
     )
   }
