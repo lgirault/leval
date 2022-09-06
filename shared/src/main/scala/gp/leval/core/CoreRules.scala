@@ -51,30 +51,30 @@ sealed trait CoreRules {
 
   def wizardOrEminenceGrise(origin: CardOrigin): Int =
     (origin, origin.card) match {
-      case (CardOrigin.Being(Formation(Wizard), _), Card(Jack, Diamond)) =>
+      case (CardOrigin.Being(Formation(Wizard), _), Card(Rank.Jack, Suit.Diamond)) =>
         wizardCollect + 1
       case (CardOrigin.Being(Formation(Wizard), _), _)   => wizardCollect
-      case (CardOrigin.Being(_, _), Card(Jack, Diamond)) => 1
+      case (CardOrigin.Being(_, _), Card(Rank.Jack, Suit.Diamond)) => 1
       case _                                             => 0
     }
 
   def drawAndLookValues(origin: Origin): (Int, Int) =
     origin match {
-      case CardOrigin.Hand(_, Card(King, _))  => (1, 3)
-      case CardOrigin.Hand(_, Card(Queen, _)) => (1, 2)
+      case CardOrigin.Hand(_, Card(Rank.King, _))  => (1, 3)
+      case CardOrigin.Hand(_, Card(Rank.Queen, _)) => (1, 2)
       case CardOrigin.Hand(_, _)              => (1, 1)
-      case co @ CardOrigin.Being(b, Club) =>
+      case co @ CardOrigin.Being(b, Suit.Club) =>
         (b, co.card) match {
-          case (Formation(Fool), Card(Jack, _)) =>
+          case (Formation(Fool), Card(Rank.Jack, _)) =>
             if b.firstDraw then (foolFirstCollect + 1, 3)
             else (3, 3)
           case (Formation(Fool), _) =>
             if b.firstDraw then (foolFirstCollect, 1)
             else (2, 1)
-          case (_, Card(Jack, _)) => (2, 2)
+          case (_, Card(Rank.Jack, _)) => (2, 2)
           case _                  => (1, 1)
         }
-      case co @ CardOrigin.Being(b, Diamond) =>
+      case co @ CardOrigin.Being(b, Suit.Diamond) =>
         (wizardOrEminenceGrise(co), 0)
       case Origin.Star(_) => (1, 0)
       case co @ CardOrigin.Being(_, _) =>
@@ -83,7 +83,7 @@ sealed trait CoreRules {
 
   def isButcher(o: CardOrigin): Boolean =
     (o, o.card) match {
-      case (CardOrigin.Being(_, _), Card(Jack, Spade)) => true
+      case (CardOrigin.Being(_, _), Card(Rank.Jack, Suit.Spade)) => true
       case _                                           => false
     }
 
@@ -135,7 +135,7 @@ sealed trait CoreRules {
       case (_, false) => g1.copy(deathRiver = removedArcana :: g.deathRiver)
       case (true, true) =>
         removedArcana match {
-          case c @ (Card(King | Queen | Jack, _) | Joker(_)) =>
+          case c @ (Card(Rank.King | Rank.Queen | Rank.Jack, _) | Joker(_)) =>
             g1.setStar(sAttacker.get.owner, _ + removedArcana)
           case _ =>
             g1.copy(deathRiver = removedArcana :: g.deathRiver)
@@ -164,7 +164,7 @@ sealed trait CoreRules {
   ): (Game, Set[Card]) =
     if isButcher(killer) then {
       val f: Card => Boolean = {
-        case c @ (Card(King | Queen | Jack, _) | Joker(_)) =>
+        case c @ (Card(Rank.King | Rank.Queen | Rank.Jack, _) | Joker(_)) =>
           Game.goesToRiver(c)
         case _ => false
       }
@@ -190,8 +190,8 @@ sealed trait CoreRules {
       case Formation(Child) => 5
       case _                => 0
     }
-    val dauphinMalus = killed.resources get Heart match {
-      case Some(Card(Jack, Heart)) => 5
+    val dauphinMalus = killed.resources get Suit.Heart match {
+      case Some(Card(Rank.Jack, Suit.Heart)) => 5
       case _                       => 0
     }
     g.setStar(killer.owner, _ - (childMalus + dauphinMalus))
@@ -255,13 +255,13 @@ sealed trait CoreRules {
     }
 
   def otherLover: PartialFunction[Rank, Rank] = {
-    case King  => Queen
-    case Queen => King
+    case Rank.King  => Rank.Queen
+    case Rank.Queen => Rank.King
   }
 
   def checkLegalLover(face: Card, heart: Card): Boolean =
     (face, heart) match {
-      case (Card(fr @ (King | Queen), fs), Card(hr, hs)) =>
+      case (Card(fr @ (Rank.King | Rank.Queen), fs), Card(hr, hs)) =>
         hr == otherLover(fr) && fs == hs
       case _ => false
     }
@@ -274,7 +274,7 @@ sealed trait CoreRules {
       pos: Suit
   ): Boolean =
     validResource(
-      sFace getOrElse C(-1, Numeric(5), Heart),
+      sFace getOrElse Card.C(-1, Rank.Numeric(5), Suit.Heart),
       otherResources,
       c,
       pos
@@ -290,7 +290,7 @@ sealed trait CoreRules {
   ): Boolean
 
   def validResources(b: Being): Boolean = b.resources forall {
-    case (Heart, c: C) if b.inLove => checkLegalLover(b.face, c)
+    case (Suit.Heart, c: Card.C) if b.inLove => checkLegalLover(b.face, c)
     case (pos, c)                  => validResource(b.face, b.resources, c, pos)
   }
 
@@ -336,7 +336,7 @@ case object Sinnlos
       c: Card,
       pos: Suit
   ) = c match {
-    case Card(Numeric(_), `pos`) => true
+    case Card(Rank.Numeric(_), `pos`) => true
     case _                       => false
   }
 
@@ -349,7 +349,7 @@ sealed trait AntaresHeliosCommon extends CoreRules {
   override def checkLegalLover(face: Card, heart: Card): Boolean =
     super.checkLegalLover(face, heart) || {
       (face, heart) match {
-        case (Card(fr @ (King | Queen), Heart), Card(Jack, Heart)) => true
+        case (Card(fr @ (Rank.King | Rank.Queen), Suit.Heart), Card(Rank.Jack, Suit.Heart)) => true
         case _                                                     => false
       }
     }
@@ -360,18 +360,18 @@ sealed trait AntaresHeliosCommon extends CoreRules {
       c: Card,
       pos: Suit
   ) = (face, c) match {
-    case (_, Card(Numeric(_), `pos`)) |
-        (Card(King | Queen, `pos`), Card(Jack, `pos`)) =>
+    case (_, Card(Rank.Numeric(_), `pos`)) |
+        (Card(Rank.King | Rank.Queen, `pos`), Card(Rank.Jack, `pos`)) =>
       true
 
     // Lover
-    case (Card(lover @ (King | Queen), fsuit), Card(r: Face, s))
-        if pos == Heart =>
+    case (Card(lover @ (Rank.King | Rank.Queen), fsuit), Card(r: Rank.Face, s))
+        if pos == Suit.Heart =>
       fsuit == s && otherLover(lover) == r
 
     case (j1 @ Joker(_), j2 @ Joker(_)) => j1 == j2
     case (_, Joker(_)) =>
-      !otherResources.values.exists(r => r.isInstanceOf[J] && r != c)
+      !otherResources.values.exists(r => r.isInstanceOf[Card.J] && r != c)
     case _ => false
   }
 }

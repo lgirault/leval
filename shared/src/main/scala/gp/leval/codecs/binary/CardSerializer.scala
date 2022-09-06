@@ -8,35 +8,35 @@ import java.nio.ByteBuffer
 /** Created by Loïc Girault on 31/08/16.
   */
 object CardSerializer {
-  val suits = Array[Suit](Diamond, Club, Heart, Spade)
+  val suits = Array[Suit](Suit.Diamond, Suit.Club, Suit.Heart, Suit.Spade)
 
   val suitSize = 1
 
   def toByte(s: Suit): Byte = s match {
-    case Diamond => 0x0
-    case Club    => 0x1
-    case Heart   => 0x2
-    case Spade   => 0x3
+    case Suit.Diamond => 0x0
+    case Suit.Club    => 0x1
+    case Suit.Heart   => 0x2
+    case Suit.Spade   => 0x3
   }
   // for jokers
   // 0x4 = Black
   // 0x5 = Red
 
   private def toByte(r: Rank): Byte = r match {
-    case Numeric(v) => v.toByte // 0x1 to 0xA
-    case Jack       => 0xb // also used for joker
-    case Queen      => 0xc
-    case King       => 0xd
+    case Rank.Numeric(v) => v.toByte // 0x1 to 0xA
+    case Rank.Jack       => 0xb // also used for joker
+    case Rank.Queen      => 0xc
+    case Rank.King       => 0xd
   }
 
   val cardSize = 2
 
   import Joker.{Black, Red}
   def toByte(c: Card): (Byte, Byte) = c match {
-    case C(dId, r, s) =>
+    case Card.C(dId, r, s) =>
       (dId, (toByte(s) << 4 | toByte(r)).toByte)
-    case J(dId, Black) => (dId, 0x4b)
-    case J(dId, Red)   => (dId, 0x5b)
+    case Card.J(dId, Black) => (dId, 0x4b)
+    case Card.J(dId, Red)   => (dId, 0x5b)
   }
 
   def put(bb: ByteBuffer, card: Card): Unit = {
@@ -55,17 +55,17 @@ object CardSerializer {
     val suit = (c & 0xf0) >> 4
     val rank = c & 0x0f
     suit match {
-      case 0x4 => J(deckId, Black)
-      case 0x5 => J(deckId, Red)
+      case 0x4 => Card.J(deckId, Black)
+      case 0x5 => Card.J(deckId, Red)
       case _ =>
         val s = CardSerializer.suits(suit)
         val r = rank match {
-          case 0xb => Jack
-          case 0xc => Queen
-          case 0xd => King
-          case _   => Numeric(rank)
+          case 0xb => Rank.Jack
+          case 0xc => Rank.Queen
+          case 0xd => Rank.King
+          case _   => Rank.Numeric(rank)
         }
-        C(deckId, r, s)
+        Card.C(deckId, r, s)
     }
   }
 

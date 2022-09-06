@@ -1,28 +1,35 @@
 package gp.leval
 
-//import gp.leval.components.*
 import gp.leval.routes.AppRouter
 
 import org.scalajs.dom
-import japgolly.scalajs.react.*
-import japgolly.scalajs.react.vdom.html_<^.*
-
 import scala.scalajs.js.annotation.JSExport
-val HelloMessage = ScalaComponent
-  .builder[String]
-  .stateless
-  .noBackend
-  .render($ => <.div("Hello ", $.props))
-  .build
+
+import gp.leval.core.GameInit
+import gp.pixijs.*
+import gp.pixijs.Point.*
+import gp.leval.core.*
 
 object Main {
 
   @JSExport
   def main(args: Array[String]): Unit = {
 
-    // HelloMessage("John").renderIntoDOM(dom.document.getElementById("root-container"))
-    // HomeMenu(HomeMenuText()).renderIntoDOM(dom.document.getElementById("root-container"))
-    AppRouter().renderIntoDOM(dom.document.getElementById("root-container"))
+    val game = GameInit(
+      List(
+        PlayerId(None, "Toto"),
+        PlayerId(None, "Titi")
+      ),
+      Rules(Sinnlos)
+    )
+    val app = Application(1024, 768)
+
+    val sprite = new Sprite(Texture.from("assets/cards/1_of_clubs.png"))
+    sprite.scale = (0.5, 0.5)
+    app.stage.addChild(sprite)
+    dom.document.getElementById("root-container").append(app.view)
+
+    // AppRouter().renderIntoDOM(dom.document.getElementById("root-container"))
   }
 
 }

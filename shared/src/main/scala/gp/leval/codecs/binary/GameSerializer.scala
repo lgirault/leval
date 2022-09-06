@@ -347,7 +347,7 @@ class GameSerializer {
       case GameManifest.educateSwitch =>
         val bb = ByteBuffer.wrap(bytes)
         val tgt = CardSerializer.fromBinary(bb)
-        val c = CardSerializer.fromBinary(bb).asInstanceOf[C]
+        val c = CardSerializer.fromBinary(bb).asInstanceOf[Card.C]
         Switch(tgt, c)
 
       case GameManifest.educateRise =>

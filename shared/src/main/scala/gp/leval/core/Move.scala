@@ -51,7 +51,7 @@ case class OsteinSelection(card: Card) extends Serializable
 sealed abstract class Educate extends Move[Unit] {
   def target: Card
 }
-case class Switch(target: Card, c: C) extends Educate
+case class Switch(target: Card, c: Card.C) extends Educate
 case class Rise(target: Card, cards: Map[Suit, Card]) extends Educate
 
 sealed abstract class Phase extends Move[Unit]
@@ -60,13 +60,3 @@ case class ActPhase(activatedBeings: Set[Card]) extends Phase
 case object SourcePhase extends Phase
 
 case class Twilight(cards: Seq[Seq[Card]])
-
-//import cats.free.Free
-//import cats.free.Free.liftF
-//object Move{
-//  type FMove[A] = Free[Move, A]
-//
-//  def majestyEffect(value : Int, targetStar : Int)) : FMove[Unit] =
-//    liftF[Move, Unit](MajestyEffect(value , targetStar))
-
-//}

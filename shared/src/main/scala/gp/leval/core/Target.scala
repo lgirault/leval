@@ -7,13 +7,13 @@ object Target {
   def apply(game: Game, c: Card): Seq[Target] = c match {
     case Card(_, s) => apply(game, s)
     case Joker(Joker.Black) =>
-      (apply(game, Spade).toSet ++ apply(game, Club)).toSeq
+      (apply(game, Suit.Spade).toSet ++ apply(game, Suit.Club)).toSeq
     case Joker(Joker.Red) =>
-      (apply(game, Heart).toSet ++ apply(game, Diamond)).toSeq
+      (apply(game, Suit.Heart).toSet ++ apply(game, Suit.Diamond)).toSeq
   }
   def apply(game: Game, playedSuit: Suit): Seq[Target] = playedSuit match {
-    case Heart => Seq(SelfStar)
-    case Club =>
+    case Suit.Heart => Seq(SelfStar)
+    case Suit.Club =>
       val riverAvailable =
         game.beingsOwnBy(game.currentStarIdx) exists {
           case Formation(Spectre) => true
@@ -27,16 +27,16 @@ object Target {
       if riverAvailable then DeathRiver +: tgts
       else tgts
 
-    case Spade => // hard coded for two Players
+    case Suit.Spade => // hard coded for two Players
       val opponentStarAvailable = {
         val opponentId = (game.currentStarIdx + 1) % 2
         game.beingsOwnBy(opponentId).forall(_.heart.isEmpty)
       }
-      val tgts = Seq(TargetBeingResource(Heart, game.stars.indices))
+      val tgts = Seq(TargetBeingResource(Suit.Heart, game.stars.indices))
       if opponentStarAvailable then OpponentStar +: tgts
       else tgts
 
-    case Diamond =>
+    case Suit.Diamond =>
       val opponentId = (game.currentStarIdx + 1) % 2
       val opponentStar = game.stars(opponentId)
       val opponentHasSpectre = {
@@ -46,7 +46,7 @@ object Target {
         }
       }
       if opponentHasSpectre then Seq(OpponentSpectrePower)
-      else Seq(OpponentStar, TargetBeingResource(Club, Seq(opponentId)))
+      else Seq(OpponentStar, TargetBeingResource(Suit.Club, Seq(opponentId)))
   }
 }
 sealed abstract class Target

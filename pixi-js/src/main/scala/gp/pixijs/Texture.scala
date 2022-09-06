@@ -1,5 +1,6 @@
 package gp.pixijs
 
+import org.scalajs.dom.{HTMLCanvasElement, HTMLImageElement, HTMLVideoElement}
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSGlobal
 
@@ -33,5 +34,5 @@ class Texture(baseTexture0: BaseTexture,
 @js.native
 @JSGlobal("PIXI.Texture")
 object Texture extends js.Object {
-  def from( source: String /*string | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement*/  ): Texture = js.native
+  def from( source: String | HTMLImageElement | HTMLCanvasElement | HTMLVideoElement  ): Texture = js.native
 }

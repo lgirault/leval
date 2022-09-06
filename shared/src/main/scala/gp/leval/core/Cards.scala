@@ -2,49 +2,52 @@ package gp.leval.core
 
 /** Created by Loïc Girault on 20/06/16.
   */
+sealed abstract class Suit
 object Suit {
   val list = List(Diamond, Club, Heart, Spade)
+  case object Diamond extends Suit // carreau
+  case object Club extends Suit // trefle
+  case object Heart extends Suit
+  case object Spade extends Suit // pique
 }
-sealed abstract class Suit
-case object Diamond extends Suit //carreau
-case object Club extends Suit //trefle
-case object Heart extends Suit
-case object Spade extends Suit //pique
 
 sealed abstract class Rank
-sealed abstract class Face extends Rank
-case object Jack extends Face
-case object Queen extends Face
-case object King extends Face
-case class Numeric(value: Int) extends Rank
+object Rank {
+  sealed abstract class Face extends Rank
+  case object Jack extends Face
+  case object Queen extends Face
+  case object King extends Face
+  case class Numeric(value: Int) extends Rank
+}
 
 //Cards keep their id deck
 //its necessary because being maps are indexed by the card
 
 sealed abstract class Card
-case class C(deckId: Byte, rank: Rank, suit: Suit) extends Card
 
-case class J(deckId: Byte, color: Joker.Color) extends Card
 object Joker {
   sealed abstract class Color
   case object Red extends Color
   case object Black extends Color
 
-  def unapply(j: J): Some[Color] = Some(j.color)
+  def unapply(j: Card.J): Some[Color] = Some(j.color)
 
 }
 
 object Card {
+
+  case class C(deckId: Byte, rank: Rank, suit: Suit) extends Card
+  case class J(deckId: Byte, color: Joker.Color) extends Card
 
   def unapply(c: C): Some[(Rank, Suit)] =
     Some((c.rank, c.suit))
 
   def value(c: Card): Int =
     c match {
-      case Joker(_) | Card(Jack, _) => 1
-      case Card(Numeric(v), _)      => v
-      case Card(Queen, _)           => 2
-      case Card(King, _)            => 3
+      case Joker(_) | Card(Rank.Jack, _) => 1
+      case Card(Rank.Numeric(v), _)      => v
+      case Card(Rank.Queen, _)           => 2
+      case Card(Rank.King, _)            => 3
     }
 
   private def orderingValue(c: Joker.Color): Int = c match {
@@ -52,16 +55,16 @@ object Card {
     case Joker.Black => 1
   }
   private def orderingValue(s: Suit): Int = s match {
-    case Diamond => 0
-    case Club    => 1
-    case Heart   => 2
-    case Spade   => 3
+    case Suit.Diamond => 0
+    case Suit.Club    => 1
+    case Suit.Heart   => 2
+    case Suit.Spade   => 3
   }
   private def orderingValue(r: Rank): Int = r match {
-    case Numeric(v) => v
-    case Jack       => 11
-    case Queen      => 12
-    case King       => 13
+    case Rank.Numeric(v) => v
+    case Rank.Jack       => 11
+    case Rank.Queen      => 12
+    case Rank.King       => 13
   }
 
   implicit val suitOrdering: Ordering[Suit] = new Ordering[Suit] {

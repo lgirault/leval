@@ -15,16 +15,16 @@ object Being {
 
   implicit class StateOps(val state: State) extends AnyVal {
     def get(s: Suit): Int = s match {
-      case Heart => state._1
-      case Club  => state._2
+      case Suit.Heart => state._1
+      case Suit.Club  => state._2
       case _     => leval.error()
     }
 
     def add(s: Suit, i: Int) = {
       val (h, p) = state
       s match {
-        case Heart => (h + i, p)
-        case Club  => (h, p + i)
+        case Suit.Heart => (h + i, p)
+        case Suit.Club  => (h, p + i)
         case _     => leval.error()
       }
     }
@@ -45,10 +45,10 @@ case class Being(
   def -(s: Suit) = copy(resources = resources - s)
   def +(kv: (Suit, Card)) = copy(resources = resources + kv)
 
-  def heart: Option[Card] = resources get Heart
-  def weapon: Option[Card] = resources get Spade
-  def mind: Option[Card] = resources get Diamond
-  def power: Option[Card] = resources get Club
+  def heart: Option[Card] = resources get Suit.Heart
+  def weapon: Option[Card] = resources get Suit.Spade
+  def mind: Option[Card] = resources get Suit.Diamond
+  def power: Option[Card] = resources get Suit.Club
 
   def find(c: Card): Option[Suit] =
     resources.toList find {
@@ -57,16 +57,16 @@ case class Being(
     } map (_._1)
 
   // a being cannot be educated to become messianic or possessed so no ambiguity here
-  def educateWith(card: C): (Being, Card) = card match {
-    case Card(King | Queen, _) | Card(Jack, Heart) =>
+  def educateWith(card: Card.C): (Being, Card) = card match {
+    case Card(Rank.King | Rank.Queen, _) | Card(Rank.Jack, Suit.Heart) =>
       (
-        copy(resources = resources + (Heart -> card), lovedOne = Some(card)),
-        resources(Heart)
+        copy(resources = resources + (Suit.Heart -> card), lovedOne = Some(card)),
+        resources(Suit.Heart)
       )
-    case Card(_, Heart) =>
+    case Card(_, Suit.Heart) =>
       (
-        copy(resources = resources + (Heart -> card), lovedOne = None),
-        resources(Heart)
+        copy(resources = resources + (Suit.Heart -> card), lovedOne = None),
+        resources(Suit.Heart)
       )
     case Card(_, suit) =>
       (copy(resources = resources + (suit -> card)), resources(suit))
@@ -80,8 +80,8 @@ case class Being(
         resources = cards.foldLeft(resources)(_ + _),
         hasAlreadyDrawn = false
       )
-      b1.resources get Heart match {
-        case sc @ Some(Card(King | Queen | Jack, _)) if !b1.inLove =>
+      b1.resources get Suit.Heart match {
+        case sc @ Some(Card(Rank.King | Rank.Queen | Rank.Jack, _)) if !b1.inLove =>
           b1.copy(lovedOne = sc)
         case _ => b1
       }
@@ -91,12 +91,12 @@ case class Being(
   def cards: List[Card] = face :: resources.values.toList
 
   def formationBonus(resource: Suit) = (resource, this) match {
-    case (Heart, Formation(Child))                                 => 1
-    case (Club, Formation(Fool))                                   => 1
-    case (Club, Spectre(BlackLady))                                => 2
-    case (Club, Spectre(Royal))                                    => 3
-    case (Diamond, Formation(Wizard) | Spectre(Royal | BlackLady)) => 1
-    case (Spade, Formation(Knight) | Spectre(Royal))               => 1
+    case (Suit.Heart, Formation(Child))                                 => 1
+    case (Suit.Club, Formation(Fool))                                   => 1
+    case (Suit.Club, Spectre(BlackLady))                                => 2
+    case (Suit.Club, Spectre(Royal))                                    => 3
+    case (Suit.Diamond, Formation(Wizard) | Spectre(Royal | BlackLady)) => 1
+    case (Suit.Spade, Formation(Knight) | Spectre(Royal))               => 1
     case _                                                         => 0
   }
 
@@ -111,11 +111,11 @@ case class Being(
 
   def value(resource: Suit, v: Card => Int): Option[Int] =
     ((resource, resources get resource) match {
-      case (_, Some(Card(Jack, _)))              => Some(5)
-      case (Diamond | Heart, Some(Joker(Black))) => Some(1)
-      case (Diamond | Heart, Some(Joker(Red)))   => Some(6)
-      case (Club | Spade, Some(Joker(Red)))      => Some(1)
-      case (Club | Spade, Some(Joker(Black)))    => Some(6)
+      case (_, Some(Card(Rank.Jack, _)))              => Some(5)
+      case (Suit.Diamond | Suit.Heart, Some(Joker(Black))) => Some(1)
+      case (Suit.Diamond | Suit.Heart, Some(Joker(Red)))   => Some(6)
+      case (Suit.Club | Suit.Spade, Some(Joker(Red)))      => Some(1)
+      case (Suit.Club | Suit.Spade, Some(Joker(Black)))    => Some(6)
       case (_, sc)                               => sc map v
     }) map (_ + bonus(resource, v))
 
@@ -154,8 +154,8 @@ case object Shadow extends Formation
 case object Spectre extends Formation {
   def unapply(b: Being): Option[Spectre] = (b, b.inLove, b.face) match {
     case (Formation(Spectre), false, _)             => Some(Regular)
-    case (Formation(Spectre), true, Card(King, _))  => Some(Royal)
-    case (Formation(Spectre), true, Card(Queen, _)) => Some(BlackLady)
+    case (Formation(Spectre), true, Card(Rank.King, _))  => Some(Royal)
+    case (Formation(Spectre), true, Card(Rank.Queen, _)) => Some(BlackLady)
     case _                                          => None
   }
 }

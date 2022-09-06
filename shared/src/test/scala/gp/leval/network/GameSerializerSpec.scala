@@ -3,7 +3,7 @@ package gp.leval.network
 import gp.leval.AcceptanceSpec
 import gp.leval.core.*
 import gp.leval.codecs.binary.*
-import gp.leval.TestSamples.*
+import gp.leval.TestSamples.{given, *}
 import gp.leval.core.Joker.{Black, Red}
 
 /** Created by lorilan on 9/1/16.
@@ -17,7 +17,7 @@ class GameSerializerSpec extends AcceptanceSpec {
   "A game serializer" - {
     "should encode and decode a GameInit" in {
       val g = GameInit.gameWithoutMulligan(
-        Seq(PlayerId(None, "toto"), PlayerId(Some(1), "titi")),
+        List(PlayerId(None, "toto"), PlayerId(Some(1), "titi")),
         Rules(Helios)
       )
       val b = toBinary(g)
@@ -29,17 +29,17 @@ class GameSerializerSpec extends AcceptanceSpec {
       fromBinary(b, GameManifest.majestyEffect).shouldBe(m)
     }
     "should encode and decode a AttackBeing" in {
-      val m = AttackBeing(CardOrigin.Hand(0, (5, Spade)), child, Heart)
+      val m = AttackBeing(CardOrigin.Hand(0, (5, Suit.Spade)), child, Suit.Heart)
       val b = toBinary(m)
       fromBinary(b, GameManifest.attackBeing).shouldBe(m)
     }
     "should encode and decode a RemoveFromHand" in {
-      val m = RemoveFromHand((8, Club))
+      val m = RemoveFromHand((8, Suit.Club))
       val b = toBinary(m)
       fromBinary(b, GameManifest.removeFromHand).shouldBe(m)
     }
     "should encode and decode a ActivateBeing" in {
-      val m = ActivateBeing((King, Diamond))
+      val m = ActivateBeing((Rank.King, Suit.Diamond))
       val b = toBinary(m)
       fromBinary(b, GameManifest.activateBeing).shouldBe(m)
     }
@@ -49,17 +49,17 @@ class GameSerializerSpec extends AcceptanceSpec {
       fromBinary(b, GameManifest.collect).shouldBe(m)
     }
     "should encode and decode a Collect deathRiver from being" in {
-      val m = Collect(CardOrigin.Being(fool, Club), DeathRiver)
+      val m = Collect(CardOrigin.Being(fool, Suit.Club), DeathRiver)
       val b = toBinary(m)
       fromBinary(b, GameManifest.collect).shouldBe(m)
     }
     "should encode and decode a Reveal" in {
-      val m = Reveal((Queen, Heart), Spade)
+      val m = Reveal((Rank.Queen, Suit.Heart), Suit.Spade)
       val b = toBinary(m)
       fromBinary(b, GameManifest.reveal).shouldBe(m)
     }
     "should encode and decode a LookCard" in {
-      val m = LookCard(CardOrigin.Being(spectre, Club), (Queen, Heart), Club)
+      val m = LookCard(CardOrigin.Being(spectre, Suit.Club), (Rank.Queen, Suit.Heart), Suit.Club)
       val b = toBinary(m)
       fromBinary(b, GameManifest.lookCard).shouldBe(m)
     }
@@ -69,24 +69,24 @@ class GameSerializerSpec extends AcceptanceSpec {
       fromBinary(b, GameManifest.placeBeing).shouldBe(m)
     }
     "should encode and decode a Bury" in {
-      val m = Bury((Jack, Spade), List[Card](J(0, Red), (3, Spade), (10, Club)))
+      val m = Bury((Rank.Jack, Suit.Spade), List[Card](Card.J(0, Red), (3, Suit.Spade), (10, Suit.Club)))
       val b = toBinary(m)
       fromBinary(b, GameManifest.bury).shouldBe(m)
     }
     "should encode and decode a BuryRequest" in {
-      val m = BuryRequest(wizard, Set[Card](J(0, Red), (3, Spade), (10, Club)))
+      val m = BuryRequest(wizard, Set[Card](Card.J(0, Red), (3, Suit.Spade), (10, Suit.Club)))
       val b = toBinary(m)
       fromBinary(b, GameManifest.buryRequest).shouldBe(m)
     }
     "should encode and decode a Switch" in {
-      val m = Switch(J(1, Black), C(1, Numeric(5), Spade))
+      val m = Switch(Card.J(1, Black), Card.C(1, Rank.Numeric(5), Suit.Spade))
       val b = toBinary(m)
       fromBinary(b, GameManifest.educateSwitch).shouldBe(m)
     }
     "should encode and decode a Rise" in {
       val m = Rise(
-        (King, Heart),
-        Map[Suit, Card](Club -> ((10, Club)), Spade -> ((1, Spade)))
+        (Rank.King, Suit.Heart),
+        Map[Suit, Card](Suit.Club -> ((10, Suit.Club)), Suit.Spade -> ((1, Suit.Spade)))
       )
       val b = toBinary(m)
       fromBinary(b, GameManifest.educateRise).shouldBe(m)
@@ -110,9 +110,9 @@ class GameSerializerSpec extends AcceptanceSpec {
     "should encode and decode a Twilight" in {
       val m = Twilight(
         Seq(
-          Seq[Card]((10, Club), (1, Spade)),
-          Seq[Card](J(0, Red), (3, Spade)),
-          Seq[Card]((Queen, Heart), (King, Diamond))
+          Seq[Card]((10, Suit.Club), (1, Suit.Spade)),
+          Seq[Card](Card.J(0, Red), (3, Suit.Spade)),
+          Seq[Card]((Rank.Queen, Suit.Heart), (Rank.King, Suit.Diamond))
         )
       )
       val b = toBinary(m)

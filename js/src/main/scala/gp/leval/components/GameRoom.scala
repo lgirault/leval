@@ -1,6 +1,7 @@
 package gp.leval.components
 
 import gp.pixijs.Application
+
 import java.util.UUID
 import japgolly.scalajs.react.*
 import japgolly.scalajs.react.component.builder.Lifecycle.RenderScope
@@ -21,12 +22,6 @@ object GameRoom:
     element.appendChild(P.app.view)
   }
 
-  //   def render(P:Props, S: State) = {
-  //      <.div(s"Hello world GameRoom ", $.props.toString,
-  //      <.div( Attr.UntypedRef(updatePixiContainer(S)) )
-  //     )
-  //   }
-
   val component = ScalaComponent
     .builder[Props]
     .render_P(P =>
@@ -38,6 +33,8 @@ object GameRoom:
     )
     .build
 
-  def apply(id: UUID, 
-            app: Application = new Application(Application.options(1024, 768))) = 
+  def apply(
+      id: UUID,
+      app: Application = Application(1024, 768)
+  ) =
     component(Props(id, app))

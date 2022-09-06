@@ -21,6 +21,9 @@ class Application(options: js.Object) extends js.Object:
 
 object Application:
 
+  def apply(width: Int, height: Int, backgroundColor: Int = 0x000000) : Application = 
+    new Application(options(width, height, backgroundColor))
+    
   def options(width: Int, height: Int, backgroundColor: Int = 0x000000) : js.Object = {
     js.Dynamic.literal(width = width, height = height, backgroundColor = backgroundColor)
   }

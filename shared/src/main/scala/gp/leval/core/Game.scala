@@ -20,7 +20,7 @@ object Game {
 
   //  def activateOrDiscard()
   def goesToRiver(card: Card): Boolean = card match {
-    case Card((Jack | Queen | King), Diamond) => false
+    case Card((Rank.Jack | Rank.Queen | Rank.King), Suit.Diamond) => false
     case _                                    => true
   }
 }
@@ -94,9 +94,9 @@ case class Game(
     val g1 = setStar(side, _ -- being.cards)
       .copy(beings = beings + (being.face -> being))
     being.face match {
-      case Card(King, _) | Card(Jack, Heart) =>
+      case Card(Rank.King, _) | Card(Rank.Jack, Suit.Heart) =>
         beings.find {
-          case (Card(Queen, _), b @ Spectre(BlackLady)) =>
+          case (Card(Rank.Queen, _), b @ Spectre(BlackLady)) =>
             b.lovedOne contains being.face
           // TODO check if 4 players game requires lover to be same card
           // or just same card value
@@ -158,7 +158,7 @@ case class Game(
     }
 
     val toDraw =
-      if removed1 && targetedSuit == Club then
+      if removed1 && targetedSuit == Suit.Club then
         rules.wizardOrEminenceGrise(origin)
       else 0
 
@@ -204,8 +204,8 @@ case class Game(
     val targetB = beings(targetfc)
     val looked = targetB resources s
     looked match {
-      case Card(Queen | King, _) if removeGard(targetB.owner) =>
-        (rules.removeArcanumFromBeing(this, sAttacker, targetB, Heart), true)
+      case Card(Rank.Queen | Rank.King, _) if removeGard(targetB.owner) =>
+        (rules.removeArcanumFromBeing(this, sAttacker, targetB, Suit.Heart), true)
       case _ => (this, false)
     }
   }
