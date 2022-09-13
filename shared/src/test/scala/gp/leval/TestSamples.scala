@@ -6,12 +6,12 @@ import gp.leval.core.{
   Rank,
   Suit
 }
+import gp.leval.core.Card.given
 
 /** Created by lorilan on 9/1/16.
   */
 object TestSamples {
-  given Conversion[(Int, Suit), Card.C] = p => Card.C(0, Rank.Numeric(p._1), p._2)
-  given Conversion[(Rank.Face, Suit), Card.C] = p => Card.C(0, p._1, p._2)
+
 
   val child = new Being(1, (Rank.Jack, Suit.Spade), Map(Suit.Heart -> ((2, Suit.Heart))))
   val wizard = new Being(

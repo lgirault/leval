@@ -7,21 +7,23 @@ import scala.util.Random
 type Deck = List[Card]
 
 val suits = List(Suit.Diamond, Suit.Club, Suit.Heart, Suit.Spade)
-val ranks = (for (i <- 1 to 10) yield Rank.Numeric(i)) ++ List(Rank.Jack, Rank.Queen, Rank.King)
+val ranks = (for (i <- 1 to 10)
+  yield Rank.Numeric(i)) ++ List(Rank.Jack, Rank.Queen, Rank.King)
 def jokers(deckId: Byte) = {
   import Joker.*
   List[Card](Card.J(deckId, Red), Card.J(deckId, Black))
 }
-def deck54(deckId: Byte = 0): Deck = {
+
+def deck54(deckId: Byte = 0): Deck = 
   val cards = for {
     s <- suits
     r <- ranks
   } yield Card.C(deckId, r, s)
 
-  Random.shuffle(jokers(deckId) ++ cards)
-}
+  jokers(deckId) ++: cards
 
-implicit class DeckOps(val d: Deck) extends AnyVal {
+
+extension (d: Deck)
   def pick(n: Int): (Deck, List[Card]) = {
 
     def aux(n: Int, remaining: Deck, picked: List[Card]): (Deck, List[Card]) =
@@ -30,4 +32,3 @@ implicit class DeckOps(val d: Deck) extends AnyVal {
 
     aux(n, d, List())
   }
-}

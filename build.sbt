@@ -69,6 +69,7 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
     libraryDependencies ++=
       Seq(
         "org.typelevel" %%% "cats-core" % CatsVersion,
+        "org.typelevel" %%% "cats-effect" % "3.3.12",
         "io.circe" %%% "circe-generic" % CirceVersion,
         // "io.circe" %%% "circe-generic-extras" % CirceVersion,
         "io.circe" %%% "circe-parser" % CirceVersion,

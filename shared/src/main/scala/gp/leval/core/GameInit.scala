@@ -1,10 +1,15 @@
 package gp.leval.core
 
 import gp.leval
+import java.util.Date
+import cats.implicits.*
+import cats.effect.kernel.{Sync, Clock}
+import cats.effect.std.Random
 
 /** Created by lorilan on 9/2/16.
   */
 case class GameInit(
+    seed: Long,
     twilight: Twilight,
     stars: List[Star], // for 4 or 3 players ??
     source: Deck,
@@ -27,27 +32,33 @@ case class GameInit(
     val (s1, s2) = (s01 ++ h1, s02 ++ h2)
 
     if Card.value(h1.head) > Card.value(h2.head) then
-      copy(Twilight(List(h1, h2)), stars = List(s1, s2), source = d)
-    else copy(Twilight(List(h2, h1)), stars = List(s2, s1), source = d)
+      copy(twilight = Twilight(List(h1, h2)), stars = List(s1, s2), source = d)
+    else copy(twilight = Twilight(List(h2, h1)), stars = List(s2, s1), source = d)
   }
 }
 
-object GameInit {
+object GameInit:
 
-  def apply(players: List[PlayerId], rule: Rules): GameInit = players match {
+  def apply[F[_]](players: List[PlayerId], rule: Rules)(using F: Sync[F]): F[GameInit] = players match {
     case p1 :: p2 :: Nil => this.apply(p1, p2, rule)
-    case _               => leval.error("two players only")
+    case _               => F.raiseError(new Exception("two players only"))
   }
 
-  def apply(pid1: PlayerId, pid2: PlayerId, rules: Rules): GameInit = {
-    val deck = deck54()
-
+  def apply[F[_]](pid1: PlayerId, pid2: PlayerId, rules: Rules)
+  (using F: Sync[F], clock: Clock[F]): F[GameInit] = 
     import rules.{coreRules as crules}
-    // on pioche 9 carte
-    val (d2, hand1) = deck.pick(9)
-    val (d3, hand2) = d2.pick(9)
+    for {
+      now <- clock.realTime
+      seed = now.toMillis
+      r <- Random.scalaUtilRandomSeedLong(seed)
+      deck <- r.shuffleList(deck54())
 
-    new GameInit(
+      // on pioche 9 carte
+      (d2, hand1) = deck.pick(9)
+      (d3, hand2) = d2.pick(9)
+
+    } yield   new GameInit(
+      seed,
       Twilight(List()),
       List(
         Star(pid1, crules.startingMajesty, hand1),
@@ -56,7 +67,7 @@ object GameInit {
       d3,
       rules
     )
-  }
+  
 
   def hasFace(h: Set[Card]) =
     h.exists {
@@ -67,10 +78,13 @@ object GameInit {
   def mulligan(g: Game): Boolean =
     g.stars.exists(s => !hasFace(s.hand))
 
-  def gameWithoutMulligan(players: List[PlayerId], rules: Rules): GameInit = {
-    val gi = GameInit(players, rules).doTwilight
-    if mulligan(gi.game) then gameWithoutMulligan(players, rules)
-    else gi
+  def gameWithoutMulligan[F[_]](players: List[PlayerId], rules: Rules)(using F: Sync[F]): F[GameInit] = {
+    GameInit(players, rules).flatMap{ gi0 =>
+      val gi = gi0.doTwilight
+      if mulligan(gi.game) then gameWithoutMulligan(players, rules)
+      else F.pure(gi)
+
+    }
   }
 
   def doTwilight(source: List[Card]): (List[Card], List[List[Card]]) = {
@@ -91,4 +105,3 @@ object GameInit {
       }
     (d, List(h1, h2))
   }
-}

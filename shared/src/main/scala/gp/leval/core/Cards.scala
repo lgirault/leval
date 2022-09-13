@@ -36,6 +36,9 @@ object Joker {
 
 object Card {
 
+  given Conversion[(Int, Suit), Card.C] = p => Card.C(0, Rank.Numeric(p._1), p._2)
+  given Conversion[(Rank.Face, Suit), Card.C] = p => Card.C(0, p._1, p._2)
+
   case class C(deckId: Byte, rank: Rank, suit: Suit) extends Card
   case class J(deckId: Byte, color: Joker.Color) extends Card
 
@@ -67,12 +70,12 @@ object Card {
     case Rank.King       => 13
   }
 
-  implicit val suitOrdering: Ordering[Suit] = new Ordering[Suit] {
+  given suitOrdering: Ordering[Suit] = new Ordering[Suit] {
     def compare(x: Suit, y: Suit): Int =
       Ordering.Int.compare(orderingValue(x), orderingValue(y))
   }
 
-  implicit val rankOrdering: Ordering[Rank] = new Ordering[Rank] {
+  given rankOrdering: Ordering[Rank] = new Ordering[Rank] {
     def compare(x: Rank, y: Rank): Int =
       Ordering.Int.compare(orderingValue(x), orderingValue(y))
   }
