@@ -11,3 +11,13 @@ class Sprite(texture0: Texture) extends Container {
 
   var texture: Texture = js.native
 }
+
+object Sprite {
+
+  extension (s: Sprite)
+    def scaleForWidth(w: Double) = 
+      s.width = w
+      val Point(x,_) = s.scale
+      s.scale = new Point(x,x)
+      
+}

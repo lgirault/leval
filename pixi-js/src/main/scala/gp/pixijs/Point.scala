@@ -9,8 +9,12 @@ class Point(x : Double, y: Double) extends IPoint
 
 object Point {
 
-  implicit def dpair2point(pair: (Double, Double)) : Point = new Point(pair._1, pair._2)
-  implicit def ipair2point(pair: (Int, Int)) : Point = new Point(pair._1, pair._2)
-  implicit def idpair2point(pair: (Int, Double)) : Point = new Point(pair._1, pair._2)
-  implicit def dipair2point(pair: (Double, Int)) : Point = new Point(pair._1, pair._2)
+  def unapply(p: IPoint): Some[(Double, Double)] = 
+    Some((p.x, p.y))
+
+  given Conversion[(Double, Double), Point] = pair => new Point(pair._1, pair._2)
+  given Conversion[(Int, Int), Point] = pair => new Point(pair._1, pair._2)
+  given Conversion[(Int, Double), Point] = pair => new Point(pair._1, pair._2)
+  given Conversion[(Double, Int), Point] = pair => new Point(pair._1, pair._2)
+  
 }

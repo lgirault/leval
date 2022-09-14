@@ -9,6 +9,7 @@ abstract class DisplayObject extends EventEmitter {
 
   var x : Double = js.native
   var y : Double = js.native
+  var zIndex : Double = js.native
 
   var pivot: IPoint = js.native
   var rotation: Double = js.native

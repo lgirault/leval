@@ -1,7 +1,7 @@
 package gp.leval
 
 import gp.leval.routes.AppRouter
-import gp.leval.gamescreen.TextureDictionary
+import gp.leval.gamescreen.*
 
 import org.scalajs.dom
 import cats.implicits.*
@@ -27,18 +27,19 @@ object Main extends IOApp.Simple {
           ),
           Rules(Sinnlos)
         )
-        textures <- TextureDictionary.load[IO]
+        (textures @ given TextureDictionary) <- TextureDictionary.load[IO]
       } yield {
 
         println(game)
-        val app = Application(1024, 768)
+        val (height,width) = (1024, 768)
+        val app = Application(height, width)
 
-        //val sprite =  new Sprite(Texture.from("assets/cards/1_of_clubs.png"))
-        val sprite =  textures.sprite((1, Suit.Club))
-        sprite.scale = (0.5, 0.5)
-        app.stage.addChild(sprite)
+        val gameView = new GameScreen(height, width)(game.doTwilight.game)
+        app.stage.addChild(gameView.view)
+      
+
         dom.document.getElementById("root-container").append(app.view)
-
+      
         // AppRouter().renderIntoDOM(dom.document.getElementById("root-container"))
 
       }

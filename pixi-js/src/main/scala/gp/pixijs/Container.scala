@@ -15,6 +15,13 @@ class Container extends DisplayObject {
 
   var width: Double = js.native
   var height: Double = js.native
+  var sortableChildren: Boolean = js.native
 
 
 }
+
+object Container:
+  def apply(setUp: Container => Unit) : Container = 
+    val c = new Container
+    setUp(c)
+    c

@@ -136,7 +136,9 @@ lazy val leval = crossProject(JSPlatform, JVMPlatform)
       "react" -> "18.2.0",
       "react-dom" -> "18.2.0",
       "pixi.js" -> PixiVersion,
-    )//,
+    ),
+    webpackBundlingMode := BundlingMode.LibraryOnly(),
+    webpackEmitSourceMaps := false
   //  stIgnore ++= List(
   //    "react",
   //    "react-dom",

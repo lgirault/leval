@@ -17,7 +17,7 @@ object TextureDictionary:
 
   def load[F[_]](using F: Sync[F]) : F[TextureDictionary] = 
     F.delay(TextureDictionary(js.Dictionary(deck54().map(keyOff)
-    .map(k => (k -> Texture.from(s"assets/cards/$k.png")))*)))
+    .map(k => (k -> Texture.from(s"/assets/cards/$k.png")))*)))
 
 
 
