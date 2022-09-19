@@ -10,6 +10,7 @@ import scala.scalajs.js.annotation.JSExport
 import gp.leval.core.GameInit
 import gp.leval.core.Card.given
 import gp.leval.core.Suit
+import gp.leval.text.{ValText, Fr}
 import gp.pixijs.*
 import gp.pixijs.Point.*
 import gp.leval.core.*
@@ -17,6 +18,7 @@ import cats.effect.{IO, IOApp}
 
 object Main extends IOApp.Simple {
 
+  @JSExport
   val run: IO[Unit] = {
 
       for {
@@ -30,10 +32,11 @@ object Main extends IOApp.Simple {
         (textures @ given TextureDictionary) <- TextureDictionary.load[IO]
       } yield {
 
-        println(game)
+        //println(game)
         val (height,width) = (1024, 768)
         val app = Application(height, width)
 
+        given ValText = Fr
         val gameView = new GameScreen(height, width)(game.doTwilight.game)
         app.stage.addChild(gameView.view)
       

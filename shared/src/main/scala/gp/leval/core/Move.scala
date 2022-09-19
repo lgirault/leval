@@ -55,8 +55,11 @@ case class Switch(target: Card, c: Card.C) extends Educate
 case class Rise(target: Card, cards: Map[Suit, Card]) extends Educate
 
 sealed abstract class Phase extends Move[Unit]
-case class InfluencePhase(newPlayer: Int) extends Phase
-case class ActPhase(activatedBeings: Set[Card]) extends Phase
-case object SourcePhase extends Phase
+
+object Phase:
+  case class Influence(newPlayer: Int) extends Phase
+  case class Act(activatedBeings: Set[Card]) extends Phase
+  case object Source extends Phase
+
 
 case class Twilight(cards: Seq[Seq[Card]])

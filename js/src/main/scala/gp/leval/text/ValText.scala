@@ -1,27 +1,25 @@
-package leval.gui.text
+package gp.leval.text
 
-import leval.core.{Club, Diamond, Heart, Spade, Suit}
-
-import scalafx.scene.text.Font
+import gp.leval.core.Suit
 
 /**
   * Created by lorilan on 7/8/16.
   */
-object ValText {
+// object ValText {
 
-  val defaultSize = 14d
-  val fantasyFont =
-    Font.loadFont(this.getClass.getResource("/fantasy1.ttf").toExternalForm, defaultSize)
+//   val defaultSize = 14d
+//   val fantasyFont =
+//     Font.loadFont(this.getClass.getResource("/fantasy1.ttf").toExternalForm, defaultSize)
 
-  val defaultFont = new Font(Font.default.getName, defaultSize)
+//   val defaultFont = new Font(Font.default.getName, defaultSize)
 
-  /*
-  style =
-          "-fx-fill: red;"+
-          "-fx-stroke: black;" +
-          "-fx-stroke-width: 1;"
-   */
-}
+//   /*
+//   style =
+//           "-fx-fill: red;"+
+//           "-fx-stroke: black;" +
+//           "-fx-stroke-width: 1;"
+//    */
+// }
 trait ValText {
 
   val id : String
@@ -48,10 +46,10 @@ trait ValText {
   val weapon : String
 
   def suitsText(s : Suit) = s match {
-    case Diamond => mind
-    case Club => power
-    case Heart => heart
-    case Spade => weapon
+    case Suit.Diamond => mind
+    case Suit.Club => power
+    case Suit.Heart => heart
+    case Suit.Spade => weapon
   }
 
   val create_being : String

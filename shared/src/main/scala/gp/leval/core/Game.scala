@@ -30,7 +30,7 @@ case class Game(
     stars: Seq[Star], // for 4 or 3 players ??
     source: Deck,
     currentStarIdx: StarIdx = 0,
-    currentPhase: Phase = InfluencePhase(0),
+    currentPhase: Phase = Phase.Influence(0),
     beings: Map[Card, Being] = Map(),
     deathRiver: List[Card] = List(),
     currentRound: Int = 1,
@@ -47,9 +47,9 @@ case class Game(
   def result = rules.result(this)
 
   def nextPhase: Phase = currentPhase match {
-    case InfluencePhase(_) => ActPhase(Set())
-    case ActPhase(_)       => SourcePhase
-    case SourcePhase       => InfluencePhase(nextPlayer)
+    case Phase.Influence(_) => Phase.Act(Set())
+    case Phase.Act(_)       => Phase.Source
+    case Phase.Source       => Phase.Influence(nextPlayer)
   }
 
   // def currentStar : Star = stars(currentPlayer)
@@ -65,7 +65,7 @@ case class Game(
   }
 
   def activateBeing(face: Card): Game = currentPhase match {
-    case ActPhase(activated) => copy(currentPhase = ActPhase(activated + face))
+    case Phase.Act(activated) => copy(currentPhase = Phase.Act(activated + face))
     case _                   => this
   }
 
@@ -227,17 +227,17 @@ case class Game(
   }
 
   def beginPhase(newPhase: Phase): Game = newPhase match {
-    case InfluencePhase(newActivePlayer) =>
+    case Phase.Influence(newActivePlayer) =>
       copy(
         currentPhase = newPhase,
         currentStarIdx = newActivePlayer,
         currentRound = currentRound + 1
       )
-    case ActPhase(_) =>
+    case Phase.Act(_) =>
       copy(currentPhase = newPhase)
-    case SourcePhase =>
+    case Phase.Source =>
       copy(
-        currentPhase = SourcePhase,
+        currentPhase = Phase.Source,
         beingsState = Map(),
         lookedCards = Set(),
         revealedCard = Set()

@@ -19,7 +19,7 @@ case class GameInit(
   def game: Game = {
     val g = Game(rules.coreRules, stars, source)
     if rules.ostein then
-      g.copy(currentStarIdx = -1, currentPhase = InfluencePhase(-1))
+      g.copy(currentStarIdx = -1, currentPhase = Phase.Influence(-1))
     else g
 
   }

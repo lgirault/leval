@@ -1,34 +1,32 @@
-package leval.gui.text
+package gp.leval.text
 
-import leval.core.Rules
+import gp.leval.core.Rules
 
 /**
   * Created by lorilan on 9/24/16.
   */
-object ShowRules {
+object ShowRules:
 
-  def apply(r : Rules)(implicit texts : ValText) : String = {
-    import r._
+  def apply(r : Rules)(using texts : ValText) : String =
+    import r.*
     val sb = new StringBuilder
     sb append coreRules
-    if(ostein)
+    if ostein then
       sb append " O'Stein"
 
-    if(allowMulligan) {
+    if allowMulligan then 
       sb append " "
       sb append texts.with_mulligan
-    }
+    
 
-    if(nedemone)
+    if nedemone then
       sb append " Nédémone"
 
-    if(janus){
+    if janus then
       sb append " Janus ("
       sb append texts.four_players
       sb append ")"
-    }
-
+    
 
     sb.toString()
-  }
-}
+

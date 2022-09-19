@@ -2,8 +2,9 @@ package gp.leval.gamescreen
 
 import gp.leval.core.Game
 import gp.pixijs.{Container, DisplayObject, Point}
+import gp.leval.text.ValText
 
-class GameScreen(width: Double, height: Double)(game: Game)(using textures : TextureDictionary):
+class GameScreen(width: Double, height: Double)(game: Game)(using textures : TextureDictionary, text: ValText):
 
   val cardHeight = (height / 10).floor
   
@@ -36,6 +37,8 @@ class GameScreen(width: Double, height: Double)(game: Game)(using textures : Tex
       root =>
         root.width = width
         root.height = height
+        val statusPane = new StatusPane(game)
+        root.addChild(statusPane.view)
         val playerHandView = new PlayerHandView(game.stars.head.hand).view
         playerHandView.y = playerHandAreaY
         root.addChild(playerHandView)
