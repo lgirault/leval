@@ -15,10 +15,18 @@ object TextureDictionary:
       case Card(rank, suit) => s"${rank}_of_${suit.toString().toLowerCase()}s"
   }
 
+  
   def load[F[_]](using F: Sync[F]) : F[TextureDictionary] = 
-    F.delay(TextureDictionary(js.Dictionary(deck54().map(keyOff)
-    .map(k => (k -> Texture.from(s"/assets/cards/$k.png")))*)))
+    F.delay{
+      val cardsMap = deck54().map(keyOff)
+        .map(cardTexture) :+ cardTexture("back")
 
+      TextureDictionary(js.Dictionary(cardsMap*))
+    } 
+
+  private def cardTexture(k: String) =
+      (k -> Texture.from(s"/assets/cards/$k.png"))
+    
 
 
 
@@ -26,6 +34,8 @@ class TextureDictionary(tileSet: js.Dictionary[Texture]):
 
   def sprite(c: Card): Sprite = 
     new Sprite(tileSet(keyOff(c)))
+
+  def back: Sprite = new Sprite(tileSet("back"))
   
 
   

@@ -1,10 +1,16 @@
 package gp.leval.gamescreen
 
-import gp.leval.core.Game
+import gp.leval.core.{Game,PlayerId}
 import gp.pixijs.{Container, DisplayObject, Point}
 import gp.leval.text.ValText
+import gp.leval.gamescreen.leftcolumn.{StarPane, StatusPane}
 
-class GameScreen(width: Double, height: Double)(game: Game)(using textures : TextureDictionary, text: ValText):
+class TwoPlayerGameScreen(width: Double, height: Double)(game: Game, thisPlayer: PlayerId)(using textures : TextureDictionary, text: ValText):
+
+  val playerIdx: Int = game.stars.indexWhere(_.id == thisPlayer)
+  val opponentIdx: Int = (playerIdx + 1) % 2
+  val thisStar = game.stars(playerIdx)
+  val opponentStar = game.stars(opponentIdx)
 
   val cardHeight = (height / 10).floor
   
@@ -37,8 +43,22 @@ class GameScreen(width: Double, height: Double)(game: Game)(using textures : Tex
       root =>
         root.width = width
         root.height = height
-        val statusPane = new StatusPane(game)
-        root.addChild(statusPane.view)
+        val leftColumn = Container{
+          column =>
+            val statusPane = new StatusPane(game)
+            column.addChild(statusPane.view)
+            val opponentStarPane = new StarPane(opponentStar).view
+            opponentStarPane.y = 100
+            column.addChild(opponentStarPane)
+            val back = textures.back
+            back.y = 200
+            column.addChild(back)
+            val thisStarPane = new StarPane(thisStar).view
+            thisStarPane.y = 200 + back.height
+            column.addChild(thisStarPane)
+        
+        }
+        root.addChild(leftColumn)
         val playerHandView = new PlayerHandView(game.stars.head.hand).view
         playerHandView.y = playerHandAreaY
         root.addChild(playerHandView)

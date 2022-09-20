@@ -18,13 +18,12 @@ import cats.effect.{IO, IOApp}
 
 object Main extends IOApp.Simple {
 
-  @JSExport
   val run: IO[Unit] = {
 
+      val toto = PlayerId(None, "Toto")
       for {
         game <- GameInit[IO](
-          List(
-            PlayerId(None, "Toto"),
+          List(toto,
             PlayerId(None, "Titi")
           ),
           Rules(Sinnlos)
@@ -32,12 +31,12 @@ object Main extends IOApp.Simple {
         (textures @ given TextureDictionary) <- TextureDictionary.load[IO]
       } yield {
 
-        //println(game)
+        println(game)
         val (height,width) = (1024, 768)
         val app = Application(height, width)
 
         given ValText = Fr
-        val gameView = new GameScreen(height, width)(game.doTwilight.game)
+        val gameView = new TwoPlayerGameScreen(height, width)(game.doTwilight.game, toto)
         app.stage.addChild(gameView.view)
       
 

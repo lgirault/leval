@@ -1,9 +1,11 @@
-package gp.leval.gamescreen
+package gp.leval.gamescreen.leftcolumn
 
 import gp.leval.core.{Game, Phase}
 import gp.leval.text.ValText
 import gp.pixijs.{Container, DisplayObject, Text}
 import gp.pixijs.TextStyle
+import gp.leval.gamescreen.TextureDictionary
+
 
 class StatusPane(game: Game)(using textures: TextureDictionary, txt: ValText):
 
