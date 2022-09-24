@@ -2,8 +2,7 @@ package gp.leval.gamescreen.leftcolumn
 
 import gp.leval.core.Star
 import gp.leval.text.ValText
-import gp.pixijs.{Container, DisplayObject, Text}
-import gp.pixijs.TextStyle
+import gp.pixijs.{Container, DisplayObject, Text, TextStyle}
 
 class StarPane(star: Star)(using txt : ValText):
 

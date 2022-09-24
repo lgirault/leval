@@ -40,6 +40,9 @@ class Graphics(geometry : GraphicsGeometry = null) extends Container {
   def clear(): Graphics = js.native
   val line: LineStyle = js.native
 
+  def moveTo(x: Double, y:Double) : Graphics = js.native
+  def lineTo(x: Double, y:Double) : Graphics = js.native
+
   def lineStyle(options: LineStyle): Graphics = js.native
 
   def lineStyle(width: Double = 0,

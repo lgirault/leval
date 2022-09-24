@@ -251,7 +251,7 @@ case class Game(
 }
 
 //import cats.{Id, ~>}
-class MutableGame(var game: Game) /*extends (Move ~> Id)*/ {
+open class MutableGame(var game: Game) /*extends (Move ~> Id)*/ {
 
   def source = game.source
   def stars: Seq[Star] = game.stars

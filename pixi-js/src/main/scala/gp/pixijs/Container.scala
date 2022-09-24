@@ -5,7 +5,7 @@ import scala.scalajs.js.annotation.JSGlobal
 
 @js.native
 @JSGlobal("PIXI.Container")
-class Container extends DisplayObject {
+open class Container extends DisplayObject {
   def addChild(children: DisplayObject*) : DisplayObject = js.native
 
   val children : js.Array[DisplayObject] = js.native

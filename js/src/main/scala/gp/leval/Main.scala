@@ -31,18 +31,23 @@ object Main extends IOApp.Simple {
         (textures @ given TextureDictionary) <- TextureDictionary.load[IO]
       } yield {
 
-        println(game)
         val (height,width) = (1024, 768)
         val app = Application(height, width)
 
+        val dbox = new DialogBox("toto", "0 + 0 = la tête à toto").view
+        dbox.x = 300
+        dbox.y = 150
+        
         given ValText = Fr
         val gameView = new TwoPlayerGameScreen(height, width)(game.doTwilight.game, toto)
         app.stage.addChild(gameView.view)
+        app.stage.addChild(dbox)
       
+
 
         dom.document.getElementById("root-container").append(app.view)
       
-        // AppRouter().renderIntoDOM(dom.document.getElementById("root-container"))
+        //AppRouter().renderIntoDOM(dom.document.getElementById("root-container"))
 
       }
       

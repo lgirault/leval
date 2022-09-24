@@ -1,7 +1,5 @@
-package leval.gui.gameScreen
+package gp.leval.core
 
-//import cats._
-import leval.core.{Game, Move, MutableGame}
 
 import scala.collection.mutable
 
@@ -26,7 +24,5 @@ class ObservableGame(g : Game) extends MutableGame(g){
     notifyAll(ma, res)
     res
   }
-
-
 
 }
